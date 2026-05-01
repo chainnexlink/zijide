@@ -3,7 +3,10 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to App Store Connect"
   lane :release do
-    # Setup API key from environment
+    # Setup CI keychain
+    setup_ci
+
+    # Setup API key
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
@@ -11,11 +14,27 @@ platform :ios do
       in_house: false
     )
 
-    # Update code signing settings
+    # Auto-create/download distribution certificate
+    get_certificates(
+      api_key: api_key,
+      platform: "ios"
+    )
+
+    # Auto-create/download provisioning profile
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.warrescue.appname",
+      platform: "ios"
+    )
+
+    # Configure manual code signing with the downloaded cert and profile
     update_code_signing_settings(
-      use_automatic_signing: true,
+      use_automatic_signing: false,
       team_id: ENV["APPLE_TEAM_ID"],
-      path: "App.xcodeproj"
+      path: "App.xcodeproj",
+      code_sign_identity: "Apple Distribution",
+      profile_name: lane_context[SharedValues::SIGH_NAME],
+      bundle_identifier: "com.warrescue.appname"
     )
 
     # Build the app
@@ -25,11 +44,12 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       export_options: {
-        provisioningProfiles: {},
-        signingStyle: "automatic",
-        teamID: ENV["APPLE_TEAM_ID"]
-      },
-      xcargs: "DEVELOPMENT_TEAM='#{ENV["APPLE_TEAM_ID"]}' -allowProvisioningUpdates -authenticationKeyPath '#{ENV["API_KEY_PATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_ISSUER_ID"]}'"
+        signingStyle: "manual",
+        teamID: ENV["APPLE_TEAM_ID"],
+        provisioningProfiles: {
+          "com.warrescue.appname" => lane_context[SharedValues::SIGH_NAME]
+        }
+      }
     )
 
     # Upload to App Store Connect
@@ -44,6 +64,10 @@ platform :ios do
 
   desc "Build only (no upload)"
   lane :build_only do
+    # Setup CI keychain
+    setup_ci
+
+    # Setup API key
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
@@ -51,23 +75,42 @@ platform :ios do
       in_house: false
     )
 
-    update_code_signing_settings(
-      use_automatic_signing: true,
-      team_id: ENV["APPLE_TEAM_ID"],
-      path: "App.xcodeproj"
+    # Auto-create/download distribution certificate
+    get_certificates(
+      api_key: api_key,
+      platform: "ios"
     )
 
+    # Auto-create/download provisioning profile
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.warrescue.appname",
+      platform: "ios"
+    )
+
+    # Configure manual code signing with the downloaded cert and profile
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      team_id: ENV["APPLE_TEAM_ID"],
+      path: "App.xcodeproj",
+      code_sign_identity: "Apple Distribution",
+      profile_name: lane_context[SharedValues::SIGH_NAME],
+      bundle_identifier: "com.warrescue.appname"
+    )
+
+    # Build the app
     build_app(
       workspace: "App.xcworkspace",
       scheme: "App",
       configuration: "Release",
       export_method: "app-store",
       export_options: {
-        provisioningProfiles: {},
-        signingStyle: "automatic",
-        teamID: ENV["APPLE_TEAM_ID"]
-      },
-      xcargs: "DEVELOPMENT_TEAM='#{ENV["APPLE_TEAM_ID"]}' -allowProvisioningUpdates -authenticationKeyPath '#{ENV["API_KEY_PATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_ISSUER_ID"]}'"
+        signingStyle: "manual",
+        teamID: ENV["APPLE_TEAM_ID"],
+        provisioningProfiles: {
+          "com.warrescue.appname" => lane_context[SharedValues::SIGH_NAME]
+        }
+      }
     )
   end
 end
