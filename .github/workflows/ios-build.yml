@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 60
 
     env:
@@ -22,6 +22,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: |
+          echo "Available Xcode versions:"
+          ls -d /Applications/Xcode*.app 2>/dev/null || true
+          LATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Selecting: $LATEST_XCODE"
+          sudo xcode-select -s "$LATEST_XCODE/Contents/Developer"
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,6 +47,30 @@ jobs:
 
       - name: Copy web assets to iOS
         run: npx cap copy ios
+
+      - name: Generate App Icons
+        run: |
+          SOURCE="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+          DEST="ios/App/App/Assets.xcassets/AppIcon.appiconset"
+
+          # Generate all required icon sizes from 1024x1024 source
+          sips -z 20 20 "$SOURCE" --out "$DEST/Icon-20.png"
+          sips -z 29 29 "$SOURCE" --out "$DEST/Icon-29.png"
+          sips -z 40 40 "$SOURCE" --out "$DEST/Icon-40.png"
+          sips -z 40 40 "$SOURCE" --out "$DEST/Icon-20@2x.png"
+          sips -z 58 58 "$SOURCE" --out "$DEST/Icon-29@2x.png"
+          sips -z 60 60 "$SOURCE" --out "$DEST/Icon-20@3x.png"
+          sips -z 80 80 "$SOURCE" --out "$DEST/Icon-40@2x.png"
+          sips -z 87 87 "$SOURCE" --out "$DEST/Icon-29@3x.png"
+          sips -z 120 120 "$SOURCE" --out "$DEST/Icon-40@3x.png"
+          sips -z 120 120 "$SOURCE" --out "$DEST/Icon-60@2x.png"
+          sips -z 152 152 "$SOURCE" --out "$DEST/Icon-76@2x.png"
+          sips -z 167 167 "$SOURCE" --out "$DEST/Icon-83.5@2x.png"
+          sips -z 180 180 "$SOURCE" --out "$DEST/Icon-60@3x.png"
+          cp "$SOURCE" "$DEST/Icon-1024.png"
+
+          echo "Generated icons:"
+          ls -la "$DEST"/Icon-*.png
 
       - name: Fix iOS deployment target
         working-directory: ios/App
