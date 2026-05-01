@@ -87,7 +87,8 @@ jobs:
           rm -f AppleWWDRCAG3.cer AppleWWDRCAG6.cer
 
           # Allow codesign to access keychain items without UI prompt
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          # Note: may fail with "item not found" if no private keys exist yet - that's OK
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" || true
 
           # Export for Fastlane
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
