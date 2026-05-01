@@ -14,6 +14,11 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 60
 
+    env:
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,19 +42,13 @@ jobs:
         working-directory: ios/App
         run: |
           sed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile
-          echo "=== Podfile after fix ==="
-          cat Podfile
-
-      - name: Fix Xcode project deployment target
-        working-directory: ios/App
-        run: |
           sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' App.xcodeproj/project.pbxproj
 
-      - name: Install CocoaPods dependencies
+      - name: Install CocoaPods
         working-directory: ios/App
         run: pod install
 
-      - name: Setup Ruby (for Fastlane)
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
@@ -58,109 +57,28 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Setup App Store Connect API Key
+      - name: Setup API Key file
         env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+          mkdir -p ~/.private_keys
+          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.private_keys/AuthKey.p8
+          echo "API_KEY_PATH=$HOME/.private_keys/AuthKey.p8" >> $GITHUB_ENV
 
-      - name: Add In-App Purchase capability
+      - name: Build and Upload with Fastlane
         working-directory: ios/App
         run: |
-          # Create entitlements file with In-App Purchase
-          cat > App/App.entitlements << 'ENTITLEMENTS'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>com.apple.developer.in-app-payments</key>
-            <array>
-              <string>merchant.com.warrescue.appname</string>
-            </array>
-          </dict>
-          </plist>
-          ENTITLEMENTS
-
-      - name: Configure signing for App target
-        working-directory: ios/App
-        run: |
-          # Set DEVELOPMENT_TEAM for the main App target in Xcode project
-          sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = "'${{ secrets.APPLE_TEAM_ID }}'";/g' App.xcodeproj/project.pbxproj
-          # Ensure all targets use automatic signing
-          sed -i '' 's/ProvisioningStyle = Manual;/ProvisioningStyle = Automatic;/g' App.xcodeproj/project.pbxproj
-
-      - name: Build and Archive
-        working-directory: ios/App
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-        run: |
-          xcodebuild archive \
-            -workspace App.xcworkspace \
-            -scheme App \
-            -configuration Release \
-            -archivePath $RUNNER_TEMP/App.xcarchive \
-            -destination 'generic/platform=iOS' \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
-            -authenticationKeyID $APP_STORE_CONNECT_API_KEY_ID \
-            -authenticationKeyIssuerID $APP_STORE_CONNECT_API_ISSUER_ID \
-            CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
-
-      - name: Create ExportOptions.plist
-        run: |
-          cat > $RUNNER_TEMP/ExportOptions.plist << 'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>destination</key>
-            <string>upload</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>teamID</key>
-            <string>${{ secrets.APPLE_TEAM_ID }}</string>
-          </dict>
-          </plist>
-          PLIST
-
-      - name: Export IPA
-        working-directory: ios/App
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/App.xcarchive \
-            -exportPath $RUNNER_TEMP/export \
-            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
-            -authenticationKeyID $APP_STORE_CONNECT_API_KEY_ID \
-            -authenticationKeyIssuerID $APP_STORE_CONNECT_API_ISSUER_ID
-
-      - name: Upload to App Store Connect
-        if: ${{ inputs.upload_to_appstore }}
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-        run: |
-          xcrun altool --upload-app \
-            -f $RUNNER_TEMP/export/App.ipa \
-            -t ios \
-            --apiKey $APP_STORE_CONNECT_API_KEY_ID \
-            --apiIssuer $APP_STORE_CONNECT_API_ISSUER_ID
+          if [ "${{ inputs.upload_to_appstore }}" = "true" ]; then
+            fastlane release
+          else
+            fastlane build_only
+          fi
 
       - name: Upload IPA as artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: WarRescue-iOS
-          path: ${{ runner.temp }}/export/*.ipa
+          path: ios/App/*.ipa
           retention-days: 30
+          if-no-files-found: ignore

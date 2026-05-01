@@ -1,0 +1,73 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to App Store Connect"
+  lane :release do
+    # Setup API key from environment
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      key_filepath: ENV["API_KEY_PATH"],
+      in_house: false
+    )
+
+    # Update code signing settings
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      team_id: ENV["APPLE_TEAM_ID"],
+      path: "App.xcodeproj"
+    )
+
+    # Build the app
+    build_app(
+      workspace: "App.xcworkspace",
+      scheme: "App",
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {},
+        signingStyle: "automatic",
+        teamID: ENV["APPLE_TEAM_ID"]
+      },
+      xcargs: "DEVELOPMENT_TEAM='#{ENV["APPLE_TEAM_ID"]}' -allowProvisioningUpdates -authenticationKeyPath '#{ENV["API_KEY_PATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_ISSUER_ID"]}'"
+    )
+
+    # Upload to App Store Connect
+    upload_to_app_store(
+      api_key: api_key,
+      skip_metadata: true,
+      skip_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "Build only (no upload)"
+  lane :build_only do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      key_filepath: ENV["API_KEY_PATH"],
+      in_house: false
+    )
+
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      team_id: ENV["APPLE_TEAM_ID"],
+      path: "App.xcodeproj"
+    )
+
+    build_app(
+      workspace: "App.xcworkspace",
+      scheme: "App",
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {},
+        signingStyle: "automatic",
+        teamID: ENV["APPLE_TEAM_ID"]
+      },
+      xcargs: "DEVELOPMENT_TEAM='#{ENV["APPLE_TEAM_ID"]}' -allowProvisioningUpdates -authenticationKeyPath '#{ENV["API_KEY_PATH"]}' -authenticationKeyID '#{ENV["APP_STORE_CONNECT_API_KEY_ID"]}' -authenticationKeyIssuerID '#{ENV["APP_STORE_CONNECT_API_ISSUER_ID"]}'"
+    )
+  end
+end
