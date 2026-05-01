@@ -119,6 +119,7 @@ WarAlarmApp/app/build/
 *.png
 !src/**/*.png
 !assets/**/*.png
+!ios/App/App/Assets.xcassets/**/*.png
 
 # Test scripts
 test_*.js
