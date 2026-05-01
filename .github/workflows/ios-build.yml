@@ -30,8 +30,17 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Sync Capacitor iOS
-        run: npx cap sync ios
+      - name: Copy web assets to iOS
+        run: npx cap copy ios
+
+      - name: Update iOS native plugins
+        run: npx cap update ios || true
+
+      - name: Ensure iOS deployment target
+        working-directory: ios/App
+        run: |
+          sed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile
+          cat Podfile
 
       - name: Setup Ruby (for Fastlane)
         uses: ruby/setup-ruby@v1
