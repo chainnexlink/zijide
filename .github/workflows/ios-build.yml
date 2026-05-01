@@ -84,30 +84,13 @@ jobs:
           </plist>
           ENTITLEMENTS
 
-      - name: Configure signing for all targets
+      - name: Configure signing for App target
         working-directory: ios/App
         run: |
-          # Set automatic signing and team ID for all targets in the Xcode project
-          sed -i '' 's/DevelopmentTeam = "";/DevelopmentTeam = ${{ secrets.APPLE_TEAM_ID }};/g' App.xcodeproj/project.pbxproj
-          sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = ${{ secrets.APPLE_TEAM_ID }};/g' App.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGN_STYLE = Manual;/CODE_SIGN_STYLE = Automatic;/g' App.xcodeproj/project.pbxproj
-
-          # Also inject DEVELOPMENT_TEAM into all build settings that don't have it
-          python3 -c "
-          import re
-          with open('App.xcodeproj/project.pbxproj', 'r') as f:
-              content = f.read()
-          # Add DEVELOPMENT_TEAM to build settings blocks that don't have it
-          content = re.sub(
-              r'(buildSettings = \{[^}]*?)(CODE_SIGN_IDENTITY)',
-              r'\1DEVELOPMENT_TEAM = ${{ secrets.APPLE_TEAM_ID }};\n\t\t\t\tCODE_SIGN_IDENTITY',
-              content
-          )
-          with open('App.xcodeproj/project.pbxproj', 'w') as f:
-              f.write(content)
-          "
-
-          echo "=== Signing config updated ==="
+          # Set DEVELOPMENT_TEAM for the main App target in Xcode project
+          sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = "'${{ secrets.APPLE_TEAM_ID }}'";/g' App.xcodeproj/project.pbxproj
+          # Ensure all targets use automatic signing
+          sed -i '' 's/ProvisioningStyle = Manual;/ProvisioningStyle = Automatic;/g' App.xcodeproj/project.pbxproj
 
       - name: Build and Archive
         working-directory: ios/App
@@ -125,11 +108,9 @@ jobs:
             -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
             -authenticationKeyID $APP_STORE_CONNECT_API_KEY_ID \
             -authenticationKeyIssuerID $APP_STORE_CONNECT_API_ISSUER_ID \
-            CODE_SIGNING_ALLOWED=YES \
             CODE_SIGN_STYLE=Automatic \
             CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
-            PRODUCT_BUNDLE_IDENTIFIER=com.warrescue.appname
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
 
       - name: Create ExportOptions.plist
         run: |
