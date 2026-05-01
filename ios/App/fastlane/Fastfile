@@ -14,19 +14,25 @@ platform :ios do
     )
     Spaceship::ConnectAPI.token = token
 
-    certs = Spaceship::ConnectAPI::Certificate.all(
-      filter: { certificateType: "IOS_DISTRIBUTION" }
-    )
+    all_certs = []
+    # Check both legacy (IOS_DISTRIBUTION) and modern (DISTRIBUTION / Apple Distribution) types
+    ["DISTRIBUTION", "IOS_DISTRIBUTION"].each do |cert_type|
+      found = Spaceship::ConnectAPI::Certificate.all(
+        filter: { certificateType: cert_type }
+      )
+      UI.message("Found #{found.count} certificate(s) of type #{cert_type}")
+      all_certs.concat(found)
+    end
 
-    UI.message("Found #{certs.count} existing iOS Distribution certificate(s)")
+    UI.message("Total distribution certificates: #{all_certs.count}")
 
-    if certs.count >= 2
+    if all_certs.count >= 2
       UI.important("Maximum certificates reached, revoking all orphaned certificates...")
-      certs.each do |cert|
+      all_certs.each do |cert|
         UI.message("Revoking certificate: #{cert.id} (#{cert.display_name})")
         cert.delete!
       end
-      UI.success("Revoked #{certs.count} orphaned certificate(s)")
+      UI.success("Revoked #{all_certs.count} orphaned certificate(s)")
     end
   end
 
