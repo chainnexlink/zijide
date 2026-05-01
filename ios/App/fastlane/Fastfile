@@ -3,16 +3,8 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to App Store Connect"
   lane :release do
-    # Setup CI keychain
-    setup_ci
-
-    # Install Apple WWDR intermediate certificates for trust chain
-    # Without these, imported distribution certs won't be recognized as valid signing identities
-    sh("curl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer")
-    sh("curl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG6.cer")
-    sh("security import AppleWWDRCAG3.cer -k ~/Library/Keychains/fastlane_tmp_keychain -T /usr/bin/codesign -T /usr/bin/security || true")
-    sh("security import AppleWWDRCAG6.cer -k ~/Library/Keychains/fastlane_tmp_keychain -T /usr/bin/codesign -T /usr/bin/security || true")
-    sh("rm -f AppleWWDRCAG3.cer AppleWWDRCAG6.cer")
+    keychain_path = ENV["KEYCHAIN_PATH"]
+    keychain_password = ENV["KEYCHAIN_PASSWORD"]
 
     # Setup API key
     api_key = app_store_connect_api_key(
@@ -25,8 +17,16 @@ platform :ios do
     # Auto-create/download distribution certificate
     get_certificates(
       api_key: api_key,
-      platform: "ios"
+      platform: "ios",
+      keychain_path: keychain_path,
+      keychain_password: keychain_password
     )
+
+    # Re-apply partition list after cert import (critical for codesign access)
+    sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}'")
+
+    # Debug: verify signing identity is available
+    sh("security find-identity -v -p codesigning '#{keychain_path}'")
 
     # Auto-create/download provisioning profile
     get_provisioning_profile(
@@ -72,15 +72,8 @@ platform :ios do
 
   desc "Build only (no upload)"
   lane :build_only do
-    # Setup CI keychain
-    setup_ci
-
-    # Install Apple WWDR intermediate certificates for trust chain
-    sh("curl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer")
-    sh("curl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG6.cer")
-    sh("security import AppleWWDRCAG3.cer -k ~/Library/Keychains/fastlane_tmp_keychain -T /usr/bin/codesign -T /usr/bin/security || true")
-    sh("security import AppleWWDRCAG6.cer -k ~/Library/Keychains/fastlane_tmp_keychain -T /usr/bin/codesign -T /usr/bin/security || true")
-    sh("rm -f AppleWWDRCAG3.cer AppleWWDRCAG6.cer")
+    keychain_path = ENV["KEYCHAIN_PATH"]
+    keychain_password = ENV["KEYCHAIN_PASSWORD"]
 
     # Setup API key
     api_key = app_store_connect_api_key(
@@ -93,8 +86,13 @@ platform :ios do
     # Auto-create/download distribution certificate
     get_certificates(
       api_key: api_key,
-      platform: "ios"
+      platform: "ios",
+      keychain_path: keychain_path,
+      keychain_password: keychain_password
     )
+
+    # Re-apply partition list after cert import
+    sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}'")
 
     # Auto-create/download provisioning profile
     get_provisioning_profile(
