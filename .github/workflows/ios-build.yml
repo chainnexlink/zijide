@@ -33,14 +33,21 @@ jobs:
       - name: Copy web assets to iOS
         run: npx cap copy ios
 
-      - name: Update iOS native plugins
-        run: npx cap update ios || true
-
-      - name: Ensure iOS deployment target
+      - name: Fix iOS deployment target
         working-directory: ios/App
         run: |
           sed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile
+          echo "=== Podfile after fix ==="
           cat Podfile
+
+      - name: Fix Xcode project deployment target
+        working-directory: ios/App
+        run: |
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' App.xcodeproj/project.pbxproj
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios/App
+        run: pod install
 
       - name: Setup Ruby (for Fastlane)
         uses: ruby/setup-ruby@v1
@@ -59,10 +66,6 @@ jobs:
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
-
-      - name: Install CocoaPods dependencies
-        working-directory: ios/App
-        run: pod install
 
       - name: Add In-App Purchase capability
         working-directory: ios/App
