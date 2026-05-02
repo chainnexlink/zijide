@@ -114,6 +114,10 @@ ios/App/build/
 # Android build artifacts
 WarAlarmApp/.gradle/
 WarAlarmApp/app/build/
+WarAlarmApp/local.properties
+
+# Supabase local config
+.supabase/
 
 # Screenshots and test images
 *.png
