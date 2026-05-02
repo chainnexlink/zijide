@@ -85,9 +85,6 @@ platform :ios do
       targets: ["App"]
     )
 
-    # Clean build folder to ensure fresh signing
-    sh("xcodebuild clean -workspace App.xcworkspace -scheme App -configuration Release")
-
     # Build the app
     build_app(
       workspace: "App.xcworkspace",
@@ -159,9 +156,6 @@ platform :ios do
       bundle_identifier: "com.warrescue.appname",
       targets: ["App"]
     )
-
-    # Clean build folder to ensure fresh signing
-    sh("xcodebuild clean -workspace App.xcworkspace -scheme App -configuration Release")
 
     # Build the app
     build_app(
