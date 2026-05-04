@@ -7,12 +7,12 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "InAppPurchasePlugin"
     public let jsName = "InAppPurchase"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "initialize", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "getProducts", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "purchaseProduct", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "restorePurchases", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "getReceipt", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "finishTransaction", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "initialize", returnType: "promise"),
+        CAPPluginMethod(name: "getProducts", returnType: "promise"),
+        CAPPluginMethod(name: "purchaseProduct", returnType: "promise"),
+        CAPPluginMethod(name: "restorePurchases", returnType: "promise"),
+        CAPPluginMethod(name: "getReceipt", returnType: "promise"),
+        CAPPluginMethod(name: "finishTransaction", returnType: "promise"),
     ]
 
     private var products: [String: Product] = [:]
@@ -68,14 +68,14 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
 
                 for product in storeProducts {
                     self.products[product.id] = product
-                    productList.append([
+                    let productInfo: [String: Any] = [
                         "productId": product.id,
                         "title": product.displayName,
                         "description": product.description,
                         "price": product.displayPrice,
                         "priceValue": NSDecimalNumber(decimal: product.price).doubleValue,
-                        "currencyCode": product.priceFormatStyle.currencyCode ?? "",
-                    ])
+                    ]
+                    productList.append(productInfo)
                 }
 
                 call.resolve(["products": productList])
