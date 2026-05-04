@@ -74,6 +74,7 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                         "description": product.description,
                         "price": product.displayPrice,
                         "priceValue": NSDecimalNumber(decimal: product.price).doubleValue,
+                        "currencyCode": product.priceFormatStyle.currencyCode,
                     ]
                     productList.append(productInfo)
                 }
@@ -93,7 +94,7 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task {
             do {
-                guard let product = self.products[productId] ?? (try? await Product.products(for: [productId])).first else {
+                guard let product = self.products[productId] ?? (try? await Product.products(for: [productId]))?.first else {
                     call.reject("Product not found: \(productId)")
                     return
                 }
