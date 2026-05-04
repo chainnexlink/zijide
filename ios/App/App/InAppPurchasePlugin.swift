@@ -1,5 +1,5 @@
-import Foundation
-import Capacitor
+@preconcurrency import Foundation
+@preconcurrency import Capacitor
 import StoreKit
 
 @objc(InAppPurchasePlugin)
@@ -16,38 +16,6 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     private var products: [String: Product] = [:]
-    private var updateListenerTask: Task<Void, Error>? = nil
-
-    override public func load() {
-        updateListenerTask = listenForTransactions()
-    }
-
-    deinit {
-        updateListenerTask?.cancel()
-    }
-
-    // Listen for transaction updates (renewals, revocations, etc.)
-    private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached {
-            for await result in Transaction.updates {
-                do {
-                    let transaction = try self.checkVerified(result)
-                    await transaction.finish()
-                } catch {
-                    print("Transaction verification failed: \(error)")
-                }
-            }
-        }
-    }
-
-    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
-        switch result {
-        case .unverified:
-            throw StoreError.failedVerification
-        case .verified(let safe):
-            return safe
-        }
-    }
 
     // MARK: - Plugin Methods
 
@@ -61,7 +29,7 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        Task {
+        Task { @MainActor in
             do {
                 let storeProducts = try await Product.products(for: Set(productIds))
                 var productList: [[String: Any]] = []
@@ -74,7 +42,6 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                         "description": product.description,
                         "price": product.displayPrice,
                         "priceValue": NSDecimalNumber(decimal: product.price).doubleValue,
-                        "currencyCode": product.priceFormatStyle.currencyCode,
                     ]
                     productList.append(productInfo)
                 }
@@ -92,9 +59,14 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        Task {
+        Task { @MainActor in
             do {
-                guard let product = self.products[productId] ?? (try? await Product.products(for: [productId]))?.first else {
+                let product: Product
+                if let cached = self.products[productId] {
+                    product = cached
+                } else if let fetched = try? await Product.products(for: [productId]).first {
+                    product = fetched
+                } else {
                     call.reject("Product not found: \(productId)")
                     return
                 }
@@ -104,8 +76,6 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                 switch result {
                 case .success(let verification):
                     let transaction = try self.checkVerified(verification)
-
-                    // Get the receipt/JWS for server verification
                     let jwsRepresentation = verification.jwsRepresentation
 
                     call.resolve([
@@ -134,22 +104,19 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func restorePurchases(_ call: CAPPluginCall) {
-        Task {
+        Task { @MainActor in
             do {
                 try await AppStore.sync()
 
                 var restoredTransactions: [[String: Any]] = []
 
                 for await result in Transaction.currentEntitlements {
-                    do {
-                        let transaction = try self.checkVerified(result)
+                    if let transaction = try? self.checkVerified(result) {
                         restoredTransactions.append([
                             "transactionId": String(transaction.id),
                             "productId": transaction.productID,
                             "originalTransactionId": String(transaction.originalID),
                         ])
-                    } catch {
-                        continue
                     }
                 }
 
@@ -165,8 +132,6 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getReceipt(_ call: CAPPluginCall) {
-        // In StoreKit 2, we use JWS tokens per-transaction instead of a single receipt
-        // Return the app store receipt URL data for legacy verification
         if let receiptURL = Bundle.main.appStoreReceiptURL,
            let receiptData = try? Data(contentsOf: receiptURL) {
             let base64Receipt = receiptData.base64EncodedString()
@@ -183,25 +148,30 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        Task {
-            // Find and finish the transaction
+        Task { @MainActor in
             for await result in Transaction.unfinished {
-                do {
-                    let transaction = try self.checkVerified(result)
-                    if transaction.id == transactionId {
-                        await transaction.finish()
-                        break
-                    }
-                } catch {
-                    continue
+                if let transaction = try? self.checkVerified(result),
+                   transaction.id == transactionId {
+                    await transaction.finish()
+                    break
                 }
             }
             call.resolve(["success": true])
         }
     }
+
+    // MARK: - Private
+
+    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+        switch result {
+        case .unverified:
+            throw StoreKitError.failedVerification
+        case .verified(let safe):
+            return safe
+        }
+    }
 }
 
-// Custom error enum
-enum StoreError: Error {
+enum StoreKitError: Error {
     case failedVerification
 }
