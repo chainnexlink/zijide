@@ -5,11 +5,7 @@
   "server": {
     "androidScheme": "https"
   },
-  "plugins": {
-    "CapacitorPurchases": {
-      "iosApiKey": ""
-    }
-  },
+  "plugins": {},
   "ios": {
     "contentInset": "automatic",
     "preferredContentMode": "mobile",

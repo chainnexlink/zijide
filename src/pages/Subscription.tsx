@@ -108,9 +108,12 @@ export default function Subscription() {
       setIsIOS(native);
 
       if (native) {
-        await initializeIAP();
-        const products = await fetchProducts();
-        setAppleProducts(products);
+        const initialized = await initializeIAP();
+        if (initialized) {
+          const products = await fetchProducts();
+          setAppleProducts(products);
+        }
+        // Don't show error here - only show when user tries to purchase
       }
 
       await fetchPlans();

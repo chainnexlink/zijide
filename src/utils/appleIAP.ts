@@ -50,7 +50,7 @@ export function isIOSDevice(): boolean {
 function getIAPPlugin(): any {
   const cap = (window as any).Capacitor;
   if (!cap) return null;
-  return cap.Plugins?.CapacitorPurchases || cap.Plugins?.InAppPurchase || null;
+  return cap.Plugins?.InAppPurchase || cap.Plugins?.CapacitorPurchases || cap.Plugins?.InAppPurchasePlugin || null;
 }
 
 /**
@@ -110,26 +110,28 @@ export async function purchaseProduct(productId: string): Promise<ApplePurchaseR
 
   const plugin = getIAPPlugin();
   if (!plugin) {
-    return { success: false, error: 'IAP plugin not available' };
+    return { success: false, error: 'Purchase service unavailable. Please restart the app and try again.' };
   }
 
   try {
     const result = await plugin.purchaseProduct({ productId });
 
+    if (result?.pending) {
+      return { success: false, error: 'Purchase is pending approval' };
+    }
+
     if (result?.transactionId || result?.transaction) {
-      // 获取收据数据
-      const receipt = await getReceiptData();
       return {
         success: true,
         transactionId: result.transactionId || result.transaction?.transactionId,
-        receiptData: receipt,
+        receiptData: result.receiptData,
       };
     }
 
     return { success: false, error: 'Purchase was not completed' };
   } catch (e: any) {
     // 用户取消购买不算错误
-    if (e?.code === 'USER_CANCELLED' || e?.message?.includes('cancel')) {
+    if (e?.code === 'USER_CANCELLED' || e?.message?.includes('cancel') || e?.message?.includes('Cancel')) {
       return { success: false, error: 'cancelled' };
     }
     console.error('Purchase failed:', e);
@@ -165,13 +167,16 @@ export async function restorePurchases(): Promise<ApplePurchaseResult> {
 
   const plugin = getIAPPlugin();
   if (!plugin) {
-    return { success: false, error: 'IAP plugin not available' };
+    return { success: false, error: 'Purchase service unavailable. Please restart the app and try again.' };
   }
 
   try {
-    await plugin.restorePurchases();
-    const receipt = await getReceiptData();
-    return { success: true, receiptData: receipt };
+    const result = await plugin.restorePurchases();
+    return {
+      success: true,
+      receiptData: result?.receiptData,
+      restoredCount: result?.restoredCount || 0,
+    } as any;
   } catch (e: any) {
     console.error('Restore failed:', e);
     return { success: false, error: e?.message || 'Restore failed' };
