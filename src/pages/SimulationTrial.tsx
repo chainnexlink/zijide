@@ -413,7 +413,7 @@ export default function SimulationTrial() {
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
             <h3 className="font-semibold text-lg mb-2">{t('triggerSimulation') || '触发模拟预警'}</h3>
             <p className="text-sm text-slate-400 mb-4">{t('triggerDesc') || 'Select an alert type to simulate the full alert scenario'}</p>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(ALERT_TYPE_META).map(([type, meta]) => {
                 const Icon = meta.icon;
                 return (
@@ -488,7 +488,7 @@ export default function SimulationTrial() {
               </div>
               <h2 className="text-xl font-bold mb-2">{t('selectScenarioToStart') || 'Select a scenario to start'}</h2>
               <p className="text-slate-400 mb-8 max-w-md mx-auto">{t('selectScenarioDesc') || 'Click an alert type below to see the full simulation flow'}</p>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-2xl mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
                 {Object.entries(ALERT_TYPE_META).map(([type, meta]) => {
                   const Icon = meta.icon;
                   return (
@@ -650,7 +650,7 @@ export default function SimulationTrial() {
           {/* Quick navigation */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
             <h3 className="font-semibold text-lg mb-4">{t('featureEntry') || 'Feature Entry'}</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { label: t('alertHistoryLabel') || 'Alert History', path: '/alert-history', icon: Bell, color: 'text-red-400' },
                 { label: t('shelterLabel') || 'Shelters', path: '/shelters', icon: Shield, color: 'text-green-400' },

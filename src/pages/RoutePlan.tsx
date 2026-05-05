@@ -580,7 +580,7 @@ export default function RoutePlan() {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50">
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50 md:hidden">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-around py-2">
             <button

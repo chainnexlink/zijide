@@ -352,7 +352,7 @@ export default function Dashboard() {
   return (
     <div className="text-white" dir={dir}>
       {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
           className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
@@ -410,7 +410,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Main Content - Two Columns on Desktop */}
+      {/* Main Content - Two Columns on Desktop/iPad Landscape */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - 2/3 */}
         <div className="lg:col-span-2 space-y-6">

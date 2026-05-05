@@ -108,7 +108,7 @@ export default function InviteFriends() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white pb-24">
+    <div className="min-h-screen bg-slate-900 text-white pb-24 md:pb-6">
       <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -275,7 +275,7 @@ export default function InviteFriends() {
         </motion.div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/80 backdrop-blur-md border-t border-slate-800">
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 md:hidden">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-around py-2">
             <Link to="/dashboard" className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white">

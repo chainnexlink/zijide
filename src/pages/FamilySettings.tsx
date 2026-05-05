@@ -293,7 +293,7 @@ export default function FamilySettings() {
 
   if (!family) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white pb-24">
+      <div className="min-h-screen bg-slate-950 text-white pb-24 md:pb-6">
         <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
@@ -470,7 +470,7 @@ export default function FamilySettings() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24">
+    <div className="min-h-screen bg-slate-950 text-white pb-24 md:pb-6">
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -864,7 +864,7 @@ function BottomNav() {
   const { t } = useI18n();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50">
+    <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50 md:hidden">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-around py-2">
           <Link to="/dashboard" className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white">
