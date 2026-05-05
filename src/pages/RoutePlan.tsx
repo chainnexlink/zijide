@@ -27,6 +27,8 @@ import {
 import { supabase } from '../supabase/client';
 import { useI18n } from '../hooks/useI18n';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { useSubscription } from '../hooks/useSubscription';
+import SubscriptionGate from '../components/SubscriptionGate';
 import { STATIC_SHELTERS } from '../data/shelters';
 import WarMap, { getShelterMarkerType, MapMarker, fetchDirections } from '../components/WarMap';
 import type { Tables } from '../supabase/types';
@@ -57,6 +59,12 @@ export default function RoutePlan() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { location } = useGeolocation();
+  const { canAccessFeature, loading: subLoading } = useSubscription();
+
+  if (!subLoading && !canAccessFeature('escape_route')) {
+    return <SubscriptionGate feature="escape_route"><></></SubscriptionGate>;
+  }
+
   const [shelters, setShelters] = useState<Shelter[]>([]);
   const [selectedRoute, setSelectedRoute] = useState('fastest');
   const [destination, setDestination] = useState('');
@@ -580,7 +588,7 @@ export default function RoutePlan() {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-around py-2">
             <button

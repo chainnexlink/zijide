@@ -237,6 +237,7 @@ function generateMockAlerts(source: AlertSource, now: Date): AlertData[] {
 }
 
 async function notifySubscribers(supabaseAdmin: any, alert: any) {
+  // Basic in-app notifications go to all users with push_enabled
   const { data: subscribers } = await supabaseAdmin
     .from('user_alert_settings')
     .select('user_id')
@@ -252,6 +253,45 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
     }));
 
     await supabaseAdmin.from('notifications').insert(notifications);
+  }
+
+  // Enhanced notifications (email/SMS) only for red severity alerts
+  // and only for users with an active subscription
+  if (alert.severity === 'red') {
+    const { data: paidUsers } = await supabaseAdmin
+      .from('subscriptions')
+      .select('user_id')
+      .eq('status', 'active')
+      .gt('expires_at', new Date().toISOString());
+
+    if (paidUsers && paidUsers.length > 0) {
+      const paidUserIds = paidUsers.map((u: any) => u.user_id);
+
+      // Get email/phone for paid users
+      const { data: profiles } = await supabaseAdmin
+        .from('profiles')
+        .select('id, email, phone')
+        .in('id', paidUserIds);
+
+      if (profiles) {
+        for (const profile of profiles) {
+          // Insert enhanced notification record for email/SMS delivery
+          await supabaseAdmin.from('notifications').insert({
+            user_id: profile.id,
+            title: `⚠️ URGENT: ${alert.title}`,
+            body: alert.description,
+            type: 'email_sms',
+            data: {
+              alert_id: alert.id,
+              severity: 'red',
+              email: profile.email,
+              phone: profile.phone,
+              delivery: ['email', 'sms'],
+            },
+          });
+        }
+      }
+    }
   }
 }
 

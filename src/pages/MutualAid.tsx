@@ -32,6 +32,8 @@ import {
 import { supabase } from '../supabase/client';
 import { useI18n } from '../hooks/useI18n';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { useSubscription } from '../hooks/useSubscription';
+import SubscriptionGate from '../components/SubscriptionGate';
 import type { Tables } from '../supabase/types';
 
 type SOSRecord = Tables<'sos_records'>;
@@ -49,6 +51,12 @@ export default function MutualAid() {
   const navigate = useNavigate();
   const { t, language, setLanguage, languages, dir } = useI18n();
   const { location, calculateDistance, getDirection } = useGeolocation();
+  const { canAccessFeature, loading: subLoading } = useSubscription();
+
+  if (!subLoading && !canAccessFeature('sos_rescue')) {
+    return <SubscriptionGate feature="sos_rescue"><></></SubscriptionGate>;
+  }
+
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscription, setSubscription] = useState<MutualAidSubscription | null>(null);
   const [nearbySOS, setNearbySOS] = useState<NearbySOS[]>([]);
@@ -230,7 +238,7 @@ export default function MutualAid() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24 md:pb-6" dir={dir}>
+    <div className="min-h-screen bg-slate-950 text-white pb-24" dir={dir}>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -678,7 +686,7 @@ export default function MutualAid() {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-around py-2">
             <Link to="/dashboard" className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white">

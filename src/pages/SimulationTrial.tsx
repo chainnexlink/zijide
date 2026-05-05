@@ -30,6 +30,8 @@ import {
 import { supabase } from '../supabase/client';
 import { useI18n } from '../hooks/useI18n';
 import { useDemo } from '../App';
+import { useSubscription } from '../hooks/useSubscription';
+import SubscriptionGate from '../components/SubscriptionGate';
 import type { Tables } from '../supabase/types';
 
 type SimulationTrial = Tables<'simulation_trials'>;
@@ -72,6 +74,11 @@ export default function SimulationTrial() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { isDemo } = useDemo();
+  const { canAccessFeature, loading: subLoading } = useSubscription();
+
+  if (!subLoading && !canAccessFeature('auto_rescue')) {
+    return <SubscriptionGate feature="auto_rescue"><></></SubscriptionGate>;
+  }
 
   // Build dynamic i18n versions
   const ALERT_TYPE_META: Record<string, { icon: React.ElementType; label: string; color: string; bgColor: string; severity: string; description: string }> = Object.fromEntries(
@@ -298,7 +305,7 @@ export default function SimulationTrial() {
             <p className="text-slate-400 mb-8 max-w-md mx-auto">
               {t('simulationDesc') || '体验完整的AI预警系统，包括实时推送通知、短信提醒、双向并行通知机制。'}
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
               <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
                 <Bell className="w-8 h-8 text-red-400 mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">{t('pushNotification')}</h3>
@@ -413,7 +420,7 @@ export default function SimulationTrial() {
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
             <h3 className="font-semibold text-lg mb-2">{t('triggerSimulation') || '触发模拟预警'}</h3>
             <p className="text-sm text-slate-400 mb-4">{t('triggerDesc') || 'Select an alert type to simulate the full alert scenario'}</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {Object.entries(ALERT_TYPE_META).map(([type, meta]) => {
                 const Icon = meta.icon;
                 return (
@@ -488,7 +495,7 @@ export default function SimulationTrial() {
               </div>
               <h2 className="text-xl font-bold mb-2">{t('selectScenarioToStart') || 'Select a scenario to start'}</h2>
               <p className="text-slate-400 mb-8 max-w-md mx-auto">{t('selectScenarioDesc') || 'Click an alert type below to see the full simulation flow'}</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-2xl mx-auto">
                 {Object.entries(ALERT_TYPE_META).map(([type, meta]) => {
                   const Icon = meta.icon;
                   return (
@@ -650,7 +657,7 @@ export default function SimulationTrial() {
           {/* Quick navigation */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
             <h3 className="font-semibold text-lg mb-4">{t('featureEntry') || 'Feature Entry'}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 { label: t('alertHistoryLabel') || 'Alert History', path: '/alert-history', icon: Bell, color: 'text-red-400' },
                 { label: t('shelterLabel') || 'Shelters', path: '/shelters', icon: Shield, color: 'text-green-400' },

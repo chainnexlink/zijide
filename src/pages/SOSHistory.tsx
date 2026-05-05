@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabase/client';
 import { useI18n } from '../hooks/useI18n';
+import { useSubscription } from '../hooks/useSubscription';
+import SubscriptionGate from '../components/SubscriptionGate';
 import type { Tables } from '../supabase/types';
 
 type SOSRecord = Tables<'sos_records'>;
@@ -28,6 +30,11 @@ const statusIcons: Record<string, { color: string; icon: React.ElementType }> = 
 export default function SOSHistory() {
   const navigate = useNavigate();
   const { t } = useI18n();
+  const { canAccessFeature, loading: subLoading } = useSubscription();
+
+  if (!subLoading && !canAccessFeature('sos_rescue')) {
+    return <SubscriptionGate feature="sos_rescue"><></></SubscriptionGate>;
+  }
 
   const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
     active: { label: t('sosInProgress') || 'In Progress', ...statusIcons.active },

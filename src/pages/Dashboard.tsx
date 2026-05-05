@@ -36,6 +36,7 @@ import { useI18n } from '../hooks/useI18n';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useNotification } from '../hooks/useNotification';
 import { useRealtimeAlerts } from '../hooks/useRealtime';
+import { useSubscription } from '../hooks/useSubscription';
 import { STATIC_SHELTERS } from '../data/shelters';
 import type { Tables } from '../supabase/types';
 
@@ -64,6 +65,7 @@ export default function Dashboard() {
   const { t, language, setLanguage, languages, dir } = useI18n();
   const { location, error: locationError, startWatching, stopWatching } = useGeolocation();
   const { pushNotification, requestPermission } = useNotification();
+  const { canAccessFeature } = useSubscription();
   const [user, setUser] = useState<Profile | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [shelters, setShelters] = useState<Shelter[]>([]);
@@ -102,15 +104,19 @@ export default function Dashboard() {
   }, []);
 
   // Realtime: new alerts push native notification + update list
+  // All users get in-app popup; only subscribers get email/SMS for red alerts
   useRealtimeAlerts((newAlert: Alert) => {
     setAlerts(prev => {
       if (prev.some(a => a.id === newAlert.id)) return prev;
       return [newAlert, ...prev].slice(0, 20);
     });
     const sevLabel = newAlert.severity === 'red' ? (t('urgent') || 'Urgent') : newAlert.severity === 'orange' ? (t('alertLabel') || 'Warning') : (t('notice') || 'Notice');
+    // Free users: in-app popup only (all severity levels)
     pushNotification({
       title: `[${sevLabel}] ${newAlert.title}`,
-      body: newAlert.description || `${newAlert.city || ''} ${newAlert.country || ''} - ${newAlert.alert_type}`,
+      body: newAlert.severity === 'red' && !canAccessFeature('realtime_push_alerts')
+        ? (newAlert.description || '') + (language === 'zh' ? ' [订阅解锁邮件/短信提醒]' : ' [Subscribe for email/SMS alerts]')
+        : newAlert.description || `${newAlert.city || ''} ${newAlert.country || ''} - ${newAlert.alert_type}`,
       type: 'alert',
       severity: newAlert.severity as any,
       data: { alertId: newAlert.id },
@@ -350,9 +356,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="text-white" dir={dir}>
+    <div className="text-white pb-24" dir={dir}>
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
           className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
@@ -510,13 +516,13 @@ export default function Dashboard() {
           >
             <h3 className="font-semibold mb-4">{t('quickActions') || 'Quick Actions'}</h3>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => navigate('/simulation')} className="flex flex-col items-center gap-2 p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors group">
+              <button onClick={() => canAccessFeature('auto_rescue') ? navigate('/simulation') : navigate('/subscription')} className="flex flex-col items-center gap-2 p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors group">
                 <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Siren className="w-5 h-5 text-red-400" />
                 </div>
                 <span className="text-xs font-medium">{t('simulationAlert') || 'Simulation'}</span>
               </button>
-              <button onClick={() => navigate('/route-plan')} className="flex flex-col items-center gap-2 p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors group">
+              <button onClick={() => canAccessFeature('escape_route') ? navigate('/route-plan') : navigate('/subscription')} className="flex flex-col items-center gap-2 p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors group">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Map className="w-5 h-5 text-blue-400" />
                 </div>
@@ -528,7 +534,7 @@ export default function Dashboard() {
                 </div>
                 <span className="text-xs font-medium">{t('nearbyShelter') || 'Shelters'}</span>
               </button>
-              <button onClick={() => setShowSOSModal(true)} className="flex flex-col items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-xl hover:bg-red-500/20 transition-colors group">
+              <button onClick={() => canAccessFeature('sos_rescue') ? setShowSOSModal(true) : navigate('/subscription')} className="flex flex-col items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-xl hover:bg-red-500/20 transition-colors group">
                 <div className="w-10 h-10 bg-red-500/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Siren className="w-5 h-5 text-red-500" />
                 </div>
@@ -744,6 +750,35 @@ export default function Dashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-around py-2">
+            <Link to="/dashboard" className="flex flex-col items-center gap-1 p-2 text-red-400">
+              <Home className="w-6 h-6" />
+              <span className="text-xs">{t('home')}</span>
+            </Link>
+            <Link to="/shelters" className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white">
+              <Shield className="w-6 h-6" />
+              <span className="text-xs">{t('shelters') || '避难所'}</span>
+            </Link>
+            <Link to="/sos-history" className="flex flex-col items-center gap-1 p-2 -mt-4" onClick={(e) => { if (!canAccessFeature('sos_rescue')) { e.preventDefault(); navigate('/subscription'); } }}>
+              <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+                <Siren className="w-7 h-7 text-white" />
+              </div>
+            </Link>
+            <Link to="/family-settings" className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white" onClick={(e) => { if (!canAccessFeature('family_location')) { e.preventDefault(); navigate('/subscription'); } }}>
+              <Users className="w-6 h-6" />
+              <span className="text-xs">{t('family')}</span>
+            </Link>
+            <Link to="/settings" className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white">
+              <Settings className="w-6 h-6" />
+              <span className="text-xs">{t('settings')}</span>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

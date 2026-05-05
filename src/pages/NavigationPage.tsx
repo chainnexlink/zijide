@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../hooks/useI18n';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { useSubscription } from '../hooks/useSubscription';
+import SubscriptionGate from '../components/SubscriptionGate';
 import WarMap, { fetchDirections } from '../components/WarMap';
 
 interface NavigationStep {
@@ -37,6 +39,12 @@ export default function NavigationPage() {
   const [searchParams] = useSearchParams();
   const { t } = useI18n();
   const { location, startWatching, stopWatching, calculateDistance } = useGeolocation();
+  const { canAccessFeature, loading: subLoading } = useSubscription();
+
+  if (!subLoading && !canAccessFeature('escape_route')) {
+    return <SubscriptionGate feature="escape_route"><></></SubscriptionGate>;
+  }
+
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [showArrivalModal, setShowArrivalModal] = useState(false);
