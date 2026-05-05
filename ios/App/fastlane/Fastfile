@@ -85,6 +85,12 @@ platform :ios do
       targets: ["App"]
     )
 
+    # Auto-increment build number to avoid upload conflicts
+    increment_build_number(
+      build_number: latest_testflight_build_number(api_key: api_key) + 1,
+      xcodeproj: "App.xcodeproj"
+    )
+
     # Build the app
     build_app(
       workspace: "App.xcworkspace",
