@@ -47,5 +47,9 @@
 	<true/>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>WarRescue needs your location to provide real-time disaster alerts, escape route navigation, and emergency rescue services in your area.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>WarRescue needs continuous location access to monitor nearby threats and send emergency alerts even when the app is in the background.</string>
 </dict>
 </plist>

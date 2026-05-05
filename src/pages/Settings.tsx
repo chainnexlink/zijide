@@ -54,6 +54,8 @@ export default function Settings() {
   const [user, setUser] = useState<Profile | null>(null);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('wa_dark_mode');
     return saved !== null ? saved === 'true' : true;
@@ -79,6 +81,26 @@ export default function Settings() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        // Call edge function to delete user data
+        await supabase.functions.invoke('delete-account', {
+          body: { userId: authUser.id }
+        });
+      }
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (e) {
+      console.error('Delete account error:', e);
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   const handleLanguageChange = async (langCode: Language) => {
@@ -385,7 +407,7 @@ export default function Settings() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="pt-4"
+            className="pt-4 space-y-3"
           >
             <button
               onClick={() => setShowLogoutModal(true)}
@@ -393,6 +415,12 @@ export default function Settings() {
             >
               <LogOut className="w-5 h-5" />
               <span className="font-medium">{t('logout') || '退出登录'}</span>
+            </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full flex items-center justify-center gap-2 p-3 text-slate-500 hover:text-red-400 transition-colors text-sm"
+            >
+              {language === 'zh' ? '删除账号' : 'Delete Account'}
             </button>
           </motion.div>
 
@@ -487,6 +515,55 @@ export default function Settings() {
                 </button>
                 <button
                   onClick={() => setShowLogoutModal(false)}
+                  className="w-full h-12 bg-slate-800 rounded-xl font-medium text-slate-300 hover:bg-slate-700 transition-colors"
+                >
+                  {t('cancel') || '取消'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-red-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">
+                  {language === 'zh' ? '删除账号' : 'Delete Account'}
+                </h3>
+                <p className="text-slate-400 text-sm">
+                  {language === 'zh'
+                    ? '此操作不可撤销。您的所有数据将被永久删除，包括订阅信息、个人资料和历史记录。'
+                    : 'This action cannot be undone. All your data will be permanently deleted, including subscriptions, profile, and history.'}
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="w-full h-12 bg-gradient-to-r from-red-600 to-red-700 rounded-xl font-semibold text-white disabled:opacity-50"
+                >
+                  {deleting
+                    ? (language === 'zh' ? '删除中...' : 'Deleting...')
+                    : (language === 'zh' ? '确认删除' : 'Delete Permanently')}
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
                   className="w-full h-12 bg-slate-800 rounded-xl font-medium text-slate-300 hover:bg-slate-700 transition-colors"
                 >
                   {t('cancel') || '取消'}
