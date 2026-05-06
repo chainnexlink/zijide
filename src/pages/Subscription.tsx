@@ -207,6 +207,7 @@ export default function Subscription() {
         body: {
           action: 'verify-receipt',
           receiptData: result.receiptData,
+          jwsTransaction: result.jwsTransaction,
           transactionId: result.transactionId,
           productId,
         }
@@ -323,7 +324,7 @@ export default function Subscription() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white pb-24 md:pb-6">
+    <div className="min-h-screen bg-slate-900 text-white pb-24">
       {paymentMessage && (
         <div className={`fixed top-0 left-0 right-0 z-[100] p-4 text-center text-sm font-medium ${
           paymentMessage.type === 'success' ? 'bg-green-600' :

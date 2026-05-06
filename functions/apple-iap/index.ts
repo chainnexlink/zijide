@@ -92,7 +92,7 @@ function getProducts() {
 
 // === Verify Apple receipt and activate subscription ===
 async function verifyReceipt(supabaseAdmin: any, req: Request) {
-  const { receiptData, transactionId, productId } = await req.json();
+  const { receiptData, transactionId, productId, jwsTransaction } = await req.json();
   const authHeader = req.headers.get('Authorization');
 
   if (!authHeader) {
@@ -112,14 +112,19 @@ async function verifyReceipt(supabaseAdmin: any, req: Request) {
     });
   }
 
-  if (!receiptData) {
-    return new Response(JSON.stringify({ error: 'receiptData required' }), {
+  if (!receiptData && !jwsTransaction) {
+    return new Response(JSON.stringify({ error: 'receiptData or jwsTransaction required' }), {
       status: 400,
       headers: corsHeaders,
     });
   }
 
-  // Verify receipt with Apple
+  // Try JWS transaction verification first (StoreKit 2)
+  if (jwsTransaction && !receiptData) {
+    return await verifyJWSTransaction(supabaseAdmin, user, jwsTransaction, productId);
+  }
+
+  // Legacy receipt verification
   const appSharedSecret = Deno.env.get('APPLE_SHARED_SECRET') || '';
   const verifyBody = {
     'receipt-data': receiptData,
@@ -137,6 +142,10 @@ async function verifyReceipt(supabaseAdmin: any, req: Request) {
 
   if (appleResult.status !== 0) {
     console.error('Apple receipt verification failed, status:', appleResult.status);
+    // If legacy verification fails and we have JWS, try JWS verification
+    if (jwsTransaction) {
+      return await verifyJWSTransaction(supabaseAdmin, user, jwsTransaction, productId);
+    }
     return new Response(JSON.stringify({
       error: 'Receipt verification failed',
       appleStatus: appleResult.status,
@@ -586,5 +595,109 @@ async function activateSubscription(
         plan_id: planId,
         ...updateData,
       });
+  }
+}
+
+// === Helper: Verify JWS Transaction (StoreKit 2) ===
+async function verifyJWSTransaction(
+  supabaseAdmin: any,
+  user: any,
+  jwsTransaction: string,
+  expectedProductId?: string,
+) {
+  try {
+    // Decode JWS payload (header.payload.signature)
+    const parts = jwsTransaction.split('.');
+    if (parts.length !== 3) {
+      return new Response(JSON.stringify({ error: 'Invalid JWS format' }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
+    // Decode base64url payload
+    const payloadB64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const transactionInfo = JSON.parse(atob(payloadB64));
+
+    const appleProductId = transactionInfo.productId;
+    const transactionId = String(transactionInfo.transactionId);
+    const originalTransactionId = String(transactionInfo.originalTransactionId);
+    const expiresDateMs = transactionInfo.expiresDate;
+    const isTrialPeriod = transactionInfo.offerType === 1; // introductory offer
+
+    const planId = PRODUCT_TO_PLAN[appleProductId];
+    if (!planId) {
+      return new Response(JSON.stringify({ error: 'Unknown product: ' + appleProductId }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
+    const plan = PLANS[planId];
+    const expiresAt = new Date(expiresDateMs).toISOString();
+    const isExpired = expiresDateMs < Date.now();
+
+    // Check for duplicate transaction
+    const { data: existingOrder } = await supabaseAdmin
+      .from('subscription_orders')
+      .select('id')
+      .eq('apple_transaction_id', transactionId)
+      .maybeSingle();
+
+    if (existingOrder) {
+      return new Response(JSON.stringify({
+        success: true,
+        alreadyProcessed: true,
+        planId,
+        expiresAt,
+      }), { headers: corsHeaders });
+    }
+
+    // Create order record
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from('subscription_orders')
+      .insert({
+        user_id: user.id,
+        plan_id: planId,
+        original_price: plan.price,
+        discount_amount: 0,
+        final_price: plan.price,
+        has_invite_discount: false,
+        status: 'completed',
+        payment_method: 'apple_iap',
+        apple_transaction_id: transactionId,
+        apple_original_transaction_id: originalTransactionId,
+        apple_product_id: appleProductId,
+        completed_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (orderError) {
+      console.error('Failed to create order:', orderError);
+      return new Response(JSON.stringify({ error: 'Failed to create order record' }), {
+        status: 500,
+        headers: corsHeaders,
+      });
+    }
+
+    // Activate subscription if not expired
+    if (!isExpired) {
+      await activateSubscription(supabaseAdmin, user.id, planId, expiresAt, originalTransactionId);
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      planId,
+      expiresAt,
+      isTrialPeriod,
+      orderId: order.id,
+    }), { headers: corsHeaders });
+  } catch (err: any) {
+    console.error('JWS verification error:', err);
+    return new Response(JSON.stringify({ error: 'JWS verification failed: ' + err.message }), {
+      status: 400,
+      headers: corsHeaders,
+    });
   }
 }

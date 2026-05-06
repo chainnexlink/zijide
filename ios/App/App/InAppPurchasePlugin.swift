@@ -78,10 +78,18 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                     let transaction = try self.checkVerified(verification)
                     let jwsRepresentation = verification.jwsRepresentation
 
+                    // Get the legacy app store receipt for server-side verification
+                    var appReceipt = ""
+                    if let receiptURL = Bundle.main.appStoreReceiptURL,
+                       let receiptData = try? Data(contentsOf: receiptURL) {
+                        appReceipt = receiptData.base64EncodedString()
+                    }
+
                     call.resolve([
                         "transactionId": String(transaction.id),
                         "productId": transaction.productID,
-                        "receiptData": jwsRepresentation,
+                        "receiptData": appReceipt,
+                        "jwsTransaction": jwsRepresentation,
                         "originalTransactionId": String(transaction.originalID),
                     ])
 
