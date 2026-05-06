@@ -193,7 +193,7 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-950 text-white flex">
       {/* Desktop/iPad Sidebar */}
       <aside
-        className={`hidden md:flex flex-col bg-slate-900/50 border-r border-slate-800/50 transition-all duration-300 flex-shrink-0 ${
+        className={`hidden xl:flex flex-col bg-slate-900/50 border-r border-slate-800/50 transition-all duration-300 flex-shrink-0 ${
           collapsed ? 'w-[72px]' : 'w-[240px]'
         }`}
         style={{ position: 'sticky', top: 0, height: '100vh' }}
@@ -209,7 +209,7 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Sidebar Overlay */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
+        <div className="xl:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
           <aside className="relative w-[260px] h-full bg-slate-900 border-r border-slate-800/50 z-10">
             <SidebarContent />
@@ -221,11 +221,11 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50">
-          <div className="flex items-center justify-between h-14 px-4 md:px-6">
+          <div className="flex items-center justify-between h-14 px-4 xl:px-6">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileOpen(true)}
-                className="md:hidden p-2 text-slate-400 hover:text-white"
+                className="lg:hidden p-2 text-slate-400 hover:text-white"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -346,7 +346,7 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 p-4 xl:p-6">
           <div className="max-w-[1400px] mx-auto">
             {children}
           </div>

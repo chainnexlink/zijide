@@ -2,6 +2,8 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabase/client';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
+let channelCounter = 0;
+
 type TableName = 'alerts' | 'sos_records' | 'family_members' | 'announcements' | 'rescue_pending';
 type EventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
@@ -14,45 +16,43 @@ interface SubscriptionConfig {
 
 /**
  * useRealtime - Subscribe to Supabase Realtime postgres changes.
- * 
- * Usage:
- *   useRealtime([
- *     { table: 'alerts', event: 'INSERT', onData: (p) => handleNewAlert(p.new) },
- *     { table: 'sos_records', filter: `user_id=eq.${userId}`, onData: handleSOS },
- *   ]);
  */
 export function useRealtime(subscriptions: SubscriptionConfig[]) {
   const channelsRef = useRef<RealtimeChannel[]>([]);
 
   useEffect(() => {
-    // Clean up previous channels
-    channelsRef.current.forEach(ch => supabase.removeChannel(ch));
+    channelsRef.current.forEach(ch => {
+      try { supabase.removeChannel(ch); } catch {}
+    });
     channelsRef.current = [];
 
     for (const sub of subscriptions) {
-      const channelName = `rt-${sub.table}-${sub.event || '*'}-${sub.filter || 'all'}-${Date.now()}`;
-      const channelConfig: any = {
-        event: sub.event || '*',
-        schema: 'public',
-        table: sub.table,
-      };
-      if (sub.filter) channelConfig.filter = sub.filter;
+      try {
+        const channelName = `rt-${sub.table}-${sub.event || '*'}-${++channelCounter}`;
+        const channelConfig: any = {
+          event: sub.event || '*',
+          schema: 'public',
+          table: sub.table,
+        };
+        if (sub.filter) channelConfig.filter = sub.filter;
 
-      const channel = supabase
-        .channel(channelName)
-        .on('postgres_changes', channelConfig, (payload: any) => {
-          sub.onData(payload);
-        })
-        .subscribe();
+        const channel = supabase
+          .channel(channelName)
+          .on('postgres_changes', channelConfig, (payload: any) => {
+            sub.onData(payload);
+          })
+          .subscribe();
 
-      channelsRef.current.push(channel);
+        channelsRef.current.push(channel);
+      } catch {}
     }
 
     return () => {
-      channelsRef.current.forEach(ch => supabase.removeChannel(ch));
+      channelsRef.current.forEach(ch => {
+        try { supabase.removeChannel(ch); } catch {}
+      });
       channelsRef.current = [];
     };
-    // We stringify subscriptions config to detect actual changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(subscriptions.map(s => ({ t: s.table, e: s.event, f: s.filter })))]);
 }
@@ -67,29 +67,50 @@ export function useRealtimeAlerts(onNewAlert: (alert: any) => void) {
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
-    const subscribe = () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
-      channelRef.current = supabase
-        .channel('rt-alerts-insert-' + Date.now())
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'alerts',
-        }, (payload: any) => {
-          onDataRef.current(payload.new);
-        })
-        .subscribe();
+    let cancelled = false;
+
+    const setup = () => {
+      if (cancelled) return;
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      } catch {}
+
+      try {
+        const channel = supabase
+          .channel(`rt-alerts-insert-${++channelCounter}`)
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'alerts',
+          }, (payload: any) => {
+            if (!cancelled) onDataRef.current(payload.new);
+          });
+        channelRef.current = channel;
+        channel.subscribe((status: string) => {
+          if (status === 'CHANNEL_ERROR' && !cancelled) {
+            setTimeout(() => setup(), 5000);
+          }
+        });
+      } catch {}
     };
 
-    subscribe();
+    setup();
 
-    // Re-subscribe when network comes back online
-    const handleOnline = () => subscribe();
+    const handleOnline = () => setup();
     window.addEventListener('online', handleOnline);
 
     return () => {
+      cancelled = true;
       window.removeEventListener('online', handleOnline);
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      } catch {}
     };
   }, []);
 }
@@ -104,19 +125,24 @@ export function useRealtimeSOS(userId: string | undefined, onSOSChange: (record:
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`rt-sos-${userId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'sos_records',
-        filter: `user_id=eq.${userId}`,
-      }, (payload: any) => {
-        cbRef.current(payload.new || payload.old, payload.eventType);
-      })
-      .subscribe();
+    let channel: RealtimeChannel | null = null;
+    try {
+      channel = supabase
+        .channel(`rt-sos-${userId}-${++channelCounter}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'sos_records',
+          filter: `user_id=eq.${userId}`,
+        }, (payload: any) => {
+          cbRef.current(payload.new || payload.old, payload.eventType);
+        })
+        .subscribe();
+    } catch {}
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      try { if (channel) supabase.removeChannel(channel); } catch {}
+    };
   }, [userId]);
 }
 
@@ -130,30 +156,51 @@ export function useRealtimeFamily(familyId: string | undefined, onMemberChange: 
 
   useEffect(() => {
     if (!familyId) return;
+    let cancelled = false;
 
-    const subscribe = () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
-      channelRef.current = supabase
-        .channel(`rt-family-${familyId}-${Date.now()}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'family_members',
-          filter: `family_id=eq.${familyId}`,
-        }, (payload: any) => {
-          cbRef.current(payload.new || payload.old);
-        })
-        .subscribe();
+    const setup = () => {
+      if (cancelled) return;
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      } catch {}
+
+      try {
+        const channel = supabase
+          .channel(`rt-family-${familyId}-${++channelCounter}`)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'family_members',
+            filter: `family_id=eq.${familyId}`,
+          }, (payload: any) => {
+            if (!cancelled) cbRef.current(payload.new || payload.old);
+          });
+        channelRef.current = channel;
+        channel.subscribe((status: string) => {
+          if (status === 'CHANNEL_ERROR' && !cancelled) {
+            setTimeout(() => setup(), 5000);
+          }
+        });
+      } catch {}
     };
 
-    subscribe();
+    setup();
 
-    const handleOnline = () => subscribe();
+    const handleOnline = () => setup();
     window.addEventListener('online', handleOnline);
 
     return () => {
+      cancelled = true;
       window.removeEventListener('online', handleOnline);
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      } catch {}
     };
   }, [familyId]);
 }
