@@ -447,21 +447,23 @@ export default function AuthPage() {
   const handleGuestLogin = async () => {
     setLoading(true);
     try {
-      const { data, error: funcError } = await supabase.functions.invoke('subscription', {
+      // Set demo mode in localStorage so App.tsx recognizes guest session
+      localStorage.setItem('demo_mode', 'true');
+      localStorage.setItem('demo_expires', String(Date.now() + 7 * 24 * 60 * 60 * 1000)); // 7 days
+
+      // Optional: notify backend for tracking (don't block on failure)
+      supabase.functions.invoke('subscription', {
         body: {
           action: 'create-guest',
           deviceId: navigator.userAgent
         }
-      });
+      }).catch(() => {});
 
-      if (funcError) throw funcError;
-
-      if (data.guestId) {
-        navigate('/dashboard');
-      }
+      // Reload page - App.tsx will read demo_mode from localStorage on init
+      // and route guard will redirect /auth to /dashboard
+      window.location.reload();
     } catch (err: any) {
       setError(err.message || t('error'));
-    } finally {
       setLoading(false);
     }
   };
