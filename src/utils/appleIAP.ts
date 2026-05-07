@@ -51,7 +51,22 @@ export function isIOSDevice(): boolean {
 function getIAPPlugin(): any {
   const cap = (window as any).Capacitor;
   if (!cap) return null;
-  return cap.Plugins?.InAppPurchase || cap.Plugins?.CapacitorPurchases || cap.Plugins?.InAppPurchasePlugin || null;
+
+  // Try direct access first (Capacitor auto-registers CAPBridgedPlugin)
+  if (cap.Plugins?.InAppPurchase) return cap.Plugins.InAppPurchase;
+  if (cap.Plugins?.InAppPurchasePlugin) return cap.Plugins.InAppPurchasePlugin;
+
+  // Try registerPlugin (Capacitor 8 way for local plugins)
+  try {
+    if (cap.registerPlugin) {
+      const plugin = cap.registerPlugin('InAppPurchase');
+      return plugin;
+    }
+  } catch (e) {
+    console.warn('Failed to register InAppPurchase plugin:', e);
+  }
+
+  return null;
 }
 
 /**
