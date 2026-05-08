@@ -240,14 +240,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: '个人版',
       subtitle: '完整安全保障，适合单人用户',
-      price: '$34.99',
+      price: '$39.99',
       period: '/月',
       features: ['7x24 AI 实时预警推送', '全部 5 种地图模式', '一键 SOS 求救', '紧急资料卡', 'Twilio 短信通知', 'Google Maps 导航']
     },
     {
       name: '家庭版',
       subtitle: '全家守护，适合有家人的用户',
-      price: '$89.99',
+      price: '$99.99',
       period: '/月',
       features: ['个人版全部功能', '最多 5 位家庭成员', '实时位置共享', '家庭 SOS 联动', '家人安全看板', '撤离会合点规划', '批量避难所管理', '专属客服通道']
     }
@@ -256,14 +256,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'Personal',
       subtitle: 'Complete security for individual users',
-      price: '$34.99',
+      price: '$39.99',
       period: '/month',
       features: ['24/7 AI real-time alerts', 'All 5 map modes', 'One-click SOS', 'Emergency profile', 'Twilio SMS notifications', 'Google Maps navigation']
     },
     {
       name: 'Family',
       subtitle: 'Protection for the whole family',
-      price: '$89.99',
+      price: '$99.99',
       period: '/month',
       features: ['All Personal features', 'Up to 5 family members', 'Real-time location sharing', 'Family SOS linkage', 'Family safety dashboard', 'Evacuation meeting points', 'Bulk shelter management', 'Priority support']
     }
@@ -272,14 +272,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'Персональный',
       subtitle: 'Полная безопасность для индивидуальных пользователей',
-      price: '$34.99',
+      price: '$39.99',
       period: '/мес',
       features: ['Круглосуточные оповещения ИИ', 'Все 5 режимов карт', 'SOS в один клик', 'Медицинская карта', 'SMS уведомления', 'Google Maps навигация']
     },
     {
       name: 'Семейный',
       subtitle: 'Защита для всей семьи',
-      price: '$89.99',
+      price: '$99.99',
       period: '/мес',
       features: ['Все функции Персонального', 'До 5 членов семьи', 'Общий доступ к местоположению', 'Семейный SOS', 'Панель безопасности', 'Точки эвакуации', 'Управление укрытиями', 'Приоритетная поддержка']
     }
@@ -288,14 +288,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'شخصي',
       subtitle: 'أمان كامل للمستخدمين الفرديين',
-      price: '$34.99',
+      price: '$39.99',
       period: '/شهر',
       features: ['تنبيهات AI على مدار الساعة', '5 أوضاع خرائط', 'SOS بنقرة واحدة', 'بطاقة الطوارئ', 'إشعارات SMS', 'خرائط Google']
     },
     {
       name: 'عائلي',
       subtitle: 'حماية للعائلة بأكملها',
-      price: '$89.99',
+      price: '$99.99',
       period: '/شهر',
       features: ['جميع ميزات النسخة الشخصية', 'حتى 5 أفراد عائلة', 'مشاركة الموقع المباشرة', 'SOS العائلي', 'لوحة أمان العائلة', 'نقاط اللقاء', 'إدارة الملاجئ', 'دعم أولوي']
     }
@@ -304,14 +304,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'Personal',
       subtitle: 'Seguridad completa para usuarios individuales',
-      price: '$34.99',
+      price: '$39.99',
       period: '/mes',
       features: ['Alertas AI 24/7', '5 modos de mapa', 'SOS de un clic', 'Perfil de emergencia', 'Notificaciones SMS', 'Navegación Google Maps']
     },
     {
       name: 'Familiar',
       subtitle: 'Protección para toda la familia',
-      price: '$89.99',
+      price: '$99.99',
       period: '/mes',
       features: ['Todas las funciones Personal', 'Hasta 5 miembros', 'Ubicación en tiempo real', 'SOS familiar', 'Panel de seguridad', 'Puntos de encuentro', 'Gestión de refugios', 'Soporte prioritario']
     }
@@ -320,14 +320,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'Personnel',
       subtitle: 'Sécurité complète pour utilisateurs individuels',
-      price: '$34.99',
+      price: '$39.99',
       period: '/mois',
       features: ['Alertes IA 24/7', '5 modes de carte', 'SOS en un clic', 'Profil d\'urgence', 'Notifications SMS', 'Navigation Google Maps']
     },
     {
       name: 'Famille',
       subtitle: 'Protection pour toute la famille',
-      price: '$89.99',
+      price: '$99.99',
       period: '/mois',
       features: ['Toutes les fonctions Personnel', 'Jusqu\'à 5 membres', 'Partage de localisation', 'SOS familial', 'Tableau de sécurité', 'Points de rassemblement', 'Gestion des abris', 'Support prioritaire']
     }
@@ -336,14 +336,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'Pessoal',
       subtitle: 'Segurança completa para usuários individuais',
-      price: '$34.99',
+      price: '$39.99',
       period: '/mês',
       features: ['Alertas AI 24/7', '5 modos de mapa', 'SOS com um clique', 'Perfil de emergência', 'Notificações SMS', 'Navegação Google Maps']
     },
     {
       name: 'Família',
       subtitle: 'Proteção para toda a família',
-      price: '$89.99',
+      price: '$99.99',
       period: '/mês',
       features: ['Todos os recursos Pessoal', 'Até 5 membros', 'Localização em tempo real', 'SOS familiar', 'Painel de segurança', 'Pontos de encontro', 'Gestão de abrigos', 'Suporte prioritário']
     }
@@ -352,14 +352,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'Persönlich',
       subtitle: 'Vollständige Sicherheit für Einzelnutzer',
-      price: '$34.99',
+      price: '$39.99',
       period: '/Monat',
       features: ['24/7 KI-Warnungen', '5 Kartenmodi', 'SOS mit einem Klick', 'Notfallprofil', 'SMS-Benachrichtigungen', 'Google Maps Navigation']
     },
     {
       name: 'Familie',
       subtitle: 'Schutz für die ganze Familie',
-      price: '$89.99',
+      price: '$99.99',
       period: '/Monat',
       features: ['Alle Persönlich-Funktionen', 'Bis zu 5 Familienmitglieder', 'Echtzeit-Standort', 'Familien-SOS', 'Sicherheits-Dashboard', 'Treffpunkte', 'Schutzraum-Verwaltung', 'Prioritäts-Support']
     }
@@ -368,14 +368,14 @@ const pricingPlans: Record<string, Array<{name: string, subtitle: string, price:
     {
       name: 'Kişisel',
       subtitle: 'Bireysel kullanıcılar için tam güvenlik',
-      price: '$34.99',
+      price: '$39.99',
       period: '/ay',
       features: ['7/24 AI uyarıları', '5 harita modu', 'Tek tıkla SOS', 'Acil durum profili', 'SMS bildirimleri', 'Google Maps navigasyon']
     },
     {
       name: 'Aile',
       subtitle: 'Tüm aile için koruma',
-      price: '$89.99',
+      price: '$99.99',
       period: '/ay',
       features: ['Tüm Kişisel özellikler', 'En fazla 5 aile üyesi', 'Gerçek zamanlı konum', 'Aile SOS bağlantısı', 'Aile güvenlik paneli', 'Tahliye buluşma noktaları', 'Toplu sığınak yönetimi', 'Öncelikli destek']
     }
