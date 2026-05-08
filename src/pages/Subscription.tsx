@@ -513,9 +513,9 @@ export default function Subscription() {
           <p>{language === 'zh' ? '订阅会自动续费，除非在当前周期结束前至少24小时关闭自动续费' : 'Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period'}</p>
           <p>{language === 'zh' ? '个人方案：¥39.99/月（30天），家庭方案：¥99.99/月（30天）' : 'Personal Plan: $39.99/month (30 days), Family Plan: $99.99/month (30 days)'}</p>
           <div className="flex items-center justify-center gap-4 mt-2">
-            <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white underline">
+            <Link to="/terms" className="text-slate-400 hover:text-white underline">
               {language === 'zh' ? '使用条款(EULA)' : 'Terms of Use (EULA)'}
-            </a>
+            </Link>
             <Link to="/privacy" className="text-slate-400 hover:text-white underline">
               {language === 'zh' ? '隐私政策' : 'Privacy Policy'}
             </Link>

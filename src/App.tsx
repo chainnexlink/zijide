@@ -33,6 +33,7 @@ import SimulationTrial from './pages/SimulationTrial';
 import Announcements from './pages/Announcements';
 import Points from './pages/Points';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
 import CustomerServiceWidget from './components/CustomerServiceWidget';
 
 export const DemoContext = createContext<{ isDemo: boolean; exitDemo: () => void }>({ isDemo: false, exitDemo: () => {} });
@@ -101,6 +102,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfUse />} />
             <Route path="/auth" element={isAuthenticated ? <Navigate to="/dashboard" /> : <AuthPage />} />
             <Route path="/dashboard" element={isAuthenticated ? <Wrap><Dashboard /></Wrap> : <Navigate to="/auth" />} />
             <Route path="/settings" element={isAuthenticated ? <Wrap><Settings /></Wrap> : <Navigate to="/auth" />} />

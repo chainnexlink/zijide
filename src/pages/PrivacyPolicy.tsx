@@ -150,7 +150,45 @@ const PrivacyPolicy: React.FC = () => {
 
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">
-              {isZh ? '9. 隐私政策变更' : '9. Changes to This Policy'}
+              {isZh ? '9. 紧急服务与定位服务免责声明' : '9. Emergency Services & Location Disclaimer'}
+            </h2>
+            <p>
+              {isZh
+                ? 'WarRescue 使用基于位置的服务来辅助紧急情况下的沟通和协调。重要免责声明：'
+                : 'WarRescue uses location-based services to assist with communication and coordination during emergencies. Important disclaimers:'}
+            </p>
+            <ul className="list-disc pl-6 space-y-2 mt-2">
+              <li>
+                {isZh
+                  ? 'WarRescue 不是官方紧急服务替代品。本应用不直接连接政府紧急响应系统（如110、119、120或911）。在紧急情况下，请始终首先拨打当地紧急服务电话。'
+                  : 'WarRescue is NOT a replacement for official emergency services. The App does not directly connect to government emergency response systems (such as 911, 112, or local equivalents). In an emergency, always call your local emergency services first.'}
+              </li>
+              <li>
+                {isZh
+                  ? '本应用的 SOS 功能仅用于通知您预先设置的紧急联系人和 WarRescue 社区中的互助志愿者。我们无法保证在所有情况下都能及时获得救援响应。'
+                  : 'The SOS feature in this App is designed to notify your pre-configured emergency contacts and mutual aid volunteers within the WarRescue community. We cannot guarantee timely rescue response in all circumstances.'}
+              </li>
+              <li>
+                {isZh
+                  ? '位置数据的准确性取决于您设备的 GPS 信号、网络连接和环境条件。在室内、地下或信号受阻区域，位置精度可能受到影响。'
+                  : 'The accuracy of location data depends on your device\'s GPS signal, network connectivity, and environmental conditions. Location accuracy may be affected in indoor, underground, or signal-obstructed areas.'}
+              </li>
+              <li>
+                {isZh
+                  ? '我们不对因网络中断、设备故障、GPS 不准确或任何技术问题导致的服务不可用或定位不准确承担责任。'
+                  : 'We are not liable for service unavailability or location inaccuracy caused by network outages, device failures, GPS inaccuracy, or any technical issues.'}
+              </li>
+              <li>
+                {isZh
+                  ? '在战争和冲突地区，基础设施可能受损，网络和 GPS 服务可能不可靠。请勿将本应用作为您唯一的安全保障手段。'
+                  : 'In war and conflict zones, infrastructure may be damaged and network/GPS services may be unreliable. Do not rely on this App as your sole means of safety.'}
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-white mb-3">
+              {isZh ? '10. 隐私政策变更' : '10. Changes to This Policy'}
             </h2>
             <p>
               {isZh
@@ -161,7 +199,7 @@ const PrivacyPolicy: React.FC = () => {
 
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">
-              {isZh ? '10. 联系我们' : '10. Contact Us'}
+              {isZh ? '11. 联系我们' : '11. Contact Us'}
             </h2>
             <p>
               {isZh
