@@ -110,13 +110,14 @@ platform :ios do
       }
     )
 
-    # Upload to App Store Connect
+    # Upload to App Store Connect (skip version creation - use existing version in ASC)
     upload_to_app_store(
       api_key: api_key,
       skip_metadata: true,
       skip_screenshots: true,
       force: true,
-      precheck_include_in_app_purchases: false
+      precheck_include_in_app_purchases: false,
+      skip_app_version_update: true
     )
   end
 
