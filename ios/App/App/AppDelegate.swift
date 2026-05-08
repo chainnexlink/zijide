@@ -7,7 +7,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Force-load InAppPurchasePlugin to prevent dead code stripping in Release builds.
+        // Without this reference, the linker may strip the class since nothing else references it directly,
+        // causing Capacitor's bridge to fail to discover it at runtime.
+        _ = InAppPurchasePlugin.self
         return true
     }
 

@@ -9,5 +9,6 @@
   "ios": {
     "contentInset": "automatic",
     "scheme": "WarRescue"
-  }
+  },
+  "packageClassList": ["InAppPurchasePlugin"]
 }
