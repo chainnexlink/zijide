@@ -805,14 +805,14 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Link
-                  to="/auth"
+                  to="/subscribe"
                   className={`w-full py-3 rounded-xl font-medium text-center block transition-all ${
                     index === 0
                       ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg hover:shadow-blue-500/30'
                       : 'bg-slate-700 hover:bg-slate-600'
                   }`}
                 >
-                  {t('register')}
+                  {t('subscribe')}
                 </Link>
               </motion.div>
             ))}
