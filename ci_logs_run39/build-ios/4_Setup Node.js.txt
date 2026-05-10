@@ -1,0 +1,26 @@
+﻿2026-05-08T17:46:27.8645940Z ##[group]Run actions/setup-node@v4
+2026-05-08T17:46:27.8646210Z with:
+2026-05-08T17:46:27.8646370Z   node-version: 22
+2026-05-08T17:46:27.8646540Z   cache: npm
+2026-05-08T17:46:27.8646700Z   always-auth: false
+2026-05-08T17:46:27.8646930Z   check-latest: false
+2026-05-08T17:46:27.8647200Z   token: ***
+2026-05-08T17:46:27.8647350Z env:
+2026-05-08T17:46:27.8647540Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:46:27.8647850Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:46:27.8648090Z   APPLE_TEAM_ID: ***
+2026-05-08T17:46:27.8648300Z ##[endgroup]
+2026-05-08T17:46:28.0087410Z Found in cache @ /Users/runner/hostedtoolcache/node/22.22.2/arm64
+2026-05-08T17:46:28.0093800Z ##[group]Environment details
+2026-05-08T17:46:28.5199940Z node: v22.22.2
+2026-05-08T17:46:28.5215690Z npm: 10.9.7
+2026-05-08T17:46:28.5218610Z yarn: 1.22.22
+2026-05-08T17:46:28.5225680Z ##[endgroup]
+2026-05-08T17:46:28.5226600Z [command]/Users/runner/hostedtoolcache/node/22.22.2/arm64/bin/npm config get cache
+2026-05-08T17:46:28.7436550Z /Users/runner/.npm
+2026-05-08T17:46:28.8948820Z Cache hit for: node-cache-macOS-arm64-npm-69caf97aafd5445a0585ed445af357948178879476dfca32a1e59ad490db7990
+2026-05-08T17:46:29.2667740Z Received 48822440 of 48822440 (100.0%), 142.0 MBs/sec
+2026-05-08T17:46:29.2788790Z Cache Size: ~47 MB (48822440 B)
+2026-05-08T17:46:29.2891360Z [command]/opt/homebrew/bin/gtar -xf /Users/runner/work/_temp/873f5400-a8b6-4ace-816e-e15bc8ba932f/cache.tzst -P -C /Users/runner/work/zijide/zijide --delay-directory-restore --use-compress-program unzstd
+2026-05-08T17:46:29.7336240Z Cache restored successfully
+2026-05-08T17:46:29.7357730Z Cache restored from key: node-cache-macOS-arm64-npm-69caf97aafd5445a0585ed445af357948178879476dfca32a1e59ad490db7990

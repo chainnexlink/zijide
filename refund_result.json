@@ -1,0 +1,16 @@
+{
+  "targetOrder": "SBXMOF0XO9N6",
+  "refundId": "RFDMOF83YCM",
+  "refundAmount": "2.00",
+  "refundResponse": {
+    "return_code": "METHOD_NOT_ALLOWED",
+    "return_message": "Method Not Allowed\n以下信息只在测试环境下返回：Request method 'POST' not supported",
+    "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.171.17771749996278389"
+  },
+  "refundQueryResponse": {
+    "return_code": "404",
+    "return_message": "Not Found",
+    "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.122.17771750017828387"
+  },
+  "timestamp": "2026-04-26T03:43:22.582Z"
+}

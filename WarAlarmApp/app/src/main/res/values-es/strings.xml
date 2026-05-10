@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WarRescue</string>
+    <string name="slogan">En zonas de guerra, cada segundo cuenta</string>
+
+    <!-- Auth -->
+    <string name="login">Iniciar sesión</string>
+    <string name="register">Registrarse</string>
+    <string name="demo_login">Probar demo</string>
+    <string name="phone">Teléfono</string>
+    <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="verification_code">Código de verificación</string>
+    <string name="get_code">Obtener código</string>
+    <string name="invite_code">Código de invitación</string>
+    <string name="optional">Opcional</string>
+    <string name="agree_terms">Acepto los términos de servicio</string>
+    <string name="guest_login">Acceso de invitado (prueba de 7 días)</string>
+    <string name="fill_required">Por favor complete todos los campos requeridos</string>
+    <string name="code_sent_demo">Código de verificación enviado (Demo)</string>
+
+    <!-- Nav -->
+    <string name="home">Inicio</string>
+    <string name="map_nav">Mapa</string>
+    <string name="family">Familia</string>
+    <string name="settings">Ajustes</string>
+    <string name="sos">SOS</string>
+
+    <!-- Dashboard -->
+    <string name="current_safe">Actualmente seguro</string>
+    <string name="ai_monitoring">Monitoreo IA activo · Sin amenazas</string>
+    <string name="ai_monitoring_threat">Monitoreo IA activo · Amenaza detectada</string>
+    <string name="simulation_alert">Simulacro</string>
+    <string name="test_alert">Alerta de prueba</string>
+    <string name="escape_route">Ruta de escape</string>
+    <string name="navigation">Navegación</string>
+    <string name="nearby_shelter">Refugios</string>
+    <string name="available">disponible</string>
+    <string name="ai_monitor">Monitor IA</string>
+    <string name="active">Activo</string>
+    <string name="family_status">Estado familiar</string>
+    <string name="view_all">Ver todo</string>
+
+    <!-- Announcements -->
+    <string name="announcements">Anuncios de la plataforma</string>
+    <string name="no_announcements">Sin anuncios</string>
+    <string name="announcement_reward">Recompensa de puntos</string>
+    <string name="announcement_subscription">Suscripción</string>
+    <string name="announcement_system">Aviso del sistema</string>
+
+    <!-- Announcement Pages -->
+    <string name="announcement_all">Todo</string>
+    <string name="announcement_detail">Detalle del anuncio</string>
+    <string name="announcement_content_label">Detalles</string>
+    <string name="announcement_type_label">Tipo</string>
+    <string name="announcement_published_at">Publicado</string>
+    <string name="announcement_source">Fuente</string>
+    <string name="announcement_official">Oficial</string>
+    <string name="announcement_just_now">Ahora</string>
+    <string name="announcement_minutes_ago">min</string>
+    <string name="announcement_hours_ago">horas</string>
+    <string name="announcement_days_ago">días</string>
+
+    <!-- Demo Announcements -->
+    <string name="demo_announce_1_title">Felicidades a 3 usuarios por recompensa de alerta de ciudad</string>
+    <string name="demo_announce_1_content">Los usuarios Alex, Maria y John fueron de los primeros en confirmar la alerta de Kiev, ganando 100, 80 y 80 puntos respectivamente. ¡Gracias por contribuir a la seguridad comunitaria!</string>
+    <string name="demo_announce_2_title">Plan de suscripción Pro mejorado</string>
+    <string name="demo_announce_2_content">Los miembros Pro ahora obtienen alertas multi-ciudad, navegación prioritaria a refugios, grupo familiar de hasta 10 miembros. ¡50% de descuento el primer mes!</string>
+    <string name="demo_announce_3_title">Reglas de puntos de la plataforma actualizadas</string>
+    <string name="demo_announce_3_content">Reglas de recompensa actualizadas: los 10 primeros usuarios ganan puntos. 1°: 100pts, 2°-3°: 80pts, 4°-5°: 60pts, 6°-10°: 50pts</string>
+
+    <string name="alerts">Alertas</string>
+    <string name="no_data">Sin datos</string>
+    <string name="network_info">5G · 85%</string>
+
+    <!-- City Alert -->
+    <string name="city_alert">Alerta urbana</string>
+    <string name="city_alert_desc">Alertas urbanas colaborativas en tiempo real</string>
+    <string name="city_alert_detail">Detalle de alerta urbana</string>
+    <string name="city_alert_trigger">%d usuarios confirmados en 5 min</string>
+    <string name="city_alert_active">Alerta activa</string>
+    <string name="city_alert_pending">Esperando más confirmaciones</string>
+    <string name="city_alert_resolved">Resuelta</string>
+    <string name="city_alert_respond">Confirmo</string>
+    <string name="city_alert_responded">Confirmado</string>
+    <string name="city_alert_users">Usuarios que respondieron</string>
+    <string name="city_alert_timeline">Cronología del evento</string>
+    <string name="city_alert_source_ai">Activado por monitor IA</string>
+    <string name="city_alert_source_user">Activado por usuarios de la ciudad</string>
+    <string name="city_alert_parallel">Monitor IA + Alertas colaborativas paralelas</string>
+    <string name="city_alert_count">%d alertas urbanas</string>
+    <string name="user_responded">%d respondieron</string>
+    <string name="within_5min">En 5 minutos</string>
+    <string name="trigger_condition">Activación: 3 usuarios confirman en 5 minutos</string>
+    <string name="city_alert_trigger_desc">Mecanismo de activación rápida en paralelo con la monitorización IA</string>
+    <string name="city_alert_long_press">Mantén pulsado 3 segundos para activar la alerta</string>
+    <string name="city_alert_trigger_hint">La respuesta completa de alerta y rescate se activa cuando 3\u20135 usuarios cercanos activan</string>
+    <string name="city_alert_nearby_count">%d usuarios cercanos han activado</string>
+    <string name="city_alert_triggering">Activando\u2026</string>
+    <string name="city_alert_triggered_success">¡Alerta activada! Usuarios cercanos notificados</string>
+    <string name="city_alert_hold_to_trigger">Mantén pulsado hasta completar</string>
+    <string name="city_alert_mechanism_title">Mecanismo de activación de alerta de ciudad</string>
+    <string name="city_alert_mechanism_desc">La alerta de ciudad es un mecanismo de activación rápida que funciona en paralelo con la monitorización IA. Cuando 3\u20135 usuarios en la misma ciudad activan una alerta, el sistema activa automáticamente el mismo proceso de respuesta que las alertas IA, con la lógica de rescate activada simultáneamente.</string>
+    <string name="city_alert_advantage_title">¿Por qué la alerta de ciudad es más rápida?</string>
+    <string name="city_alert_advantage">La alerta de ciudad puede responder más rápido que la monitorización IA porque esta necesita recopilar y analizar datos gubernamentales, mientras que la alerta de ciudad es activada directamente por los usuarios.</string>
+    <string name="city_alert_no_active">No hay activaciones activas cercanas</string>
+    <string name="city_alert_threshold_info">Se necesitan %1$d\u2013%2$d usuarios cercanos para activar la alerta completa</string>
+    <string name="city_alert_nearby_status">Estado de activación cercana</string>
+    <string name="city_alert_trigger_instruction">Cuando percibas peligro, mantén pulsado el botón de abajo durante 3 segundos para enviar una alerta de ciudad</string>
+    <string name="city_alert_how_it_works">Cómo funciona</string>
+    <string name="city_alert_step1">El usuario percibe peligro y mantiene pulsado 3 segundos para activar la alerta de ciudad</string>
+    <string name="city_alert_step2">El sistema recopila señales de activación en toda la ciudad; el umbral se alcanza con 3\u20135 activaciones</string>
+    <string name="city_alert_step3">Una vez alcanzado el umbral, se activa el proceso de respuesta completo idéntico a las alertas IA</string>
+    <string name="city_alert_step4">La lógica de rescate se activa simultáneamente, siguiendo la línea de tiempo de respuesta original</string>
+
+    <!-- Alert Types -->
+    <string name="air_strike">Ataque aéreo</string>
+    <string name="artillery">Artillería</string>
+    <string name="conflict">Conflicto</string>
+    <string name="curfew">Toque de queda</string>
+    <string name="chemical">Químico</string>
+    <string name="other">Otro</string>
+
+    <!-- Alert Severity -->
+    <string name="severity_red">Rojo</string>
+    <string name="severity_orange">Naranja</string>
+    <string name="severity_yellow">Amarillo</string>
+    <string name="severity_all">Todo</string>
+
+    <!-- Shelter -->
+    <string name="shelters">Refugios</string>
+    <string name="shelter_detail">Detalle del refugio</string>
+    <string name="shelter_list">Lista de refugios</string>
+    <string name="capacity">Capacidad</string>
+    <string name="capacity_label">Capacidad: </string>
+    <string name="distance">Distancia</string>
+    <string name="distance_label">Distancia: </string>
+    <string name="status_open">Abierto</string>
+    <string name="status_full">Lleno</string>
+    <string name="status_closed">Cerrado</string>
+    <string name="navigate_to">Navegar</string>
+    <string name="navigate_to_shelter">Navegar al refugio</string>
+    <string name="start_navigate">Iniciar navegación</string>
+    <string name="shelter_type">Tipo de refugio</string>
+    <string name="shelter_underground">Subterráneo</string>
+    <string name="shelter_bunker">Búnker</string>
+    <string name="shelter_building">Edificio</string>
+    <string name="current_occupancy">Ocupación actual</string>
+    <string name="shelter_address">Dirección</string>
+    <string name="shelter_facilities">Instalaciones</string>
+    <string name="shelter_water">Agua potable</string>
+    <string name="shelter_power">Energía de emergencia</string>
+    <string name="shelter_medical">Kit médico</string>
+    <string name="shelter_ventilation">Ventilación</string>
+    <string name="shelter_communication">Comunicación</string>
+
+    <!-- Settings -->
+    <string name="account">Cuenta</string>
+    <string name="profile">Perfil</string>
+    <string name="profile_desc">Editar avatar, apodo e información</string>
+    <string name="security">Seguridad</string>
+    <string name="security_desc">Contraseña, teléfono y correo</string>
+    <string name="subscription">Suscripción</string>
+    <string name="subscription_desc">Gestionar tu plan</string>
+    <string name="preferences">Preferencias</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="notifications_desc">Push, sonido, vibración</string>
+    <string name="alert_settings">Ajustes de alerta</string>
+    <string name="alert_settings_desc">Alcance, tipos de alerta</string>
+    <string name="map_settings">Ajustes de mapa</string>
+    <string name="map_settings_desc">Tipo de mapa, mapas sin conexión</string>
+    <string name="storage">Almacenamiento</string>
+    <string name="storage_desc">Limpiar caché, gestionar espacio</string>
+    <string name="features">Funciones</string>
+    <string name="emergency_profile">Emergencia médica</string>
+    <string name="emergency_profile_desc">Tipo de sangre, alergias, contactos</string>
+    <string name="family_group">Grupo familiar</string>
+    <string name="family_group_desc">Gestionar miembros y permisos</string>
+    <string name="mutual_aid">Ayuda mutua 1 km</string>
+    <string name="mutual_aid_desc">Suscribirse a alertas SOS cercanas</string>
+    <string name="about">Acerca de</string>
+    <string name="help">Centro de ayuda</string>
+    <string name="terms">Términos de servicio</string>
+    <string name="about_app">Acerca de la aplicación</string>
+    <string name="dark_mode">Modo oscuro</string>
+    <string name="language">Idioma</string>
+    <string name="language_current">Español</string>
+    <string name="change">Cambiar</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="confirm_logout">Confirmar cierre de sesión</string>
+    <string name="logout_desc">Necesitará iniciar sesión de nuevo</string>
+    <string name="pro_member">Miembro Pro</string>
+    <string name="select_language">Seleccionar idioma</string>
+
+    <!-- Profile -->
+    <string name="nickname">Apodo</string>
+    <string name="phone_number">Número de teléfono</string>
+    <string name="city">Ciudad</string>
+    <string name="emergency_contact">Contacto de emergencia</string>
+    <string name="contact_name">Nombre del contacto</string>
+    <string name="contact_phone">Teléfono del contacto</string>
+    <string name="save_success">Guardado con éxito</string>
+
+    <!-- Emergency Profile -->
+    <string name="basic_info">Información básica</string>
+    <string name="blood_type">Tipo de sangre</string>
+    <string name="age">Edad</string>
+    <string name="height_cm">Altura (cm)</string>
+    <string name="weight_kg">Peso (kg)</string>
+    <string name="allergy_history">Historial de alergias</string>
+    <string name="drug_allergy">Alergia a medicamentos</string>
+    <string name="food_allergy">Alergia alimentaria</string>
+    <string name="chronic_disease">Enfermedad crónica</string>
+    <string name="medical_history">Historial médico</string>
+    <string name="current_medication">Medicación actual</string>
+    <string name="none">Ninguno</string>
+
+    <!-- Subscription -->
+    <string name="current_plan">Plan actual</string>
+    <string name="plan_free">Gratuito</string>
+    <string name="plan_pro">Pro</string>
+    <string name="plan_family">Familiar</string>
+    <string name="plan_expire">Válido hasta %1$s · %2$d días restantes</string>
+    <string name="subscription_plans">Planes</string>
+    <string name="current">Actual</string>
+    <string name="above_current">Tu plan actual</string>
+    <string name="upgrade">Actualizar</string>
+    <string name="payment_method">Método de pago</string>
+    <string name="per_month">/mes</string>
+
+    <!-- SOS -->
+    <string name="sos_emergency">Emergencia SOS</string>
+    <string name="sos_long_press">Mantén presionado abajo para enviar señal de emergencia</string>
+    <string name="sos_hold_trigger">Mantener 3s para activar</string>
+    <string name="sos_activated">SOS activado</string>
+    <string name="sos_sending">Enviando señal de emergencia…</string>
+    <string name="sos_cancel">Cancelar SOS</string>
+    <string name="sos_cancel_confirm">¿Cancelar emergencia SOS?</string>
+    <string name="sos_action_family">Notificar a toda la familia</string>
+    <string name="sos_action_family_desc">Notificación push + alerta SMS</string>
+    <string name="sos_action_location">Compartir ubicación en vivo</string>
+    <string name="sos_action_location_desc">Compartir coordenadas GPS con la familia</string>
+    <string name="sos_action_rescue">Contactar rescate cercano</string>
+    <string name="sos_action_rescue_desc">Enviar solicitud de ayuda en 1 km</string>
+    <string name="sos_action_record">Grabación automática de evidencia</string>
+    <string name="sos_action_record_desc">Grabar audio, guardar en la nube</string>
+    <string name="sos_sent">SOS enviado</string>
+    <string name="sos_notifying">Notificando a la familia y equipos de rescate…</string>
+    <string name="sos_send_time_default">Hora de envío: --</string>
+    <string name="sos_actions_trigger">La solicitud de ayuda activará las siguientes acciones</string>
+    <string name="sos_history">Historial SOS</string>
+    <string name="sos_history_detail">Detalle SOS</string>
+    <string name="sos_total">Total</string>
+    <string name="sos_alert_trigger">Alerta activada</string>
+    <string name="sos_manual_trigger">Activación manual</string>
+    <string name="sos_resolved">Resuelto</string>
+
+    <!-- Simulation -->
+    <string name="simulation_drill">Simulacro de alerta</string>
+    <string name="select_scenario">Seleccionar escenario</string>
+    <string name="start_simulation">Iniciar simulacro</string>
+    <string name="air_strike_sim">Simulacro de ataque aéreo</string>
+    <string name="air_strike_sim_desc">Simular alerta de ataque aéreo y ruta de escape</string>
+    <string name="artillery_sim">Simulacro de artillería</string>
+    <string name="artillery_sim_desc">Simular alerta de artillería y navegación al refugio</string>
+    <string name="chemical_sim">Simulacro de fuga química</string>
+    <string name="chemical_sim_desc">Simular alerta de fuga química</string>
+    <string name="curfew_sim">Simulacro de toque de queda</string>
+    <string name="curfew_sim_desc">Simular notificación de toque de queda</string>
+    <string name="sim_starting">Iniciando simulacro…</string>
+    <string name="sim_complete">¡Simulacro completado!</string>
+    <string name="sim_report">Informe del simulacro</string>
+    <string name="sim_score">Puntuación general</string>
+    <string name="sim_response_time">Tiempo de respuesta</string>
+    <string name="sim_steps_completed">Pasos completados</string>
+    <string name="sim_back_home">Volver al inicio</string>
+    <string name="sim_retry">Reintentar</string>
+    <string name="sim_completion_rate">Completado</string>
+    <string name="sim_scenario_info">Info del escenario</string>
+    <string name="sim_steps_unit">pasos</string>
+    <string name="sim_excellent">Excelente</string>
+    <string name="sim_family_notified">Familia notificada</string>
+    <string name="sim_score_breakdown">Desglose de puntuación</string>
+    <string name="sim_detect_speed">Velocidad de detección</string>
+    <string name="sim_alert_accuracy">Precisión de alerta</string>
+    <string name="sim_notification_speed">Velocidad de notificación</string>
+    <string name="sim_route_planning">Planificación de ruta</string>
+    <string name="sim_family_coordination">Coordinación familiar</string>
+    <string name="sim_suggestions">Sugerencias</string>
+    <string name="sim_suggestion_1">Familiarícese con los refugios y rutas cercanas</string>
+    <string name="sim_suggestion_2">Asegúrese de que todos los miembros tengan WarRescue</string>
+    <string name="sim_suggestion_3">Realice simulacros regularmente para estar preparado</string>
+    <string name="sim_summary">Todo el proceso de alerta toma solo segundos\nWarRescue lo protege en todo momento</string>
+    <string name="sim_step_progress">Paso %1$d/%2$d: %3$s</string>
+
+    <!-- Simulation Steps -->
+    <string name="sim_step_ai_scan">Escaneo de datos IA</string>
+    <string name="sim_step_threat_analysis">Análisis de amenazas</string>
+    <string name="sim_step_gen_red_alert">Generar alerta roja</string>
+    <string name="sim_step_gen_orange_alert">Generar alerta naranja</string>
+    <string name="sim_step_gen_yellow_notice">Generar aviso amarillo</string>
+    <string name="sim_step_push_notify">Enviar alerta</string>
+    <string name="sim_step_notify_family">Notificar a la familia</string>
+    <string name="sim_step_plan_route">Planificar ruta de escape</string>
+    <string name="sim_step_nav_shelter">Navegar al refugio</string>
+    <string name="sim_step_monitoring">Monitoreo continuo</string>
+    <string name="sim_step_mark_safe_zone">Marcar zonas seguras</string>
+    <string name="sim_step_info_collect">Recopilación de información</string>
+    <string name="sim_step_verify">Verificar aviso</string>
+    <string name="sim_step_set_reminder">Configurar recordatorio</string>
+    <string name="sim_step_keep_update">Actualizaciones continuas</string>
+    <string name="sim_step_air_scan_desc">Escaneando datos de satélite y radar\u2026</string>
+    <string name="sim_step_air_threat_desc">IA detectó aeronave del NE, confianza 92%</string>
+    <string name="sim_step_air_alert_desc">¡Alerta de ataque aéreo! Amenaza aérea en Kyiv</string>
+    <string name="sim_step_push_desc">Notificación de emergencia enviada</string>
+    <string name="sim_step_family_desc">4 miembros de la familia notificados</string>
+    <string name="sim_step_route_desc">Ruta al refugio más cercano: Metro Central (0,8 km)</string>
+    <string name="sim_step_monitor_desc">IA monitoreando amenazas continuamente</string>
+    <string name="sim_step_art_scan_desc">Analizando datos acústicos y sísmicos\u2026</string>
+    <string name="sim_step_art_threat_desc">Múltiples artillerías detectadas, radio 5 km</string>
+    <string name="sim_step_art_alert_desc">¡Alerta de artillería! Bombardeo en la región de Donetsk</string>
+    <string name="sim_step_push_sms_desc">Notificación de emergencia y SMS enviados</string>
+    <string name="sim_step_family_loc_desc">4 miembros notificados con ubicación en vivo</string>
+    <string name="sim_step_shelter_desc">Navegando al búnker del ayuntamiento (1,2 km)</string>
+    <string name="sim_step_art_monitor_desc">Monitoreando bombardeo, limpieza automática al estar seguro</string>
+    <string name="sim_step_chem_scan_desc">Analizando sensores de calidad del aire\u2026</string>
+    <string name="sim_step_chem_threat_desc">Químicos anormales tras ataque industrial</string>
+    <string name="sim_step_chem_alert_desc">¡Riesgo de fuga química! Cierre puertas y ventanas</string>
+    <string name="sim_step_chem_push_desc">Notificación de emergencia con guía enviada</string>
+    <string name="sim_step_chem_family_desc">Familia notificada: usen mascarillas, cierren ventanas</string>
+    <string name="sim_step_chem_zone_desc">Zonas de evacuación seguras marcadas en el mapa</string>
+    <string name="sim_step_chem_monitor_desc">Monitoreando calidad del aire, esperando confirmación de seguridad</string>
+    <string name="sim_step_curfew_scan_desc">Obteniendo anuncios gubernamentales\u2026</string>
+    <string name="sim_step_curfew_verify_desc">Toque de queda confirmado: 22:00-06:00</string>
+    <string name="sim_step_curfew_notice_desc">¡Aviso de toque de queda! El gobierno decretó toque de queda</string>
+    <string name="sim_step_curfew_push_desc">Notificación de toque de queda enviada</string>
+    <string name="sim_step_curfew_family_desc">Todos los miembros notificados del toque de queda</string>
+    <string name="sim_step_curfew_reminder_desc">Recordatorio a las 21:45 para regreso seguro</string>
+    <string name="sim_step_curfew_update_desc">Monitoreando cambios del toque de queda en tiempo real</string>
+
+    <!-- Route Plan -->
+    <string name="route_plan">Plan de ruta</string>
+    <string name="current_location">Ubicación actual</string>
+    <string name="recommended_routes">Rutas recomendadas</string>
+    <string name="safety_high">Seguridad: Alta</string>
+    <string name="safety_medium">Seguridad: Media</string>
+    <string name="safety_low">Seguridad: Baja</string>
+    <string name="danger_zones">Zonas peligrosas (Evitar)</string>
+    <string name="danger_extreme">Peligro extremo</string>
+    <string name="danger_no_pass">Prohibido el paso</string>
+
+    <!-- Route Plan details -->
+    <string name="route_detail_fmt">%1$.1f km · ~%2$d min a pie · %3$s · %4$d/%5$d</string>
+    <string name="navigating_to">Navegando a %s…</string>
+    <string name="danger_high">Riesgo alto</string>
+    <string name="current_location_addr">Centro de Kyiv · Cerca de Maidán</string>
+    <string name="danger_east_industry">Zona industrial este</string>
+    <string name="danger_east_desc">Bombardeo detectado, radio de impacto 5 km</string>
+    <string name="danger_north_bridge">Puente norte (cruce de río)</string>
+    <string name="danger_north_desc">Daño estructural grave, prohibido el paso</string>
+    <string name="danger_airport">Zona del aeropuerto</string>
+    <string name="danger_airport_desc">Ataques repetidos, manténgase alejado</string>
+
+    <!-- Mutual Aid details -->
+    <string name="aid_emergency_medical">Ayuda médica de emergencia</string>
+    <string name="aid_emergency_medical_meta">0,3 km · hace 5 min</string>
+    <string name="aid_emergency_medical_desc">Usuario levemente herido en bombardeo, necesita primeros auxilios</string>
+    <string name="aid_supply_share">Compartir suministros</string>
+    <string name="aid_supply_share_meta">0,6 km · hace 15 min</string>
+    <string name="aid_supply_share_desc">Usuario comparte agua y comida extra</string>
+    <string name="aid_translate">Ayuda de traducción</string>
+    <string name="aid_translate_meta">0,8 km · hace 1 hora</string>
+    <string name="aid_translate_desc">Trabajadores humanitarios necesitan traducción inglés-ucraniano</string>
+    <string name="aid_receive_range_desc">1 km (ajustable a 500 m-3 km)</string>
+    <string name="aid_response_method_desc">Push + Vibración + Sonido</string>
+    <string name="aid_my_skills">Mis habilidades</string>
+    <string name="aid_my_skills_desc">Primeros auxilios, conducción, traducción</string>
+    <string name="aid_auto_response">Respuesta automática</string>
+    <string name="aid_auto_response_desc">Compartir ubicación automáticamente en SOS cercano</string>
+    <string name="mutual_aid_1km">1 km</string>
+
+    <!-- Mutual Aid -->
+    <string name="mutual_aid_title">Ayuda mutua 1 km</string>
+    <string name="mutual_aid_enabled">Ayuda mutua activada</string>
+    <string name="mutual_aid_disabled">Ayuda mutua desactivada</string>
+    <string name="mutual_aid_coverage">Alcance: %1$s · %2$d usuarios cercanos en línea</string>
+    <string name="nearby_users">Usuarios cercanos</string>
+    <string name="aid_count">Cantidad de ayudas</string>
+    <string name="avg_response">Respuesta promedio</string>
+    <string name="nearby_events">Eventos cercanos</string>
+    <string name="status_waiting">Esperando</string>
+    <string name="status_ongoing">En curso</string>
+    <string name="status_done">Completado</string>
+    <string name="aid_settings">Ajustes de ayuda</string>
+    <string name="receive_range">Rango de recepción</string>
+    <string name="response_method">Método de respuesta</string>
+
+    <!-- Family -->
+    <string name="family_members">Miembros de la familia</string>
+    <string name="online">En línea</string>
+    <string name="offline">Desconectado</string>
+    <string name="admin">Admin</string>
+    <string name="member">Miembro</string>
+    <string name="invite_member">Invitar miembro</string>
+    <string name="invite_copied">Enlace de invitación copiado</string>
+    <string name="family_settings">Ajustes familiares</string>
+    <string name="meeting_point">Punto de encuentro</string>
+    <string name="meeting_point_desc">Establecer punto de encuentro de emergencia</string>
+    <string name="location_sharing">Compartir ubicación</string>
+    <string name="location_sharing_desc">Compartir ubicación en vivo con todos los miembros</string>
+    <string name="sos_link">Enlace SOS</string>
+    <string name="sos_link_desc">SOS de cualquier miembro notifica a todos</string>
+    <string name="family_member_detail">Detalle del miembro</string>
+    <string name="last_seen">Última vez visto: %s</string>
+    <string name="member_location">Ubicación del miembro</string>
+    <string name="send_message">Enviar mensaje</string>
+    <string name="view_track">Ver trayecto</string>
+
+    <!-- Invite Friends -->
+    <string name="invite_friends">Invitar amigos</string>
+    <string name="invite_code_label">Tu código de invitación</string>
+    <string name="copy_code">Copiar código</string>
+    <string name="share_invite">Compartir con amigos</string>
+    <string name="invite_reward">Recompensa de invitación</string>
+    <string name="invite_stats">Estadísticas de invitación</string>
+    <string name="invite_code_copied">¡Código de invitación copiado al portapapeles!</string>
+    <string name="invite_share_text">Uso WarRescue para alertas inteligentes, ¡únete!\nCódigo de invitación: %1$s\nDescargar: https://warrescue.app</string>
+    <string name="invite_share_chooser">Compartir invitación</string>
+    <string name="invite_per_friend">Invitar 1 amigo</string>
+    <string name="invite_per_friend_desc">Ambos obtienen 7 días de Pro gratis</string>
+    <string name="invite_five_friends">Invitar 5 amigos</string>
+    <string name="invite_five_friends_desc">1 mes extra de membresía Pro</string>
+    <string name="invite_count">Invitados: %d</string>
+    <string name="invite_count_desc">%1$d días de prueba gratis (%2$d días usados)</string>
+    <string name="invite_pending">Pendientes: %d</string>
+    <string name="invite_pending_desc">La recompensa se activa cuando el amigo se registra</string>
+
+    <!-- Alert Settings -->
+    <string name="alert_type_settings">Tipos de alerta</string>
+    <string name="alert_level_settings">Niveles de alerta</string>
+    <string name="monitor_range">Rango de monitoreo</string>
+    <string name="monitor_radius">Radio: %d km</string>
+    <string name="monitor_radius_desc">Detectar alertas en un radio de %d km</string>
+    <string name="alert_air_strike">Alerta de ataque aéreo</string>
+    <string name="alert_artillery">Alerta de artillería</string>
+    <string name="alert_conflict">Conflicto armado</string>
+    <string name="alert_curfew">Aviso de toque de queda</string>
+    <string name="alert_chemical">Fuga química</string>
+    <string name="level_red">Rojo (Crítico)</string>
+    <string name="level_orange">Naranja (Advertencia)</string>
+    <string name="level_yellow">Amarillo (Precaución)</string>
+    <string name="ai_monitor_history">Historial de monitoreo</string>
+    <string name="ai_monitor_detail">Detalle de monitoreo</string>
+
+    <!-- Notification Settings -->
+    <string name="push_notifications">Notificaciones push</string>
+    <string name="notif_alert_push">Push de alerta</string>
+    <string name="notif_alert_push_desc">Notificar sobre nuevas alertas</string>
+    <string name="notif_family_status">Cambio de estado familiar</string>
+    <string name="notif_family_status_desc">Notificar conexión/desconexión familiar</string>
+    <string name="notif_sos">Notificación SOS</string>
+    <string name="notif_sos_desc">Notificar en emergencia SOS</string>
+    <string name="sound_vibration">Sonido y vibración</string>
+    <string name="notif_alert_sound">Sonido de alerta</string>
+    <string name="notif_alert_sound_desc">Reproducir sonido en nuevas alertas</string>
+    <string name="notif_vibration">Vibración</string>
+    <string name="notif_vibration_desc">Vibrar en nuevas alertas</string>
+    <string name="notif_dnd">No molestar</string>
+    <string name="notif_dnd_desc">Silencio 22:00–07:00</string>
+    <string name="sms_notifications">Notificaciones SMS</string>
+    <string name="notif_twilio">Pasarela SMS Twilio</string>
+    <string name="notif_twilio_desc">Recibir alertas por SMS sin conexión</string>
+    <string name="notif_sms_level">Solo rojo/naranja</string>
+    <string name="notif_sms_level_desc">SMS solo para alertas críticas</string>
+
+    <!-- Profile Hints -->
+    <string name="hint_nickname">Ingrese apodo</string>
+    <string name="hint_phone">Ingrese número de teléfono</string>
+    <string name="hint_email">Ingrese correo electrónico</string>
+    <string name="hint_city">Seleccione ciudad</string>
+    <string name="hint_name">Ingrese nombre</string>
+    <string name="hint_phone_number">Ingrese teléfono</string>
+    <string name="profile_saved">Perfil guardado</string>
+    <string name="default_city">Kyiv</string>
+    <string name="default_contact_name">Carlos</string>
+
+    <!-- Emergency Profile Hints -->
+    <string name="hint_blood_type">ej. A+, B-, O+</string>
+    <string name="hint_age">Ingrese edad</string>
+    <string name="hint_height">Ingrese altura</string>
+    <string name="hint_weight">Ingrese peso</string>
+    <string name="hint_drug_allergy">ej. Penicilina</string>
+    <string name="hint_food_allergy">ej. Cacahuetes, mariscos</string>
+    <string name="hint_chronic">ej. Hipertensión, diabetes</string>
+    <string name="hint_medication">Ingrese nombre del medicamento</string>
+    <string name="contact_1_name">Contacto 1 Nombre</string>
+    <string name="contact_1_phone">Contacto 1 Teléfono</string>
+    <string name="emergency_saved">Información médica guardada</string>
+    <string name="default_drug_allergy">Penicilina</string>
+    <string name="default_contact_1_name">Papá</string>
+
+    <!-- SOS History -->
+    <string name="sos_history_records">Historial</string>
+    <string name="sos_rec_air_title">Alerta de ataque aéreo activada</string>
+    <string name="sos_rec_air_desc">Amenaza aérea detectada en la ciudad de Kyiv</string>
+    <string name="sos_rec_air_timeline">14:32 Activada → 14:33 Familia notificada → 14:45 Alerta levantada</string>
+    <string name="sos_rec_manual_desc">El usuario inició solicitud de emergencia</string>
+    <string name="sos_rec_manual_timeline_1">09:15 Activada → 09:16 Familia notificada → 09:20 Cancelada</string>
+    <string name="sos_rec_art_title">Alerta de artillería activada</string>
+    <string name="sos_rec_art_desc">Bombardeo detectado en la región de Donetsk</string>
+    <string name="sos_rec_art_timeline">22:48 Activada → 22:49 Todos notificados → 23:30 Alerta levantada</string>
+    <string name="sos_rec_drill_desc">El usuario inició solicitud de emergencia (Simulacro)</string>
+    <string name="sos_rec_drill_timeline">06:30 Activada → 06:31 Notificación enviada → 06:32 Cancelada</string>
+    <string name="sos_rec_chem_title">Alerta de fuga química</string>
+    <string name="sos_rec_chem_desc">Riesgo de fuga química detectado en zona industrial</string>
+    <string name="sos_rec_chem_timeline">18:20 Activada → 18:21 Todos notificados → 19:45 Alerta levantada</string>
+
+    <!-- Subscription -->
+    <string name="subscription_manage">Suscripción</string>
+    <string name="plan_pro_personal">Pro Personal</string>
+    <string name="plan_expire_demo">Válido hasta 2026-05-22 · 28 días restantes</string>
+    <string name="plan_free_features">Alertas básicas\n5 consultas/día\n1 miembro familiar</string>
+    <string name="plan_pro_price">¥39.99/mes</string>
+    <string name="plan_pro_features">Alertas IA 24/7\nConsultas ilimitadas\n5 miembros familiares\nPlanificación de ruta de escape\nEmergencia SOS\nSMS (Twilio)</string>
+    <string name="plan_family_price">¥199.99/mes</string>
+    <string name="plan_family_features">Todas las funciones Pro\nHasta 20 miembros\nGestión de grupo familiar\nRespuesta prioritaria\nSoporte dedicado\nSincronización multidispositivo</string>
+    <string name="payment_google_pay">Google Pay</string>
+    <string name="payment_google_desc">Pago rápido y seguro</string>
+    <string name="payment_card">Tarjeta de crédito / débito</string>
+    <string name="payment_card_desc">Visa / Mastercard / UnionPay</string>
+    <string name="payment_paypal">PayPal</string>
+    <string name="payment_paypal_desc">Pago internacional</string>
+    <string name="payment_redirect">Redirigiendo al pago…</string>
+    <string name="time_ago_minutes">hace %d min</string>
+    <string name="time_ago_hours">hace %d horas</string>
+    <string name="time_ago_days">hace %d días</string>
+
+    <!-- Common -->
+    <string name="confirm">Confirmar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="close">Cerrar</string>
+    <string name="loading">Cargando…</string>
+    <string name="save">Guardar</string>
+    <string name="search">Buscar</string>
+    <string name="filter">Filtrar</string>
+    <string name="reset">Restablecer</string>
+    <string name="back">Volver</string>
+    <string name="view_details">Detalles</string>
+    <string name="confirm_sos">¿Enviar SOS?</string>
+    <string name="sos_warning">Notificará a toda la familia y rescate cercano</string>
+    <string name="alert_detail_title">Detalle de alerta</string>
+    <string name="detailed_description">Descripción detallada</string>
+    <string name="legend_red_alert">Alerta roja</string>
+    <string name="legend_orange_alert">Alerta naranja</string>
+    <string name="legend_yellow_alert">Alerta amarilla</string>
+    <string name="reliability">Fiabilidad</string>
+    <string name="search_alerts">Buscar alertas…</string>
+    <string name="time_range">Rango de tiempo</string>
+    <string name="type">Tipo</string>
+    <string name="location">Ubicación</string>
+    <string name="time">Hora</string>
+    <string name="minutes_ago">min</string>
+    <string name="hours_ago">horas</string>
+    <string name="days_ago">días</string>
+    <string name="just_now">Ahora mismo</string>
+    <string name="demo_user">Usuario demo</string>
+    <string name="version">Versión %s</string>
+    <string name="app_restart_hint">Reinicie la aplicación para aplicar el cambio de idioma</string>
+
+    <!-- Demo Data - Alerts -->
+    <string name="demo_alert_1_title">Alerta de ataque aéreo detectada en Kyiv</string>
+    <string name="demo_alert_1_desc">El sistema IA detectó señal de amenaza aérea del NE, diríjase al refugio más cercano inmediatamente</string>
+    <string name="demo_alert_1_city">Kyiv</string>
+    <string name="demo_country_ukraine">Ucrania</string>
+    <string name="demo_alert_2_title">Alerta de artillería en la región de Donetsk</string>
+    <string name="demo_alert_2_desc">Múltiples actividades de bombardeo detectadas, radio de impacto 5 km, aléjese de áreas abiertas</string>
+    <string name="demo_alert_2_city">Donetsk</string>
+    <string name="demo_alert_3_title">Conflicto en el sur de Beirut</string>
+    <string name="demo_alert_3_desc">Conflicto armado en suburbios del sur, carreteras posiblemente bloqueadas, considere rutas alternativas</string>
+    <string name="demo_alert_3_city">Beirut</string>
+    <string name="demo_country_lebanon">Líbano</string>
+    <string name="demo_alert_4_title">Aviso de toque de queda en Bagdad</string>
+    <string name="demo_alert_4_desc">El gobierno decretó toque de queda, prohibido salir de 22:00 a 06:00</string>
+    <string name="demo_alert_4_city">Bagdad</string>
+    <string name="demo_country_iraq">Irak</string>
+    <string name="demo_alert_5_title">Alerta de defensa aérea en Tel Aviv</string>
+    <string name="demo_alert_5_desc">Cúpula de Hierro activada, amenaza de cohetes detectada del sur</string>
+    <string name="demo_alert_5_city">Tel Aviv</string>
+    <string name="demo_country_israel">Israel</string>
+    <string name="demo_alert_6_title">Riesgo de fuga química en Járkiv</string>
+    <string name="demo_alert_6_desc">Posible fuga de químicos peligrosos tras ataque a zona industrial</string>
+    <string name="demo_alert_6_city">Járkiv</string>
+    <string name="demo_alert_7_title">Alerta en zona de la central de Zaporizhzhia</string>
+    <string name="demo_alert_7_desc">Actividad inusual detectada cerca de la central eléctrica, manténgase alerta</string>
+    <string name="demo_alert_7_city">Zaporizhzhia</string>
+
+    <!-- Demo Data - Palestine/Gaza -->
+    <string name="demo_alert_8_title">Ataques aéreos en la ciudad de Gaza</string>
+    <string name="demo_alert_8_desc">Múltiples rondas de ataques aéreos detectados en el norte de Gaza, diríjase al refugio inmediatamente y aléjese de los edificios</string>
+    <string name="demo_alert_8_city">Gaza</string>
+    <string name="demo_country_palestine">Palestina</string>
+    <string name="demo_alert_9_title">Bombardeo de artillería cerca del paso de Rafah</string>
+    <string name="demo_alert_9_desc">Bombardeo de artillería continuo alrededor del paso de Rafah, el paso fronterizo podría estar cerrado</string>
+    <string name="demo_alert_9_city">Rafah</string>
+
+    <!-- Demo Data - Shelters -->
+    <string name="demo_shelter_1_name">Refugio de la estación de metro central</string>
+    <string name="demo_shelter_1_addr">Estación de metro central de Kyiv nivel B2</string>
+    <string name="demo_shelter_2_name">Búnker subterráneo del ayuntamiento</string>
+    <string name="demo_shelter_2_addr">Ayuntamiento de Maidán nivel subterráneo 3</string>
+    <string name="demo_shelter_3_name">Refugio antiaéreo de la escuela</string>
+    <string name="demo_shelter_3_addr">Escuela n.°42 sótano</string>
+    <string name="demo_shelter_4_name">Zona de refugio del estacionamiento del centro comercial</string>
+    <string name="demo_shelter_4_addr">Centro comercial Ocean Plaza estacionamiento B3</string>
+    <string name="demo_shelter_5_name">Refugio residencial</string>
+    <string name="demo_shelter_5_addr">Distrito Obolon edificio 18 subterráneo</string>
+
+    <!-- Demo Data - Palestine Shelters -->
+    <string name="demo_shelter_6_name">Refugio escuela UNRWA</string>
+    <string name="demo_shelter_6_addr">Escuela UNRWA, centro de Gaza</string>
+    <string name="demo_shelter_7_name">Refugio subterráneo del hospital Al-Shifa</string>
+    <string name="demo_shelter_7_addr">Nivel subterráneo del hospital Al-Shifa, Gaza</string>
+    <string name="demo_shelter_8_name">Refugio de la mezquita central</string>
+    <string name="demo_shelter_8_addr">Mezquita central de Gaza</string>
+
+    <!-- Demo Data - Family -->
+    <string name="demo_family_dad">Papá</string>
+    <string name="demo_family_mom">Mamá</string>
+    <string name="demo_family_child">Carlos</string>
+    <string name="demo_family_grandma">Abuela</string>
+    <string name="demo_family_last_seen">hace 30 min</string>
+
+    <!-- Demo Data - City Alerts -->
+    <string name="demo_city_alert_1_desc">Múltiples usuarios confirmaron escuchar explosiones y sirenas del NE</string>
+    <string name="demo_city_alert_2_desc">Bombardeo continuo detectado hacia la zona industrial</string>
+    <string name="demo_city_alert_3_desc">Movimiento de personal armado detectado en la zona sur</string>
+    <string name="demo_city_alert_4_desc">Conflicto armado en el centro de la ciudad, carreteras bloqueadas</string>
+    <string name="demo_city_alert_5_desc">Usuarios cerca de la zona industrial reportaron un olor inusual</string>
+    <string name="demo_city_alert_6_desc">Varios residentes de Gaza confirmaron escuchar explosiones continuas y aviones de combate sobrevolando</string>
+
+    <!-- Auth - New -->
+    <string name="auth_enter_code">Ingrese código de 6 dígitos</string>
+    <string name="auth_invite_code_optional">Código de invitación (opcional)</string>
+    <string name="auth_trial_hint">Regístrate para 7 días de prueba gratis</string>
+    <string name="auth_phone_invalid">Ingrese un número de teléfono válido</string>
+    <string name="auth_code_invalid">Ingrese un código de 6 dígitos</string>
+    <string name="auth_code_not_sent">Obtenga el código de verificación primero</string>
+    <string name="auth_code_wrong">Código incorrecto, intente de nuevo</string>
+    <string name="auth_code_sent">Código enviado: %1$s</string>
+    <string name="auth_resend_countdown">Reenviar en %1$d s</string>
+    <string name="auth_login_success">Inicio de sesión exitoso</string>
+    <string name="auth_register_success">Registro exitoso, prueba de 7 días activada</string>
+    <string name="auth_guest_welcome">¡Bienvenido! Modo invitado válido por 7 días con funciones limitadas</string>
+    <string name="auth_email_invalid">Ingrese un correo electrónico válido</string>
+    <string name="auth_password_invalid">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="sub_plan_personal_name">Personal ¥39.99/mes</string>
+    <string name="sub_plan_family_name">Familiar ¥199.99/mes</string>
+    <string name="sub_trial_active">Prueba gratuita activa</string>
+    <string name="sub_no_subscription">Sin suscripción</string>
+    <string name="sub_choose_plan_hint">Elige un plan adecuado</string>
+    <string name="sub_expiring_warn">La suscripción expira en %1$d días</string>
+    <string name="sub_invite_discount_active">¡Descuento por invitación activo - Mitad de precio!</string>
+    <string name="sub_invite_discount_desc">Tu invitado se registró, disfruta del descuento</string>
+    <string name="sub_invite_count">%1$d amigos invitados</string>
+    <string name="sub_price_discount">¥%1$s/mes (era ¥%2$s)</string>
+    <string name="sub_price_normal">¥%1$s/mes</string>
+    <string name="sub_personal_features">Alertas en tiempo real\nPlanificación de rutas\nSOS\nMapas sin conexión\nNotificación de rescate</string>
+    <string name="sub_family_features">Todas las funciones Personal\nUbicación familiar\nSinc alertas\nHasta 5 miembros</string>
+    <string name="sub_subscribe">Suscribirse ahora</string>
+    <string name="sub_payment_lianlian">LianLian Pay</string>
+    <string name="sub_payment_lianlian_desc">Pago en línea seguro y conveniente</string>
+    <string name="sub_guest_cannot">Los invitados no pueden suscribirse, regístrese primero</string>
+    <string name="sub_order_created">Pedido: %1$s\nPlan: %2$s\nMonto: ¥%3$s</string>
+    <string name="sub_activated">%1$s activado por 30 días</string>
+    <string name="invite_reward_rule_title">Invita amigos a registrarse</string>
+    <string name="invite_reward_rule_desc">Obtén suscripción a mitad de precio</string>
+    <string name="invite_total_invited">Total invitados: %1$d amigos</string>
+    <string name="invite_discount_months">%1$d descuentos mensuales obtenidos</string>
+
+    <!-- Alert Escalation -->
+    <string name="alert_flashlight_title">Alerta de emergencia</string>
+    <string name="alert_flashlight_desc">Amenaza de seguridad detectada. Confirme su estado de seguridad inmediatamente</string>
+    <string name="alert_flashlight_active">Alerta de flash activa</string>
+    <string name="alert_flashlight_stop">Apagar flash</string>
+    <string name="alert_flashlight_countdown">%1$d seg hasta llamada de verificaci\u00f3n AI</string>
+    <string name="alert_i_am_safe">Estoy a salvo</string>
+    <string name="alert_need_help">Necesito ayuda</string>
+    <string name="alert_countdown_fmt">%1$d seg hasta verificaci\u00f3n AI</string>
+    <string name="alert_escalating">Escalando a llamada AI\u2026</string>
+    <string name="alert_escalation_hint">Sin respuesta, el sistema llamar\u00e1 autom\u00e1ticamente para verificar</string>
+    <string name="alert_channel_name">Alertas de emergencia</string>
+    <string name="alert_channel_desc">Alertas de flash y notificaciones de emergencia</string>
+    <string name="alert_ai_call_title">Llamada de verificaci\u00f3n AI</string>
+    <string name="alert_ai_call_desc">Llamada de voz AI para verificar su seguridad</string>
+    <string name="alert_calling_user">Llamando\u2026</string>
+    <string name="alert_call_simulated">Simulando llamada AI (Twilio no configurado)</string>
+    <string name="alert_waiting_answer">Esperando respuesta\u2026 %1$d seg</string>
+    <string name="alert_ai_call_channel_name">Verificaci\u00f3n vocal AI</string>
+    <string name="alert_ai_call_channel_desc">Notificaciones de verificaci\u00f3n vocal AI</string>
+    <string name="rescue_triggered_title">Notificaci\u00f3n de rescate activada</string>
+    <string name="rescue_triggered_desc">Raz\u00f3n: %1$s</string>
+    <string name="rescue_triggered_detail">Alerta: %1$s\nRaz\u00f3n: %2$s\nContactos de emergencia y rescate notificados</string>
+    <string name="rescue_processing_title">Procesando notificaci\u00f3n de rescate</string>
+    <string name="rescue_processing_desc">Notificando contactos de emergencia\u2026</string>
+    <string name="rescue_channel_name">Notificaciones de rescate</string>
+    <string name="rescue_channel_desc">Alertas de rescate de emergencia</string>
+    <string name="rescue_sms_body">[WarRescue RESCATE] %1$s puede estar en peligro! Alerta: %2$s. Raz\u00f3n: %3$s. Contacte inmediatamente.</string>
+    <string name="rescue_reason_no_answer">Llamada AI sin respuesta</string>
+    <string name="rescue_reason_call_failed">Llamada AI fallida</string>
+    <string name="rescue_reason_no_phone">N\u00famero no configurado</string>
+    <string name="rescue_reason_user_emergency">Solicitud de ayuda del usuario</string>
+    <string name="rescue_reason_timeout">Tiempo de respuesta agotado</string>
+</resources>

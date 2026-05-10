@@ -1,0 +1,45 @@
+﻿2026-05-08T17:46:48.2820420Z ##[group]Run npm run build
+2026-05-08T17:46:48.2821030Z [36;1mnpm run build[0m
+2026-05-08T17:46:48.2902370Z shell: /bin/bash -e {0}
+2026-05-08T17:46:48.2902980Z env:
+2026-05-08T17:46:48.2904070Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:46:48.2905100Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:46:48.2906020Z   APPLE_TEAM_ID: ***
+2026-05-08T17:46:48.2906750Z ##[endgroup]
+2026-05-08T17:46:48.7121240Z 
+2026-05-08T17:46:48.7152290Z > smart-alert-system@1.0.0 build
+2026-05-08T17:46:48.7152930Z > webpack --mode production
+2026-05-08T17:46:48.7153200Z 
+2026-05-08T17:47:08.7470200Z asset [1m[33mbundle.c08bc00f.js[39m[22m [1m[33m1.32 MiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[immutable][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: main) 1 related asset
+2026-05-08T17:47:08.7516880Z asset [1m[32mindex.html[39m[22m 1.62 KiB [1m[32m[emitted][39m[22m
+2026-05-08T17:47:08.7619750Z orphan modules 4.92 MiB [1m[33m[orphan][39m[22m 1774 modules
+2026-05-08T17:47:08.7722930Z runtime modules 2.31 KiB 7 modules
+2026-05-08T17:47:08.7764530Z cacheable modules 4.07 MiB
+2026-05-08T17:47:08.7871040Z   modules by path [1m./node_modules/[39m[22m 155 KiB
+2026-05-08T17:47:08.7973590Z     modules by path [1m./node_modules/style-loader/dist/runtime/*.js[39m[22m 5.84 KiB 6 modules
+2026-05-08T17:47:08.8052170Z     modules by path [1m./node_modules/react/[39m[22m 8 KiB 4 modules
+2026-05-08T17:47:08.8053270Z     modules by path [1m./node_modules/react-dom/[39m[22m 131 KiB 3 modules
+2026-05-08T17:47:08.8054040Z     modules by path [1m./node_modules/prop-types/[39m[22m 2.6 KiB 3 modules
+2026-05-08T17:47:08.8055010Z     modules by path [1m./node_modules/css-loader/dist/runtime/*.js[39m[22m 2.31 KiB 2 modules
+2026-05-08T17:47:08.8055660Z     modules by path [1m./node_modules/scheduler/[39m[22m 4.33 KiB 2 modules
+2026-05-08T17:47:08.8057060Z     [1m./node_modules/@fortawesome/fontawesome-svg-core/package.json[39m[22m 1.39 KiB [1m[33m[optional][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+2026-05-08T17:47:08.8066630Z   modules by path [1m./src/[39m[22m 3.91 MiB
+2026-05-08T17:47:08.8067450Z     [1m./src/index.tsx + 435 modules[39m[22m 3.84 MiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+2026-05-08T17:47:08.8069230Z     ./node_modules/css-loader/dist/cjs.js!./node_modules/postcss-loader/dist/cjs.js![1m./src/styles/index.css[39m[22m 76.7 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+2026-05-08T17:47:08.8069840Z 
+2026-05-08T17:47:08.8070450Z [1m[33mWARNING[39m[22m in [1masset size limit: The following asset(s) exceed the recommended size limit (244 KiB).
+2026-05-08T17:47:08.8071100Z This can impact web performance.
+2026-05-08T17:47:08.8071600Z Assets: 
+2026-05-08T17:47:08.8072140Z   bundle.c08bc00f.js (1.32 MiB)[39m[22m
+2026-05-08T17:47:08.8072460Z 
+2026-05-08T17:47:08.8073330Z [1m[33mWARNING[39m[22m in [1mentrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (244 KiB). This can impact web performance.
+2026-05-08T17:47:08.8074060Z Entrypoints:
+2026-05-08T17:47:08.8074320Z   main (1.32 MiB)
+2026-05-08T17:47:08.8074730Z       bundle.c08bc00f.js
+2026-05-08T17:47:08.8075160Z [39m[22m
+2026-05-08T17:47:08.8075340Z 
+2026-05-08T17:47:08.8075720Z [1m[33mWARNING[39m[22m in [1mwebpack performance recommendations: 
+2026-05-08T17:47:08.8076490Z You can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.
+2026-05-08T17:47:08.8077400Z For more info visit https://webpack.js.org/guides/code-splitting/[39m[22m
+2026-05-08T17:47:08.8077750Z 
+2026-05-08T17:47:08.8078150Z webpack 5.106.2 compiled with [1m[33m3 warnings[39m[22m in 19063 ms

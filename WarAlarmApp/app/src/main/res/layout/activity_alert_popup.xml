@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC000000">
+
+    <!-- Red flashing overlay -->
+    <View
+        android:id="@+id/flashOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#44FF0000"
+        android:alpha="0" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <!-- Alert icon -->
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/circle_red_bg"
+            android:gravity="center"
+            android:text="!"
+            android:textColor="#FFFFFF"
+            android:textSize="48sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAlertTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="@string/alert_flashlight_title" />
+
+        <TextView
+            android:id="@+id/tvAlertDesc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="#CCFFFFFF"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:text="@string/alert_flashlight_desc" />
+
+        <TextView
+            android:id="@+id/tvCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textColor="#FFFF4444"
+            android:textSize="18sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/tvEscalationHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="#99FFFFFF"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:text="@string/alert_escalation_hint" />
+
+        <!-- I am safe button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDismissAlert"
+            android:layout_width="240dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="40dp"
+            android:text="@string/alert_i_am_safe"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#4CAF50" />
+
+        <!-- Emergency button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEmergency"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="240dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:text="@string/alert_need_help"
+            android:textSize="15sp"
+            android:textColor="#FF4444"
+            android:strokeColor="#FF4444" />
+
+    </LinearLayout>
+
+</FrameLayout>

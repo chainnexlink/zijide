@@ -1,0 +1,1255 @@
+﻿2026-05-05T17:54:14.1450110Z Current runner version: '2.334.0'
+2026-05-05T17:54:14.1464580Z ##[group]Runner Image Provisioner
+2026-05-05T17:54:14.1465170Z Hosted Compute Agent
+2026-05-05T17:54:14.1465630Z Version: 20260422.526
+2026-05-05T17:54:14.1466070Z Commit: e1a9e573f4d0838b3a7c1b07401aeb29ed3635a9
+2026-05-05T17:54:14.1466570Z Build Date: 2026-04-22T09:31:31Z
+2026-05-05T17:54:14.1467050Z Worker ID: {2d13c4cd-be52-4d54-992f-6d9188df05c9}
+2026-05-05T17:54:14.1467550Z Azure Region: westus
+2026-05-05T17:54:14.1467950Z ##[endgroup]
+2026-05-05T17:54:14.1468810Z ##[group]Operating System
+2026-05-05T17:54:14.1469260Z macOS
+2026-05-05T17:54:14.1469600Z 15.7.4
+2026-05-05T17:54:14.1469930Z 24G517
+2026-05-05T17:54:14.1470280Z ##[endgroup]
+2026-05-05T17:54:14.1470650Z ##[group]Runner Image
+2026-05-05T17:54:14.1471040Z Image: macos-15-arm64
+2026-05-05T17:54:14.1471430Z Version: 20260427.0018.1
+2026-05-05T17:54:14.1472240Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20260427.0018/images/macos/macos-15-arm64-Readme.md
+2026-05-05T17:54:14.1473350Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20260427.0018
+2026-05-05T17:54:14.1474010Z ##[endgroup]
+2026-05-05T17:54:14.1475010Z ##[group]GITHUB_TOKEN Permissions
+2026-05-05T17:54:14.1476140Z Contents: read
+2026-05-05T17:54:14.1476510Z Metadata: read
+2026-05-05T17:54:14.1476880Z Packages: read
+2026-05-05T17:54:14.1477250Z ##[endgroup]
+2026-05-05T17:54:14.1478580Z Secret source: Actions
+2026-05-05T17:54:14.1479040Z Prepare workflow directory
+2026-05-05T17:54:14.1815860Z Prepare all required actions
+2026-05-05T17:54:14.1846150Z Getting action download info
+2026-05-05T17:54:14.7384120Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-05-05T17:54:14.9708330Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-05-05T17:54:15.0498760Z Download action repository 'ruby/setup-ruby@v1' (SHA:c4e5b1316158f92e3d49443a9d58b31d25ac0f8f)
+2026-05-05T17:54:15.8673400Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-05-05T17:54:16.0554360Z Complete job name: build-ios
+2026-05-05T17:54:16.1065150Z ##[group]Run actions/checkout@v4
+2026-05-05T17:54:16.1066040Z with:
+2026-05-05T17:54:16.1066650Z   repository: chainnexlink/zijide
+2026-05-05T17:54:16.1067590Z   token: ***
+2026-05-05T17:54:16.1068180Z   ssh-strict: true
+2026-05-05T17:54:16.1068780Z   ssh-user: git
+2026-05-05T17:54:16.1069390Z   persist-credentials: true
+2026-05-05T17:54:16.1070060Z   clean: true
+2026-05-05T17:54:16.1070680Z   sparse-checkout-cone-mode: true
+2026-05-05T17:54:16.1071400Z   fetch-depth: 1
+2026-05-05T17:54:16.1072030Z   fetch-tags: false
+2026-05-05T17:54:16.1072640Z   show-progress: true
+2026-05-05T17:54:16.1073270Z   lfs: false
+2026-05-05T17:54:16.1073850Z   submodules: false
+2026-05-05T17:54:16.1074480Z   set-safe-directory: true
+2026-05-05T17:54:16.1075240Z env:
+2026-05-05T17:54:16.1075890Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:16.1076880Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:16.1077630Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:16.1078250Z ##[endgroup]
+2026-05-05T17:54:16.3643350Z Syncing repository: chainnexlink/zijide
+2026-05-05T17:54:16.3645750Z ##[group]Getting Git version info
+2026-05-05T17:54:16.3646660Z Working directory is '/Users/runner/work/zijide/zijide'
+2026-05-05T17:54:16.3648220Z [command]/opt/homebrew/bin/git version
+2026-05-05T17:54:16.4192880Z git version 2.54.0
+2026-05-05T17:54:16.4215870Z ##[endgroup]
+2026-05-05T17:54:16.4221990Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/ce40ca14-ccbc-4980-88dd-e8cf334d1318/.gitconfig'
+2026-05-05T17:54:16.4228170Z Temporarily overriding HOME='/Users/runner/work/_temp/ce40ca14-ccbc-4980-88dd-e8cf334d1318' before making global git config changes
+2026-05-05T17:54:16.4230020Z Adding repository directory to the temporary git global config as a safe directory
+2026-05-05T17:54:16.4235740Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/zijide/zijide
+2026-05-05T17:54:16.4327490Z Deleting the contents of '/Users/runner/work/zijide/zijide'
+2026-05-05T17:54:16.4331810Z ##[group]Initializing the repository
+2026-05-05T17:54:16.4335450Z [command]/opt/homebrew/bin/git init /Users/runner/work/zijide/zijide
+2026-05-05T17:54:16.4526020Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-05-05T17:54:16.4527660Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-05-05T17:54:16.4528990Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-05-05T17:54:16.4530370Z hint: call:
+2026-05-05T17:54:16.4530950Z hint:
+2026-05-05T17:54:16.4531680Z hint: 	git config --global init.defaultBranch <name>
+2026-05-05T17:54:16.4532530Z hint:
+2026-05-05T17:54:16.4533350Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-05-05T17:54:16.4534950Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-05-05T17:54:16.4536190Z hint:
+2026-05-05T17:54:16.4536830Z hint: 	git branch -m <name>
+2026-05-05T17:54:16.4537490Z hint:
+2026-05-05T17:54:16.4538760Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-05-05T17:54:16.4540100Z Initialized empty Git repository in /Users/runner/work/zijide/zijide/.git/
+2026-05-05T17:54:16.4542850Z [command]/opt/homebrew/bin/git remote add origin https://github.com/chainnexlink/zijide
+2026-05-05T17:54:16.4607960Z ##[endgroup]
+2026-05-05T17:54:16.4609240Z ##[group]Disabling automatic garbage collection
+2026-05-05T17:54:16.4614280Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-05-05T17:54:16.4684400Z ##[endgroup]
+2026-05-05T17:54:16.4685460Z ##[group]Setting up auth
+2026-05-05T17:54:16.4688660Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-05-05T17:54:16.4782990Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-05-05T17:54:16.5683510Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-05-05T17:54:16.5747330Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-05-05T17:54:16.6490900Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-05-05T17:54:16.6549260Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-05-05T17:54:16.7309230Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-05-05T17:54:16.7373860Z ##[endgroup]
+2026-05-05T17:54:16.7375200Z ##[group]Fetching the repository
+2026-05-05T17:54:16.7379780Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +73cfcf88306bbada38cdefeead9c089bd9363986:refs/remotes/origin/main
+2026-05-05T17:54:17.5007380Z From https://github.com/chainnexlink/zijide
+2026-05-05T17:54:17.5008930Z  * [new ref]         73cfcf88306bbada38cdefeead9c089bd9363986 -> origin/main
+2026-05-05T17:54:17.5078980Z ##[endgroup]
+2026-05-05T17:54:17.5080070Z ##[group]Determining the checkout info
+2026-05-05T17:54:17.5081200Z ##[endgroup]
+2026-05-05T17:54:17.5082010Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-05-05T17:54:17.5151920Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-05-05T17:54:17.5208130Z ##[group]Checking out the ref
+2026-05-05T17:54:17.5209980Z [command]/opt/homebrew/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-05-05T17:54:17.5485590Z Switched to a new branch 'main'
+2026-05-05T17:54:17.5494620Z branch 'main' set up to track 'origin/main'.
+2026-05-05T17:54:17.5498260Z ##[endgroup]
+2026-05-05T17:54:17.5567570Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-05-05T17:54:17.5622350Z 73cfcf88306bbada38cdefeead9c089bd9363986
+2026-05-05T17:54:17.5776350Z ##[group]Run echo "Available Xcode versions:"
+2026-05-05T17:54:17.5777240Z [36;1mecho "Available Xcode versions:"[0m
+2026-05-05T17:54:17.5778160Z [36;1mls -d /Applications/Xcode*.app 2>/dev/null || true[0m
+2026-05-05T17:54:17.5779710Z [36;1mLATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)[0m
+2026-05-05T17:54:17.5780890Z [36;1mecho "Selecting: $LATEST_XCODE"[0m
+2026-05-05T17:54:17.5782050Z [36;1msudo xcode-select -s "$LATEST_XCODE/Contents/Developer"[0m
+2026-05-05T17:54:17.5783010Z [36;1mxcodebuild -version[0m
+2026-05-05T17:54:17.5783790Z [36;1mxcrun --sdk iphoneos --show-sdk-version[0m
+2026-05-05T17:54:17.5820420Z shell: /bin/bash -e {0}
+2026-05-05T17:54:17.5821060Z env:
+2026-05-05T17:54:17.5821840Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:17.5822780Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:17.5823610Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:17.5824220Z ##[endgroup]
+2026-05-05T17:54:17.6131450Z Available Xcode versions:
+2026-05-05T17:54:17.6165180Z /Applications/Xcode_16.0.0.app
+2026-05-05T17:54:17.6166090Z /Applications/Xcode_16.0.app
+2026-05-05T17:54:17.6166930Z /Applications/Xcode_16.1.0.app
+2026-05-05T17:54:17.6167650Z /Applications/Xcode_16.1.app
+2026-05-05T17:54:17.6168450Z /Applications/Xcode_16.2.0.app
+2026-05-05T17:54:17.6169170Z /Applications/Xcode_16.2.app
+2026-05-05T17:54:17.6169960Z /Applications/Xcode_16.3.0.app
+2026-05-05T17:54:17.6170730Z /Applications/Xcode_16.3.app
+2026-05-05T17:54:17.6171450Z /Applications/Xcode_16.4.0.app
+2026-05-05T17:54:17.6172200Z /Applications/Xcode_16.4.app
+2026-05-05T17:54:17.6173040Z /Applications/Xcode_16.app
+2026-05-05T17:54:17.6173780Z /Applications/Xcode_26.0.1.app
+2026-05-05T17:54:17.6174610Z /Applications/Xcode_26.0.app
+2026-05-05T17:54:17.6175370Z /Applications/Xcode_26.1.1.app
+2026-05-05T17:54:17.6176070Z /Applications/Xcode_26.1.app
+2026-05-05T17:54:17.6176800Z /Applications/Xcode_26.2.0.app
+2026-05-05T17:54:17.6177490Z /Applications/Xcode_26.2.app
+2026-05-05T17:54:17.6178200Z /Applications/Xcode_26.3.0.app
+2026-05-05T17:54:17.6179160Z /Applications/Xcode_26.3.app
+2026-05-05T17:54:17.6179870Z /Applications/Xcode.app
+2026-05-05T17:54:17.6218340Z Selecting: /Applications/Xcode_26.3.0.app
+2026-05-05T17:54:19.8209810Z Xcode 26.3
+2026-05-05T17:54:19.8311410Z Build version 17C529
+2026-05-05T17:54:20.9259410Z 26.2
+2026-05-05T17:54:20.9351570Z ##[group]Run actions/setup-node@v4
+2026-05-05T17:54:20.9351810Z with:
+2026-05-05T17:54:20.9351960Z   node-version: 22
+2026-05-05T17:54:20.9352110Z   cache: npm
+2026-05-05T17:54:20.9352280Z   always-auth: false
+2026-05-05T17:54:20.9352450Z   check-latest: false
+2026-05-05T17:54:20.9352710Z   token: ***
+2026-05-05T17:54:20.9352850Z env:
+2026-05-05T17:54:20.9353030Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:20.9353340Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:20.9353670Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:20.9353870Z ##[endgroup]
+2026-05-05T17:54:21.0903500Z Found in cache @ /Users/runner/hostedtoolcache/node/22.22.2/arm64
+2026-05-05T17:54:21.0907410Z ##[group]Environment details
+2026-05-05T17:54:21.6312700Z node: v22.22.2
+2026-05-05T17:54:21.6313260Z npm: 10.9.7
+2026-05-05T17:54:21.6313460Z yarn: 1.22.22
+2026-05-05T17:54:21.6314150Z ##[endgroup]
+2026-05-05T17:54:21.6330190Z [command]/Users/runner/hostedtoolcache/node/22.22.2/arm64/bin/npm config get cache
+2026-05-05T17:54:21.8130040Z /Users/runner/.npm
+2026-05-05T17:54:22.1048400Z Cache hit for: node-cache-macOS-arm64-npm-c1add879889ff872e3b1520f95ce6310fc4031eebc2635d5b39a8c0cb9cf83f3
+2026-05-05T17:54:23.4033320Z Received 9485333 of 34651157 (27.4%), 9.0 MBs/sec
+2026-05-05T17:54:23.7358530Z Received 34651157 of 34651157 (100.0%), 24.8 MBs/sec
+2026-05-05T17:54:23.7360060Z Cache Size: ~33 MB (34651157 B)
+2026-05-05T17:54:23.7394730Z [command]/opt/homebrew/bin/gtar -xf /Users/runner/work/_temp/6abe9832-c20a-480c-b64f-c92cfb07c0f0/cache.tzst -P -C /Users/runner/work/zijide/zijide --delay-directory-restore --use-compress-program unzstd
+2026-05-05T17:54:24.0115180Z Cache restored successfully
+2026-05-05T17:54:24.0147790Z Cache restored from key: node-cache-macOS-arm64-npm-c1add879889ff872e3b1520f95ce6310fc4031eebc2635d5b39a8c0cb9cf83f3
+2026-05-05T17:54:24.0253270Z ##[group]Run npm ci
+2026-05-05T17:54:24.0253560Z [36;1mnpm ci[0m
+2026-05-05T17:54:24.0290550Z shell: /bin/bash -e {0}
+2026-05-05T17:54:24.0290790Z env:
+2026-05-05T17:54:24.0291140Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:24.0291490Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:24.0291790Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:24.0291990Z ##[endgroup]
+2026-05-05T17:54:25.5715050Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-05-05T17:54:25.6986050Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-05-05T17:54:25.7411260Z npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+2026-05-05T17:54:28.8330980Z 
+2026-05-05T17:54:28.8332140Z added 685 packages, and audited 686 packages in 5s
+2026-05-05T17:54:28.8336200Z 
+2026-05-05T17:54:28.8351630Z 97 packages are looking for funding
+2026-05-05T17:54:28.8352250Z   run `npm fund` for details
+2026-05-05T17:54:28.8356330Z 
+2026-05-05T17:54:28.8356760Z 1 moderate severity vulnerability
+2026-05-05T17:54:28.8357140Z 
+2026-05-05T17:54:28.8357580Z To address all issues (including breaking changes), run:
+2026-05-05T17:54:28.8358220Z   npm audit fix --force
+2026-05-05T17:54:28.8370630Z 
+2026-05-05T17:54:28.8371320Z Run `npm audit` for details.
+2026-05-05T17:54:28.9416590Z ##[group]Run npm run build
+2026-05-05T17:54:28.9416930Z [36;1mnpm run build[0m
+2026-05-05T17:54:28.9452160Z shell: /bin/bash -e {0}
+2026-05-05T17:54:28.9452350Z env:
+2026-05-05T17:54:28.9452770Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:28.9453250Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:28.9453510Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:28.9453770Z ##[endgroup]
+2026-05-05T17:54:29.0883050Z 
+2026-05-05T17:54:29.0883840Z > smart-alert-system@1.0.0 build
+2026-05-05T17:54:29.0884640Z > webpack --mode production
+2026-05-05T17:54:29.0884840Z 
+2026-05-05T17:54:42.2129190Z asset [1m[33mbundle.8353f87f.js[39m[22m [1m[33m1.3 MiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[immutable][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: main) 1 related asset
+2026-05-05T17:54:42.2130410Z asset [1m[32mindex.html[39m[22m 1.61 KiB [1m[32m[emitted][39m[22m
+2026-05-05T17:54:42.2131220Z orphan modules 4.9 MiB [1m[33m[orphan][39m[22m 1773 modules
+2026-05-05T17:54:42.2131800Z runtime modules 2.31 KiB 7 modules
+2026-05-05T17:54:42.2132170Z cacheable modules 4.05 MiB
+2026-05-05T17:54:42.2132830Z   modules by path [1m./node_modules/[39m[22m 155 KiB
+2026-05-05T17:54:42.2133700Z     modules by path [1m./node_modules/style-loader/dist/runtime/*.js[39m[22m 5.84 KiB 6 modules
+2026-05-05T17:54:42.2134390Z     modules by path [1m./node_modules/react/[39m[22m 8 KiB 4 modules
+2026-05-05T17:54:42.2135130Z     modules by path [1m./node_modules/react-dom/[39m[22m 131 KiB 3 modules
+2026-05-05T17:54:42.2135850Z     modules by path [1m./node_modules/prop-types/[39m[22m 2.6 KiB 3 modules
+2026-05-05T17:54:42.2136730Z     modules by path [1m./node_modules/css-loader/dist/runtime/*.js[39m[22m 2.31 KiB 2 modules
+2026-05-05T17:54:42.2137430Z     modules by path [1m./node_modules/scheduler/[39m[22m 4.33 KiB 2 modules
+2026-05-05T17:54:42.2138550Z     [1m./node_modules/@fortawesome/fontawesome-svg-core/package.json[39m[22m 1.39 KiB [1m[33m[optional][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+2026-05-05T17:54:42.2139370Z   modules by path [1m./src/[39m[22m 3.89 MiB
+2026-05-05T17:54:42.2145210Z     [1m./src/index.tsx + 434 modules[39m[22m 3.82 MiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+2026-05-05T17:54:42.2146550Z     ./node_modules/css-loader/dist/cjs.js!./node_modules/postcss-loader/dist/cjs.js![1m./src/styles/index.css[39m[22m 76.5 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+2026-05-05T17:54:42.2147160Z 
+2026-05-05T17:54:42.2147700Z [1m[33mWARNING[39m[22m in [1masset size limit: The following asset(s) exceed the recommended size limit (244 KiB).
+2026-05-05T17:54:42.2148380Z This can impact web performance.
+2026-05-05T17:54:42.2148690Z Assets: 
+2026-05-05T17:54:42.2149070Z   bundle.8353f87f.js (1.3 MiB)[39m[22m
+2026-05-05T17:54:42.2149290Z 
+2026-05-05T17:54:42.2150190Z [1m[33mWARNING[39m[22m in [1mentrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (244 KiB). This can impact web performance.
+2026-05-05T17:54:42.2150930Z Entrypoints:
+2026-05-05T17:54:42.2151290Z   main (1.3 MiB)
+2026-05-05T17:54:42.2151610Z       bundle.8353f87f.js
+2026-05-05T17:54:42.2151930Z [39m[22m
+2026-05-05T17:54:42.2152120Z 
+2026-05-05T17:54:42.2152510Z [1m[33mWARNING[39m[22m in [1mwebpack performance recommendations: 
+2026-05-05T17:54:42.2153300Z You can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.
+2026-05-05T17:54:42.2154120Z For more info visit https://webpack.js.org/guides/code-splitting/[39m[22m
+2026-05-05T17:54:42.2154400Z 
+2026-05-05T17:54:42.2154730Z webpack 5.106.2 compiled with [1m[33m3 warnings[39m[22m in 12707 ms
+2026-05-05T17:54:42.2837390Z ##[group]Run npx cap copy ios
+2026-05-05T17:54:42.2837800Z [36;1mnpx cap copy ios[0m
+2026-05-05T17:54:42.2872460Z shell: /bin/bash -e {0}
+2026-05-05T17:54:42.2872780Z env:
+2026-05-05T17:54:42.2873220Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:42.2873720Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:42.2874040Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:42.2874340Z ##[endgroup]
+2026-05-05T17:54:42.9361150Z ✔ Copying web assets from dist to ios/App/App/public in 3.74ms
+2026-05-05T17:54:42.9369880Z ✔ Creating capacitor.config.json in ios/App/App in 680.25μs
+2026-05-05T17:54:42.9480390Z ✔ copy ios in 35.74ms
+2026-05-05T17:54:42.9912440Z ##[group]Run SOURCE="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+2026-05-05T17:54:42.9913180Z [36;1mSOURCE="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"[0m
+2026-05-05T17:54:42.9913600Z [36;1mDEST="ios/App/App/Assets.xcassets/AppIcon.appiconset"[0m
+2026-05-05T17:54:42.9913880Z [36;1m[0m
+2026-05-05T17:54:42.9914120Z [36;1m# Generate all required icon sizes from 1024x1024 source[0m
+2026-05-05T17:54:42.9914470Z [36;1msips -z 20 20 "$SOURCE" --out "$DEST/Icon-20.png"[0m
+2026-05-05T17:54:42.9914810Z [36;1msips -z 29 29 "$SOURCE" --out "$DEST/Icon-29.png"[0m
+2026-05-05T17:54:42.9915130Z [36;1msips -z 40 40 "$SOURCE" --out "$DEST/Icon-40.png"[0m
+2026-05-05T17:54:42.9915470Z [36;1msips -z 40 40 "$SOURCE" --out "$DEST/Icon-20@2x.png"[0m
+2026-05-05T17:54:42.9915880Z [36;1msips -z 58 58 "$SOURCE" --out "$DEST/Icon-29@2x.png"[0m
+2026-05-05T17:54:42.9916210Z [36;1msips -z 60 60 "$SOURCE" --out "$DEST/Icon-20@3x.png"[0m
+2026-05-05T17:54:42.9916560Z [36;1msips -z 80 80 "$SOURCE" --out "$DEST/Icon-40@2x.png"[0m
+2026-05-05T17:54:42.9916990Z [36;1msips -z 87 87 "$SOURCE" --out "$DEST/Icon-29@3x.png"[0m
+2026-05-05T17:54:42.9917410Z [36;1msips -z 120 120 "$SOURCE" --out "$DEST/Icon-40@3x.png"[0m
+2026-05-05T17:54:42.9917760Z [36;1msips -z 120 120 "$SOURCE" --out "$DEST/Icon-60@2x.png"[0m
+2026-05-05T17:54:42.9918150Z [36;1msips -z 152 152 "$SOURCE" --out "$DEST/Icon-76@2x.png"[0m
+2026-05-05T17:54:42.9918500Z [36;1msips -z 167 167 "$SOURCE" --out "$DEST/Icon-83.5@2x.png"[0m
+2026-05-05T17:54:42.9918830Z [36;1msips -z 180 180 "$SOURCE" --out "$DEST/Icon-60@3x.png"[0m
+2026-05-05T17:54:42.9919190Z [36;1mcp "$SOURCE" "$DEST/Icon-1024.png"[0m
+2026-05-05T17:54:42.9919750Z [36;1m[0m
+2026-05-05T17:54:42.9919940Z [36;1mecho "Generated icons:"[0m
+2026-05-05T17:54:42.9920180Z [36;1mls -la "$DEST"/Icon-*.png[0m
+2026-05-05T17:54:42.9952260Z shell: /bin/bash -e {0}
+2026-05-05T17:54:42.9952460Z env:
+2026-05-05T17:54:42.9952720Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:42.9953090Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:42.9953420Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:42.9953600Z ##[endgroup]
+2026-05-05T17:54:43.0950090Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.0951670Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20.png
+2026-05-05T17:54:43.1256800Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.1259840Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29.png
+2026-05-05T17:54:43.1565480Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.1566850Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40.png
+2026-05-05T17:54:43.1873870Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.1875160Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@2x.png
+2026-05-05T17:54:43.2189900Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.2193250Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@2x.png
+2026-05-05T17:54:43.2504640Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.2505480Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@3x.png
+2026-05-05T17:54:43.2823110Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.2825940Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@2x.png
+2026-05-05T17:54:43.3140180Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.3143700Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@3x.png
+2026-05-05T17:54:43.3468520Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.3470090Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@3x.png
+2026-05-05T17:54:43.3791850Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.3793220Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@2x.png
+2026-05-05T17:54:43.4137090Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.4139370Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-76@2x.png
+2026-05-05T17:54:43.4471480Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.4472380Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-83.5@2x.png
+2026-05-05T17:54:43.4813560Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-05T17:54:43.4815030Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@3x.png
+2026-05-05T17:54:43.4859340Z Generated icons:
+2026-05-05T17:54:43.4912680Z -rw-r--r--  1 runner  staff  1125707 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-1024.png
+2026-05-05T17:54:43.4913700Z -rw-r--r--  1 runner  staff     1811 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20.png
+2026-05-05T17:54:43.4915200Z -rw-r--r--  1 runner  staff     3963 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@2x.png
+2026-05-05T17:54:43.4916050Z -rw-r--r--  1 runner  staff     7263 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@3x.png
+2026-05-05T17:54:43.4916800Z -rw-r--r--  1 runner  staff     2620 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29.png
+2026-05-05T17:54:43.4917520Z -rw-r--r--  1 runner  staff     6901 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@2x.png
+2026-05-05T17:54:43.4918250Z -rw-r--r--  1 runner  staff    13350 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@3x.png
+2026-05-05T17:54:43.4919050Z -rw-r--r--  1 runner  staff     3963 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40.png
+2026-05-05T17:54:43.4919770Z -rw-r--r--  1 runner  staff    11482 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@2x.png
+2026-05-05T17:54:43.4920540Z -rw-r--r--  1 runner  staff    23090 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@3x.png
+2026-05-05T17:54:43.4921310Z -rw-r--r--  1 runner  staff    23090 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@2x.png
+2026-05-05T17:54:43.4922110Z -rw-r--r--  1 runner  staff    46960 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@3x.png
+2026-05-05T17:54:43.4922890Z -rw-r--r--  1 runner  staff    34863 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-76@2x.png
+2026-05-05T17:54:43.4923640Z -rw-r--r--  1 runner  staff    41033 May  5 17:54 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-83.5@2x.png
+2026-05-05T17:54:43.4949580Z ##[group]Run sed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile
+2026-05-05T17:54:43.4950060Z [36;1msed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile[0m
+2026-05-05T17:54:43.4950610Z [36;1msed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' App.xcodeproj/project.pbxproj[0m
+2026-05-05T17:54:43.4981690Z shell: /bin/bash -e {0}
+2026-05-05T17:54:43.4981900Z env:
+2026-05-05T17:54:43.4982170Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:43.4982530Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:43.4982800Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:43.4983000Z ##[endgroup]
+2026-05-05T17:54:43.5421350Z ##[group]Run pod install
+2026-05-05T17:54:43.5421790Z [36;1mpod install[0m
+2026-05-05T17:54:43.5452030Z shell: /bin/bash -e {0}
+2026-05-05T17:54:43.5452300Z env:
+2026-05-05T17:54:43.5452640Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:43.5452980Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:43.5453240Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:43.5453430Z ##[endgroup]
+2026-05-05T17:54:45.8703710Z Analyzing dependencies
+2026-05-05T17:54:46.3343070Z Adding spec repo `trunk` with CDN `https://cdn.cocoapods.org/`
+2026-05-05T17:54:46.3395650Z Downloading dependencies
+2026-05-05T17:54:46.3422670Z Installing Capacitor (8.3.1)
+2026-05-05T17:54:46.3423580Z Installing CapacitorCordova (8.3.1)
+2026-05-05T17:54:46.3424040Z Generating Pods project
+2026-05-05T17:54:46.3424320Z Integrating client project
+2026-05-05T17:54:46.3424850Z Pod installation complete! There are 2 dependencies from the Podfile and 2 total pods installed.
+2026-05-05T17:54:46.3507530Z ##[group]Run ruby/setup-ruby@v1
+2026-05-05T17:54:46.3507770Z with:
+2026-05-05T17:54:46.3507940Z   ruby-version: 3.2
+2026-05-05T17:54:46.3508150Z   bundler-cache: true
+2026-05-05T17:54:46.3508420Z   token: ***
+2026-05-05T17:54:46.3508590Z env:
+2026-05-05T17:54:46.3508790Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:46.3509160Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:46.3509430Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:46.3509620Z ##[endgroup]
+2026-05-05T17:54:46.7478420Z ##[group]Modifying PATH
+2026-05-05T17:54:46.7579720Z Entries removed from PATH to avoid conflicts with default Ruby:
+2026-05-05T17:54:46.7601110Z   /opt/homebrew/lib/ruby/gems/3.3.0/bin
+2026-05-05T17:54:46.7601710Z   /opt/homebrew/opt/ruby@3.3/bin
+2026-05-05T17:54:46.7602870Z Entries added to PATH to use selected Ruby:
+2026-05-05T17:54:46.7603390Z   /Users/runner/hostedtoolcache/Ruby/3.2.11/arm64/bin
+2026-05-05T17:54:46.7604040Z ##[endgroup]
+2026-05-05T17:54:46.7604560Z ##[group]Print Ruby version
+2026-05-05T17:54:46.7605230Z [command]/Users/runner/hostedtoolcache/Ruby/3.2.11/arm64/bin/ruby --version
+2026-05-05T17:54:46.7868130Z ruby 3.2.11 (2026-03-27 revision 5483bfc1ae) [arm64-darwin23]
+2026-05-05T17:54:46.7917960Z Took   0.04 seconds
+2026-05-05T17:54:46.7926980Z ##[endgroup]
+2026-05-05T17:54:46.7927540Z ##[group]Installing Bundler
+2026-05-05T17:54:46.7928140Z Using Bundler shipped with ruby-3.2.11
+2026-05-05T17:54:46.7928540Z Took   0.00 seconds
+2026-05-05T17:54:46.7928990Z ##[endgroup]
+2026-05-05T17:54:46.7929270Z > bundle install
+2026-05-05T17:54:46.7929830Z Could not determine gemfile path, skipping "bundle install" and caching
+2026-05-05T17:54:46.7930330Z Took   0.00 seconds
+2026-05-05T17:54:46.7968540Z ##[group]Run gem install fastlane
+2026-05-05T17:54:46.7968850Z [36;1mgem install fastlane[0m
+2026-05-05T17:54:46.8005590Z shell: /bin/bash -e {0}
+2026-05-05T17:54:46.8005780Z env:
+2026-05-05T17:54:46.8006090Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:54:46.8006410Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:54:46.8006640Z   APPLE_TEAM_ID: ***
+2026-05-05T17:54:46.8008100Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-05T17:54:46.8009610Z ##[endgroup]
+2026-05-05T17:54:49.4122080Z Successfully installed rouge-3.28.0
+2026-05-05T17:54:49.4122660Z Successfully installed xcpretty-0.4.1
+2026-05-05T17:54:49.4123070Z Successfully installed xcpretty-travis-formatter-1.0.1
+2026-05-05T17:54:49.4123460Z Successfully installed nanaimo-0.4.0
+2026-05-05T17:54:49.4123830Z Successfully installed colored2-3.1.2
+2026-05-05T17:54:49.4124170Z Successfully installed claide-1.1.0
+2026-05-05T17:54:49.4124540Z Successfully installed CFPropertyList-3.0.8
+2026-05-05T17:54:49.4124930Z Successfully installed atomos-0.1.3
+2026-05-05T17:54:49.4125410Z Successfully installed xcodeproj-1.27.0
+2026-05-05T17:54:49.4125780Z Successfully installed word_wrap-1.0.0
+2026-05-05T17:54:49.4126220Z Successfully installed tty-cursor-0.7.1
+2026-05-05T17:54:49.4126770Z Successfully installed tty-spinner-0.9.3
+2026-05-05T17:54:49.4127180Z Successfully installed tty-screen-0.8.2
+2026-05-05T17:54:49.4127590Z Successfully installed unicode-display_width-2.6.0
+2026-05-05T17:54:49.4127990Z Successfully installed terminal-table-3.0.2
+2026-05-05T17:54:49.4128430Z Successfully installed terminal-notifier-2.0.0
+2026-05-05T17:54:49.4128800Z Successfully installed naturally-2.3.0
+2026-05-05T17:54:49.4129170Z Successfully installed simctl-1.6.10
+2026-05-05T17:54:49.4129500Z Successfully installed security-0.1.5
+2026-05-05T17:54:49.4129800Z RubyZip 3.0 is coming!
+2026-05-05T17:54:49.4130090Z **********************
+2026-05-05T17:54:49.4130250Z 
+2026-05-05T17:54:49.4130550Z The public API of some Rubyzip classes has been modernized to use named
+2026-05-05T17:54:49.4131090Z parameters for optional arguments. Please check your usage of the
+2026-05-05T17:54:49.4131430Z following classes:
+2026-05-05T17:54:49.4131670Z   * `Zip::File`
+2026-05-05T17:54:49.4131870Z   * `Zip::Entry`
+2026-05-05T17:54:49.4132120Z   * `Zip::InputStream`
+2026-05-05T17:54:49.4132360Z   * `Zip::OutputStream`
+2026-05-05T17:54:49.4132580Z   * `Zip::DOSTime`
+2026-05-05T17:54:49.4132700Z 
+2026-05-05T17:54:49.4132980Z Run your test suite with the `RUBYZIP_V3_API_WARN` environment
+2026-05-05T17:54:49.4133600Z variable set to see warnings about usage of the old API. This will
+2026-05-05T17:54:49.4134520Z help you to identify any changes that you need to make to your code.
+2026-05-05T17:54:49.4135110Z See https://github.com/rubyzip/rubyzip/wiki/Updating-to-version-3.x for
+2026-05-05T17:54:49.4135510Z more information.
+2026-05-05T17:54:49.4135650Z 
+2026-05-05T17:54:49.4135950Z Please ensure that your Gemfiles and .gemspecs are suitably restrictive
+2026-05-05T17:54:49.4136510Z to avoid an unexpected breakage when 3.0 is released (e.g. ~> 2.3.0).
+2026-05-05T17:54:49.4137220Z See https://github.com/rubyzip/rubyzip for details. The Changelog also
+2026-05-05T17:54:49.4137840Z lists other enhancements and bugfixes that have been implemented since
+2026-05-05T17:54:49.4138220Z version 2.3.0.
+2026-05-05T17:54:49.4138490Z Successfully installed rubyzip-2.4.1
+2026-05-05T17:54:49.4138890Z Successfully installed plist-3.7.2
+2026-05-05T17:54:49.4139340Z Building native extensions. This could take a while...
+2026-05-05T17:54:54.2216700Z Successfully installed nkf-0.2.0
+2026-05-05T17:54:54.2217740Z Successfully installed mutex_m-0.3.0
+2026-05-05T17:54:54.2218280Z Successfully installed multipart-post-2.4.1
+2026-05-05T17:54:54.2218880Z Successfully installed mini_magick-4.13.2
+2026-05-05T17:54:54.2219700Z Successfully installed logger-1.7.0
+2026-05-05T17:54:54.2220220Z Successfully installed base64-0.2.0
+2026-05-05T17:54:54.2220770Z Successfully installed jwt-2.10.2
+2026-05-05T17:54:54.2221340Z Successfully installed domain_name-0.6.20240107
+2026-05-05T17:54:54.2221850Z Successfully installed http-cookie-1.0.8
+2026-05-05T17:54:54.2222810Z Successfully installed highline-2.0.3
+2026-05-05T17:54:54.2223340Z Successfully installed mini_mime-1.1.5
+2026-05-05T17:54:54.2223930Z Successfully installed google-cloud-errors-1.6.0
+2026-05-05T17:54:54.2224550Z Successfully installed faraday-retry-1.0.4
+2026-05-05T17:54:54.2225120Z Successfully installed faraday-rack-1.0.0
+2026-05-05T17:54:54.2225650Z Successfully installed faraday-patron-1.0.0
+2026-05-05T17:54:54.2226300Z Successfully installed faraday-net_http_persistent-1.2.0
+2026-05-05T17:54:54.2226900Z Successfully installed faraday-net_http-1.0.2
+2026-05-05T17:54:54.2227430Z Successfully installed faraday-multipart-1.2.0
+2026-05-05T17:54:54.2228010Z Successfully installed faraday-httpclient-1.0.1
+2026-05-05T17:54:54.2228530Z Successfully installed faraday-excon-1.1.0
+2026-05-05T17:54:54.2229120Z Successfully installed faraday-em_synchrony-1.0.1
+2026-05-05T17:54:54.2229640Z Successfully installed faraday-em_http-1.0.0
+2026-05-05T17:54:54.2230050Z Successfully installed faraday-1.10.5
+2026-05-05T17:54:54.2230930Z Successfully installed google-cloud-env-2.1.1
+2026-05-05T17:54:54.2231580Z Successfully installed google-cloud-core-1.8.0
+2026-05-05T17:54:54.2232160Z Successfully installed multi_json-1.21.1
+2026-05-05T17:54:54.2232650Z Successfully installed public_suffix-7.0.5
+2026-05-05T17:54:54.2233240Z Successfully installed addressable-2.9.0
+2026-05-05T17:54:54.2233860Z Successfully installed signet-0.21.0
+2026-05-05T17:54:54.2234410Z Successfully installed os-1.1.4
+2026-05-05T17:54:54.2235440Z Successfully installed googleauth-1.11.2
+2026-05-05T17:54:54.2235950Z Successfully installed retriable-3.4.1
+2026-05-05T17:54:54.2236470Z Successfully installed uber-0.1.0
+2026-05-05T17:54:54.2237000Z Successfully installed trailblazer-option-0.1.2
+2026-05-05T17:54:54.2238270Z Successfully installed declarative-0.0.20
+2026-05-05T17:54:54.2239060Z Successfully installed representable-3.2.0
+2026-05-05T17:54:54.2239670Z Successfully installed httpclient-2.9.0
+2026-05-05T17:54:54.2240310Z Successfully installed google-apis-core-0.18.0
+2026-05-05T17:54:54.2240970Z Successfully installed google-apis-storage_v1-0.62.0
+2026-05-05T17:54:54.2241760Z Successfully installed google-apis-iamcredentials_v1-0.27.0
+2026-05-05T17:54:54.2242410Z Building native extensions. This could take a while...
+2026-05-05T17:55:11.6838550Z Successfully installed digest-crc-0.7.0
+2026-05-05T17:55:11.6843310Z Successfully installed google-cloud-storage-1.59.0
+2026-05-05T17:55:11.6845580Z Successfully installed google-apis-playcustomapp_v1-0.17.0
+2026-05-05T17:55:11.6846520Z Successfully installed google-apis-androidpublisher_v3-0.99.0
+2026-05-05T17:55:11.6847100Z Successfully installed gh_inspector-1.1.3
+2026-05-05T17:55:11.6847540Z Successfully installed fastlane-sirp-1.1.0
+2026-05-05T17:55:11.6848230Z Successfully installed fastimage-2.4.1
+2026-05-05T17:55:11.6848770Z Successfully installed faraday_middleware-1.2.1
+2026-05-05T17:55:11.6849300Z Successfully installed faraday-cookie_jar-0.0.8
+2026-05-05T17:55:11.6849720Z Successfully installed excon-0.112.0
+2026-05-05T17:55:11.6851040Z Successfully installed emoji_regex-3.2.3
+2026-05-05T17:55:11.6851620Z Successfully installed dotenv-2.8.1
+2026-05-05T17:55:11.6852160Z Successfully installed csv-3.3.5
+2026-05-05T17:55:11.6852660Z Successfully installed commander-4.6.0
+2026-05-05T17:55:11.6853140Z Successfully installed colored-1.2
+2026-05-05T17:55:11.6853660Z Successfully installed babosa-1.0.4
+2026-05-05T17:55:11.6855270Z Successfully installed aws-eventstream-1.4.0
+2026-05-05T17:55:11.6855870Z Successfully installed aws-sigv4-1.12.1
+2026-05-05T17:55:11.6856310Z Successfully installed jmespath-1.6.2
+2026-05-05T17:55:11.6857250Z Successfully installed aws-partitions-1.1244.0
+2026-05-05T17:55:11.6865520Z Successfully installed aws-sdk-core-3.246.0
+2026-05-05T17:55:11.6866070Z Successfully installed aws-sdk-kms-1.124.0
+2026-05-05T17:55:11.6866500Z Successfully installed aws-sdk-s3-1.220.0
+2026-05-05T17:55:11.6867040Z Successfully installed artifactory-3.0.17
+2026-05-05T17:55:11.6867550Z Successfully installed abbrev-0.1.2
+2026-05-05T17:55:11.6868040Z Successfully installed fastlane-2.233.1
+2026-05-05T17:55:11.6868450Z 87 gems installed
+2026-05-05T17:55:11.7093700Z ##[group]Run mkdir -p ~/.private_keys
+2026-05-05T17:55:11.7094300Z [36;1mmkdir -p ~/.private_keys[0m
+2026-05-05T17:55:11.7094700Z [36;1mecho "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.private_keys/AuthKey.p8[0m
+2026-05-05T17:55:11.7095270Z [36;1mecho "API_KEY_PATH=$HOME/.private_keys/AuthKey.p8" >> $GITHUB_ENV[0m
+2026-05-05T17:55:11.7141260Z shell: /bin/bash -e {0}
+2026-05-05T17:55:11.7141610Z env:
+2026-05-05T17:55:11.7142280Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:55:11.7142650Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:55:11.7143850Z   APPLE_TEAM_ID: ***
+2026-05-05T17:55:11.7148800Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-05T17:55:11.7155220Z   APP_STORE_CONNECT_API_KEY_CONTENT: ***
+2026-05-05T17:55:11.7155980Z ##[endgroup]
+2026-05-05T17:55:11.8151660Z ##[group]Run KEYCHAIN_PASSWORD="ci_build_temp_pwd_$(date +%s)"
+2026-05-05T17:55:11.8152460Z [36;1mKEYCHAIN_PASSWORD="ci_build_temp_pwd_$(date +%s)"[0m
+2026-05-05T17:55:11.8152950Z [36;1mKEYCHAIN_PATH="$HOME/Library/Keychains/build.keychain-db"[0m
+2026-05-05T17:55:11.8153380Z [36;1m[0m
+2026-05-05T17:55:11.8153830Z [36;1m# Create keychain with non-empty password (critical for set-key-partition-list)[0m
+2026-05-05T17:55:11.8154390Z [36;1msecurity create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"[0m
+2026-05-05T17:55:11.8154950Z [36;1msecurity set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"[0m
+2026-05-05T17:55:11.8155560Z [36;1msecurity unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"[0m
+2026-05-05T17:55:11.8155960Z [36;1m[0m
+2026-05-05T17:55:11.8156300Z [36;1m# Set as default and add to search list[0m
+2026-05-05T17:55:11.8156740Z [36;1msecurity default-keychain -s "$KEYCHAIN_PATH"[0m
+2026-05-05T17:55:11.8157270Z [36;1msecurity list-keychains -d user -s "$KEYCHAIN_PATH"[0m
+2026-05-05T17:55:11.8157660Z [36;1m[0m
+2026-05-05T17:55:11.8158320Z [36;1m# Import Apple WWDR intermediate certificates for trust chain[0m
+2026-05-05T17:55:11.8158840Z [36;1mcurl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer[0m
+2026-05-05T17:55:11.8159410Z [36;1mcurl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG6.cer[0m
+2026-05-05T17:55:11.8160110Z [36;1msecurity import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -T /usr/bin/security[0m
+2026-05-05T17:55:11.8160800Z [36;1msecurity import AppleWWDRCAG6.cer -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -T /usr/bin/security[0m
+2026-05-05T17:55:11.8161380Z [36;1mrm -f AppleWWDRCAG3.cer AppleWWDRCAG6.cer[0m
+2026-05-05T17:55:11.8161690Z [36;1m[0m
+2026-05-05T17:55:11.8162120Z [36;1m# Allow codesign to access keychain items without UI prompt[0m
+2026-05-05T17:55:11.8163700Z [36;1m# Note: may fail with "item not found" if no private keys exist yet - that's OK[0m
+2026-05-05T17:55:11.8164360Z [36;1msecurity set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" || true[0m
+2026-05-05T17:55:11.8164990Z [36;1m[0m
+2026-05-05T17:55:11.8165310Z [36;1m# Export for Fastlane[0m
+2026-05-05T17:55:11.8165710Z [36;1mecho "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV[0m
+2026-05-05T17:55:11.8166130Z [36;1mecho "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV[0m
+2026-05-05T17:55:11.8202270Z shell: /bin/bash -e {0}
+2026-05-05T17:55:11.8202690Z env:
+2026-05-05T17:55:11.8203130Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:55:11.8203460Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:55:11.8203830Z   APPLE_TEAM_ID: ***
+2026-05-05T17:55:11.8205370Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-05T17:55:11.8207210Z   API_KEY_PATH: /Users/runner/.private_keys/AuthKey.p8
+2026-05-05T17:55:11.8207530Z ##[endgroup]
+2026-05-05T17:55:12.6145760Z 1 certificate imported.
+2026-05-05T17:55:12.6538960Z 1 certificate imported.
+2026-05-05T17:55:12.6866800Z security: SecItemCopyMatching: The specified item could not be found in the keychain.
+2026-05-05T17:55:12.6955240Z ##[group]Run if [ "true" = "true" ]; then
+2026-05-05T17:55:12.6955560Z [36;1mif [ "true" = "true" ]; then[0m
+2026-05-05T17:55:12.6955820Z [36;1m  fastlane release[0m
+2026-05-05T17:55:12.6956030Z [36;1melse[0m
+2026-05-05T17:55:12.6956220Z [36;1m  fastlane build_only[0m
+2026-05-05T17:55:12.6956440Z [36;1mfi[0m
+2026-05-05T17:55:12.6993370Z shell: /bin/bash -e {0}
+2026-05-05T17:55:12.6993610Z env:
+2026-05-05T17:55:12.6993900Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:55:12.6994250Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:55:12.6994600Z   APPLE_TEAM_ID: ***
+2026-05-05T17:55:12.6996120Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-05T17:55:12.6997670Z   API_KEY_PATH: /Users/runner/.private_keys/AuthKey.p8
+2026-05-05T17:55:12.6998050Z   KEYCHAIN_PATH: /Users/runner/Library/Keychains/build.keychain-db
+2026-05-05T17:55:12.6998400Z   KEYCHAIN_PASSWORD: ci_build_temp_pwd_1778003711
+2026-05-05T17:55:12.6998660Z ##[endgroup]
+2026-05-05T17:55:13.7194680Z [17:55:13]: [33mGet started using a Gemfile for fastlane https://docs.fastlane.tools/getting-started/ios/setup/#use-a-gemfile[0m
+2026-05-05T17:55:14.2516240Z [17:55:14]: Sending anonymous analytics information
+2026-05-05T17:55:14.2517800Z [17:55:14]: Learn more at https://docs.fastlane.tools/#metrics
+2026-05-05T17:55:14.2518910Z [17:55:14]: No personal or sensitive data is sent.
+2026-05-05T17:55:14.2519650Z [17:55:14]: You can disable this by adding `opt_out_usage` at the top of your Fastfile
+2026-05-05T17:55:14.2681410Z [17:55:14]: [32m------------------------------[0m
+2026-05-05T17:55:14.2685340Z [17:55:14]: [32m--- Step: default_platform ---[0m
+2026-05-05T17:55:14.2686500Z [17:55:14]: [32m------------------------------[0m
+2026-05-05T17:55:14.2702300Z [17:55:14]: [32mDriving the lane 'ios release' 🚀[0m
+2026-05-05T17:55:14.2704330Z [17:55:14]: [32m---------------------------------------[0m
+2026-05-05T17:55:14.2711890Z [17:55:14]: [32m--- Step: app_store_connect_api_key ---[0m
+2026-05-05T17:55:14.2712500Z [17:55:14]: [32m---------------------------------------[0m
+2026-05-05T17:55:14.2732160Z [17:55:14]: [32m------------------------------------------------------[0m
+2026-05-05T17:55:14.2732840Z [17:55:14]: [32m--- Step: Switch to ios revoke_orphaned_certs lane ---[0m
+2026-05-05T17:55:14.2733390Z [17:55:14]: [32m------------------------------------------------------[0m
+2026-05-05T17:55:14.2733900Z [17:55:14]: Cruising over to lane 'ios revoke_orphaned_certs' 🚖
+2026-05-05T17:55:14.5111790Z [17:55:14]: Found 1 certificate(s) of type DISTRIBUTION
+2026-05-05T17:55:14.6518120Z [17:55:14]: Found 0 certificate(s) of type IOS_DISTRIBUTION
+2026-05-05T17:55:14.6518620Z [17:55:14]: Total distribution certificates: 1
+2026-05-05T17:55:14.6519210Z [17:55:14]: Cruising back to lane 'ios release' 🚘
+2026-05-05T17:55:14.6546740Z [17:55:14]: [32m------------------------------[0m
+2026-05-05T17:55:14.6547210Z [17:55:14]: [32m--- Step: get_certificates ---[0m
+2026-05-05T17:55:14.6547720Z [17:55:14]: [32m------------------------------[0m
+2026-05-05T17:55:14.6547930Z 
+2026-05-05T17:55:14.6552630Z +-----------------------------------------------------------------------------+
+2026-05-05T17:55:14.6553290Z |                          [32mSummary for cert 2.233.1[0m                           |
+2026-05-05T17:55:14.6553800Z +-------------------------+---------------------------------------------------+
+2026-05-05T17:55:14.6554280Z | api_key                 | ********                                          |
+2026-05-05T17:55:14.6555410Z | platform                | ios                                               |
+2026-05-05T17:55:14.6555980Z | keychain_path           | /Users/runner/Library/Keychains/build.keychain-db |
+2026-05-05T17:55:14.6556510Z | keychain_password       | ********                                          |
+2026-05-05T17:55:14.6557040Z | development             | false                                             |
+2026-05-05T17:55:14.6557500Z | force                   | false                                             |
+2026-05-05T17:55:14.6558360Z | generate_apple_certs    | true                                              |
+2026-05-05T17:55:14.6558870Z | skip_set_partition_list | false                                             |
+2026-05-05T17:55:14.6559420Z +-------------------------+---------------------------------------------------+
+2026-05-05T17:55:14.6559660Z 
+2026-05-05T17:55:14.6559920Z [17:55:14]: Creating authorization token for App Store Connect API
+2026-05-05T17:55:16.0816720Z [17:55:16]: [31mThere are no local code signing identities found.
+2026-05-05T17:55:16.0817650Z You can run `security find-identity -v -p codesigning /Users/runner/Library/Keychains/build.keychain-db` to get this output.
+2026-05-05T17:55:16.0818420Z This Stack Overflow thread has more information: https://stackoverflow.com/q/35390072/774.
+2026-05-05T17:55:16.0819270Z (Check in Keychain Access for an expired WWDR certificate: https://stackoverflow.com/a/35409835/774 has more info.)[0m
+2026-05-05T17:55:16.1257520Z [17:55:16]: [31mCertificate AHGCCP764K (Chaozhou Yicai Gift Trading Co., Ltd.) can't be found on your local computer[0m
+2026-05-05T17:55:16.1259210Z [17:55:16]: [33mCouldn't find an existing certificate... creating a new one[0m
+2026-05-05T17:55:16.7294910Z [17:55:16]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+2026-05-05T17:55:16.7999320Z [17:55:16]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+2026-05-05T17:55:16.8205380Z [17:55:16]: [32mSuccessfully generated 4W6HV6WB3U which was imported to the local machine.[0m
+2026-05-05T17:55:16.8206150Z [17:55:16]: Verifying the certificate is properly installed locally...
+2026-05-05T17:55:17.4778540Z [17:55:17]: [32mSuccessfully installed certificate 4W6HV6WB3U[0m
+2026-05-05T17:55:17.4779490Z [17:55:17]: [32mUse signing certificate '4W6HV6WB3U' from now on![0m
+2026-05-05T17:55:17.4783000Z [17:55:17]: [32m--------------------------------------------------------------------[0m
+2026-05-05T17:55:17.4784230Z [17:55:17]: [32mStep: security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k 'ci_build_temp_pwd_1778003711' '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T17:55:17.4785340Z [17:55:17]: [32m--------------------------------------------------------------------[0m
+2026-05-05T17:55:17.4786750Z [17:55:17]: [36m$ security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k 'ci_build_temp_pwd_1778003711' '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T17:55:17.4987440Z [17:55:17]: ▸ [35mkeychain: "/Users/runner/Library/Keychains/build.keychain-db"[0m
+2026-05-05T17:55:17.4988090Z [17:55:17]: ▸ [35mversion: 512[0m
+2026-05-05T17:55:17.4988930Z [17:55:17]: ▸ [35mclass: 0x00000010[0m
+2026-05-05T17:55:17.4989440Z [17:55:17]: ▸ [35mattributes:[0m
+2026-05-05T17:55:17.4990280Z [17:55:17]: ▸ [35m0x00000000 <uint32>=0x00000010[0m
+2026-05-05T17:55:17.4990890Z [17:55:17]: ▸ [35m0x00000001 <blob>="Imported Private Key"[0m
+2026-05-05T17:55:17.4991380Z [17:55:17]: ▸ [35m0x00000002 <blob>=<NULL>[0m
+2026-05-05T17:55:17.4991930Z [17:55:17]: ▸ [35m0x00000003 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.4992810Z [17:55:17]: ▸ [35m0x00000004 <uint32>=0x00000000[0m
+2026-05-05T17:55:17.4993370Z [17:55:17]: ▸ [35m0x00000005 <uint32>=0x00000000[0m
+2026-05-05T17:55:17.4994280Z [17:55:17]: ▸ [35m0x00000006 <blob>=0xD39B3098A7214214596D53A7D22AE2CA92550C0F  "\323\2330\230\247!B\024YmS\247\322*\342\312\222U\014\017"[0m
+2026-05-05T17:55:17.4995660Z [17:55:17]: ▸ [35m0x00000007 <blob>=<NULL>[0m
+2026-05-05T17:55:17.4996740Z [17:55:17]: ▸ [35m0x00000008 <blob>=0x7B38373139316361322D306663392D313164342D383439612D3030303530326235323132327D00  "{87191ca2-0fc9-11d4-849a-000502b52122}\000"[0m
+2026-05-05T17:55:17.4997620Z [17:55:17]: ▸ [35m0x00000009 <uint32>=0x0000002A  "\000\000\000*"[0m
+2026-05-05T17:55:17.4998620Z [17:55:17]: ▸ [35m0x0000000A <uint32>=0x00000800[0m
+2026-05-05T17:55:17.4999140Z [17:55:17]: ▸ [35m0x0000000B <uint32>=0x00000800[0m
+2026-05-05T17:55:17.4999700Z [17:55:17]: ▸ [35m0x0000000C <blob>=0x0000000000000000[0m
+2026-05-05T17:55:17.5000280Z [17:55:17]: ▸ [35m0x0000000D <blob>=0x0000000000000000[0m
+2026-05-05T17:55:17.5000820Z [17:55:17]: ▸ [35m0x0000000E <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5001350Z [17:55:17]: ▸ [35m0x0000000F <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5001820Z [17:55:17]: ▸ [35m0x00000010 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5002360Z [17:55:17]: ▸ [35m0x00000011 <uint32>=0x00000000[0m
+2026-05-05T17:55:17.5002900Z [17:55:17]: ▸ [35m0x00000012 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5003440Z [17:55:17]: ▸ [35m0x00000013 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5003900Z [17:55:17]: ▸ [35m0x00000014 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5004420Z [17:55:17]: ▸ [35m0x00000015 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5004950Z [17:55:17]: ▸ [35m0x00000016 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5005480Z [17:55:17]: ▸ [35m0x00000017 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5005950Z [17:55:17]: ▸ [35m0x00000018 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5007350Z [17:55:17]: ▸ [35m0x00000019 <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5007880Z [17:55:17]: ▸ [35m0x0000001A <uint32>=0x00000001[0m
+2026-05-05T17:55:17.5008540Z [17:55:17]: [32m--------------------------------------------------------------------[0m
+2026-05-05T17:55:17.5009760Z [17:55:17]: [32mStep: security find-identity -v -p codesigning '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T17:55:17.5010700Z [17:55:17]: [32m--------------------------------------------------------------------[0m
+2026-05-05T17:55:17.5011610Z [17:55:17]: [36m$ security find-identity -v -p codesigning '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T17:55:17.5309980Z [17:55:17]: ▸ [35m1) 04D58F4697D33C9AB4DF31C2E9ED3A46F2E01A2F "Apple Distribution: Chaozhou Yicai Gift Trading Co., Ltd. (***)"[0m
+2026-05-05T17:55:17.5310880Z [17:55:17]: ▸ [35m1 valid identities found[0m
+2026-05-05T17:55:17.5382990Z [17:55:17]: [32m--------------------------------------[0m
+2026-05-05T17:55:17.5383750Z [17:55:17]: [32m--- Step: get_provisioning_profile ---[0m
+2026-05-05T17:55:17.5384330Z [17:55:17]: [32m--------------------------------------[0m
+2026-05-05T17:55:17.5384580Z 
+2026-05-05T17:55:17.5392280Z +-------------------------------------------------------------+
+2026-05-05T17:55:17.5392940Z |                  [32mSummary for sigh 2.233.1[0m                   |
+2026-05-05T17:55:17.5393470Z +-------------------------------------+-----------------------+
+2026-05-05T17:55:17.5394280Z | api_key                             | ********              |
+2026-05-05T17:55:17.5394760Z | app_identifier                      | com.warrescue.appname |
+2026-05-05T17:55:17.5395200Z | platform                            | ios                   |
+2026-05-05T17:55:17.5395710Z | force                               | true                  |
+2026-05-05T17:55:17.5396200Z | adhoc                               | false                 |
+2026-05-05T17:55:17.5396710Z | developer_id                        | false                 |
+2026-05-05T17:55:17.5397160Z | development                         | false                 |
+2026-05-05T17:55:17.5397730Z | skip_install                        | false                 |
+2026-05-05T17:55:17.5398230Z | include_mac_in_profiles             | false                 |
+2026-05-05T17:55:17.5398740Z | ignore_profiles_with_different_name | false                 |
+2026-05-05T17:55:17.5399680Z | cert_id                             | 4W6HV6WB3U            |
+2026-05-05T17:55:17.5400560Z | skip_fetch_profiles                 | false                 |
+2026-05-05T17:55:17.5401160Z | include_all_certificates            | false                 |
+2026-05-05T17:55:17.5401690Z | skip_certificate_verification       | false                 |
+2026-05-05T17:55:17.5402170Z | readonly                            | false                 |
+2026-05-05T17:55:17.5402640Z | fail_on_name_taken                  | false                 |
+2026-05-05T17:55:17.5403110Z +-------------------------------------+-----------------------+
+2026-05-05T17:55:17.5403370Z 
+2026-05-05T17:55:17.5403670Z [17:55:17]: Creating authorization token for App Store Connect API
+2026-05-05T17:55:17.5406930Z [17:55:17]: Fetching profiles...
+2026-05-05T17:55:18.0207770Z [17:55:18]: Provisioning Profile cert_id : 'T6469DKL5N' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0208760Z [17:55:18]: Provisioning Profile cert_id : 'YH4487NUK7' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0210590Z [17:55:18]: Provisioning Profile cert_id : 'AHGCCP764K' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0211530Z [17:55:18]: Provisioning Profile cert_id : '2XM2MG8J83' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0212480Z [17:55:18]: Provisioning Profile cert_id : 'HC2VLSQ5CW' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0213960Z [17:55:18]: Provisioning Profile cert_id : '7R3ZZL7FYP' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0214870Z [17:55:18]: Provisioning Profile cert_id : '9KJ48YCX25' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0215810Z [17:55:18]: Provisioning Profile cert_id : 'JNX7DUJ4N9' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0216690Z [17:55:18]: Provisioning Profile cert_id : 'WHKBGND8KC' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0217610Z [17:55:18]: Provisioning Profile cert_id : 'YC6WZRX6RA' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0218530Z [17:55:18]: Provisioning Profile cert_id : 'DN3LUPP52M' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0220250Z [17:55:18]: Provisioning Profile cert_id : '8GSW9YNTWW' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0221140Z [17:55:18]: Provisioning Profile cert_id : '9NC365T4US' does not match given cert_id : '4W6HV6WB3U', skipping this one...
+2026-05-05T17:55:18.0221800Z [17:55:18]: Verifying certificates...
+2026-05-05T17:55:18.0222930Z [17:55:18]: [33mNo existing profiles found, that match the certificates you have installed locally! Creating a new provisioning profile for you[0m
+2026-05-05T17:55:18.4264330Z [17:55:18]: [31mThe name 'com.warrescue.appname AppStore' is already taken, using another one.[0m
+2026-05-05T17:55:18.5442350Z [17:55:18]: [33mCreating new provisioning profile for 'com.warrescue.appname' with name 'com.warrescue.appname AppStore 1778003718' for 'ios' platform[0m
+2026-05-05T17:55:19.5847430Z [17:55:19]: [33mDownloading provisioning profile...[0m
+2026-05-05T17:55:19.5851530Z [17:55:19]: [32mSuccessfully downloaded provisioning profile...[0m
+2026-05-05T17:55:19.6626070Z [17:55:19]: Installing provisioning profile...
+2026-05-05T17:55:19.7209600Z [32m/Users/runner/work/zijide/zijide/ios/App/AppStore_com.warrescue.appname.mobileprovision[0m
+2026-05-05T17:55:19.7211440Z [17:55:19]: Setting Provisioning Profile type to 'app-store'
+2026-05-05T17:55:19.7217310Z [17:55:19]: [32m------------------------------------------[0m
+2026-05-05T17:55:19.7218040Z [17:55:19]: [32m--- Step: update_code_signing_settings ---[0m
+2026-05-05T17:55:19.7218960Z [17:55:19]: [32m------------------------------------------[0m
+2026-05-05T17:55:19.7219250Z 
+2026-05-05T17:55:19.7226090Z +-------------------------------------------------------------------+
+2026-05-05T17:55:19.7226800Z |                 [32mSummary for code signing settings[0m                 |
+2026-05-05T17:55:19.7227370Z +-----------------------+-------------------------------------------+
+2026-05-05T17:55:19.7227940Z | use_automatic_signing | false                                     |
+2026-05-05T17:55:19.7228920Z | team_id               | ***                                |
+2026-05-05T17:55:19.7229430Z | path                  | App.xcodeproj                             |
+2026-05-05T17:55:19.7230020Z | code_sign_identity    | Apple Distribution                        |
+2026-05-05T17:55:19.7230590Z | profile_name          | com.warrescue.appname AppStore 1778003718 |
+2026-05-05T17:55:19.7231160Z | bundle_identifier     | com.warrescue.appname                     |
+2026-05-05T17:55:19.7231650Z | targets               | ["App"]                                   |
+2026-05-05T17:55:19.7232250Z +-----------------------+-------------------------------------------+
+2026-05-05T17:55:19.7232540Z 
+2026-05-05T17:55:19.7623160Z [17:55:19]: Updating the Automatic Codesigning flag to disabled for the given project '/Users/runner/work/zijide/zijide/ios/App/App.xcodeproj/project.pbxproj'
+2026-05-05T17:55:19.7624780Z [17:55:19]: [33mSet Team id to: *** for target: App for build configuration: Debug[0m
+2026-05-05T17:55:19.7625820Z [17:55:19]: [33mSet Code Sign identity to: Apple Distribution for target: App for build configuration: Debug[0m
+2026-05-05T17:55:19.7627520Z [17:55:19]: [33mSet Provisioning Profile name to: com.warrescue.appname AppStore 1778003718 for target: App for build configuration: Debug[0m
+2026-05-05T17:55:19.7628670Z [17:55:19]: [33mSet Bundle identifier to: com.warrescue.appname for target: App for build configuration: Debug[0m
+2026-05-05T17:55:19.7629630Z [17:55:19]: [33mSet Team id to: *** for target: App for build configuration: Release[0m
+2026-05-05T17:55:19.7630480Z [17:55:19]: [33mSet Code Sign identity to: Apple Distribution for target: App for build configuration: Release[0m
+2026-05-05T17:55:19.7631480Z [17:55:19]: [33mSet Provisioning Profile name to: com.warrescue.appname AppStore 1778003718 for target: App for build configuration: Release[0m
+2026-05-05T17:55:19.7657000Z [17:55:19]: [33mSet Bundle identifier to: com.warrescue.appname for target: App for build configuration: Release[0m
+2026-05-05T17:55:19.7825020Z [17:55:19]: [32mSuccessfully updated project settings to use Code Sign Style = 'Manual'[0m
+2026-05-05T17:55:19.7825930Z [17:55:19]: [32mModified Targets:[0m
+2026-05-05T17:55:19.7826520Z [17:55:19]: [32m	 * App[0m
+2026-05-05T17:55:19.7829190Z [17:55:19]: [32mModified Build Configurations:[0m
+2026-05-05T17:55:19.7829630Z [17:55:19]: [32m	 * Debug[0m
+2026-05-05T17:55:19.7829970Z [17:55:19]: [32m	 * Release[0m
+2026-05-05T17:55:19.8038200Z [17:55:19]: [32m-----------------------[0m
+2026-05-05T17:55:19.8038810Z [17:55:19]: [32m--- Step: build_app ---[0m
+2026-05-05T17:55:19.8039190Z [17:55:19]: [32m-----------------------[0m
+2026-05-05T17:55:19.8391680Z [17:55:19]: [33mResolving Swift Package Manager dependencies...[0m
+2026-05-05T17:55:19.8392670Z [17:55:19]: [36m$ xcodebuild -resolvePackageDependencies -workspace App.xcworkspace -scheme App -configuration Release[0m
+2026-05-05T17:55:20.9888690Z [17:55:20]: ▸ [35mCommand line invocation:[0m
+2026-05-05T17:55:20.9892980Z [17:55:20]: ▸ [35m    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -workspace App.xcworkspace -scheme App -configuration Release[0m
+2026-05-05T17:55:25.8441580Z [17:55:25]: ▸ [35m2026-05-05 17:55:25.828 xcodebuild[6699:15699] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.[0m
+2026-05-05T17:55:25.8553230Z [17:55:25]: ▸ [35mresolved source packages: [0m
+2026-05-05T17:55:25.8758840Z [17:55:25]: [36m$ xcodebuild -showBuildSettings -workspace App.xcworkspace -scheme App -configuration Release 2>&1[0m
+2026-05-05T17:55:28.8975620Z [17:55:28]: [33mCommand timed out after 3 seconds on try 1 of 4, trying again with a 6 second timeout...[0m
+2026-05-05T17:55:31.0533610Z [17:55:31]: Detected provisioning profile mapping: {:"com.warrescue.appname"=>"com.warrescue.appname AppStore 1778003718"}
+2026-05-05T17:55:31.1238920Z 
+2026-05-05T17:55:31.1340580Z +-----------------------------------------------------------------------------------------------------------------------+
+2026-05-05T17:55:31.1450280Z |                                                [32mSummary for gym 2.233.1[0m                                                |
+2026-05-05T17:55:31.1554210Z +-----------------------------------------------------------+-----------------------------------------------------------+
+2026-05-05T17:55:31.1655940Z | workspace                                                 | App.xcworkspace                                           |
+2026-05-05T17:55:31.1756210Z | scheme                                                    | App                                                       |
+2026-05-05T17:55:31.1858070Z | configuration                                             | Release                                                   |
+2026-05-05T17:55:31.1960150Z | export_method                                             | app-store                                                 |
+2026-05-05T17:55:31.2061570Z | clean                                                     | true                                                      |
+2026-05-05T17:55:31.2163960Z | export_options.signingStyle                               | manual                                                    |
+2026-05-05T17:55:31.2276710Z | export_options.teamID                                     | ***                                                |
+2026-05-05T17:55:31.2380490Z | export_options.provisioningProfiles.com.warrescue.appname | com.warrescue.appname AppStore 1778003718                 |
+2026-05-05T17:55:31.2382890Z | output_directory                                          | .                                                         |
+2026-05-05T17:55:31.2484820Z | output_name                                               | App                                                       |
+2026-05-05T17:55:31.2591670Z | silent                                                    | false                                                     |
+2026-05-05T17:55:31.2693150Z | skip_package_ipa                                          | false                                                     |
+2026-05-05T17:55:31.2794700Z | skip_package_pkg                                          | false                                                     |
+2026-05-05T17:55:31.2899210Z | build_path                                                | /Users/runner/Library/Developer/Xcode/Archives/2026-05-05 |
+2026-05-05T17:55:31.3000670Z | result_bundle                                             | false                                                     |
+2026-05-05T17:55:31.3104610Z | buildlog_path                                             | ~/Library/Logs/gym                                        |
+2026-05-05T17:55:31.3219660Z | destination                                               | generic/platform=iOS                                      |
+2026-05-05T17:55:31.3322290Z | xcodebuild_formatter                                      | xcbeautify                                                |
+2026-05-05T17:55:31.3425270Z | build_timing_summary                                      | false                                                     |
+2026-05-05T17:55:31.3528800Z | skip_profile_detection                                    | false                                                     |
+2026-05-05T17:55:31.3631470Z | xcodebuild_command                                        | xcodebuild                                                |
+2026-05-05T17:55:31.3733770Z | skip_package_dependencies_resolution                      | false                                                     |
+2026-05-05T17:55:31.3836970Z | disable_package_automatic_updates                         | false                                                     |
+2026-05-05T17:55:31.3939300Z | skip_package_repository_fetches                           | false                                                     |
+2026-05-05T17:55:31.4040780Z | use_system_scm                                            | false                                                     |
+2026-05-05T17:55:31.4142330Z | generate_appstore_info                                    | false                                                     |
+2026-05-05T17:55:31.4244170Z | xcode_path                                                | /Applications/Xcode_26.3.0.app                            |
+2026-05-05T17:55:31.4346560Z +-----------------------------------------------------------+-----------------------------------------------------------+
+2026-05-05T17:55:31.4447760Z 
+2026-05-05T17:55:31.4551310Z [17:55:31]: [36m$ set -o pipefail && xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -destination 'generic/platform=iOS' -archivePath /Users/runner/Library/Developer/Xcode/Archives/2026-05-05/App\ 2026-05-05\ 17.55.31.xcarchive clean archive | tee /Users/runner/Library/Logs/gym/App-App.log | xcbeautify[0m
+2026-05-05T17:55:31.4654750Z [17:55:31]: ▸ [35m----- xcbeautify -----[0m
+2026-05-05T17:55:31.4756330Z [17:55:31]: ▸ [35mVersion: 3.2.1[0m
+2026-05-05T17:55:31.4858080Z [17:55:31]: ▸ [35m----------------------[0m
+2026-05-05T17:55:32.4712210Z [17:55:32]: ▸ [35m2026-05-05 17:55:32.461 xcodebuild[6929:16822] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.[0m
+2026-05-05T17:55:33.1507040Z [17:55:33]: ▸ [35m[32;1mClean Succeeded[0m
+2026-05-05T17:55:33.6004180Z [17:55:33]: ▸ [35m[36;1mnote: [0mBuilding targets in dependency order[0m
+2026-05-05T17:55:33.6049340Z [17:55:33]: ▸ [35m[36;1mnote: [0mTarget dependency graph (6 targets)[0m
+2026-05-05T17:55:41.9108460Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App.hmap[0m
+2026-05-05T17:55:41.9228150Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App.DependencyStaticMetadataFileList[0m
+2026-05-05T17:55:41.9360940Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App.DependencyMetadataFileList[0m
+2026-05-05T17:55:41.9543040Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App-project-headers.hmap[0m
+2026-05-05T17:55:41.9759220Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App-own-target-headers.hmap[0m
+2026-05-05T17:55:41.9862790Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App-generated-files.hmap[0m
+2026-05-05T17:55:41.9986310Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App-all-target-headers.hmap[0m
+2026-05-05T17:55:41.9999140Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App-all-non-framework-target-headers.hmap[0m
+2026-05-05T17:55:42.0124380Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m e6072d4f65d7061329687fe24e3d63a7-common-args.resp[0m
+2026-05-05T17:55:42.0279340Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App.LinkFileList[0m
+2026-05-05T17:55:42.0387940Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m 7187679823f38a2a940e0043cdf9d637-common-args.resp[0m
+2026-05-05T17:55:42.0493190Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mWrite Auxiliary File[0m Pods_App_vers.c[0m
+2026-05-05T17:55:42.0595170Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mCopying[0m Pods-App-umbrella.h[0m
+2026-05-05T17:55:42.0760940Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mCopy[0m module.modulemap -> Pods-App.modulemap[0m
+2026-05-05T17:55:42.0867450Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m Script-9592DBEFFC6D2A0C8D5DEB22.sh[0m
+2026-05-05T17:55:42.1039410Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m Script-6634F4EFEBD30273BCE97C65.sh[0m
+2026-05-05T17:55:42.1040970Z [17:55:41]: ▸ [35m[[36mPods-App[0m] [1mCopy[0m module.modulemap -> module.modulemap[0m
+2026-05-05T17:55:42.1144710Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App_const_extract_protocols.json[0m
+2026-05-05T17:55:42.1395000Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App.SwiftFileList[0m
+2026-05-05T17:55:42.1524150Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App.SwiftConstValuesFileList[0m
+2026-05-05T17:55:42.1633850Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App.LinkFileList[0m
+2026-05-05T17:55:42.1813460Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App-OutputFileMap.json[0m
+2026-05-05T17:55:42.1922010Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m Entitlements.plist[0m
+2026-05-05T17:55:42.2028700Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App.hmap[0m
+2026-05-05T17:55:42.2138350Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App.DependencyStaticMetadataFileList[0m
+2026-05-05T17:55:42.2244910Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App.DependencyMetadataFileList[0m
+2026-05-05T17:55:42.2352270Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App-project-headers.hmap[0m
+2026-05-05T17:55:42.2454250Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App-own-target-headers.hmap[0m
+2026-05-05T17:55:42.2560140Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App-generated-files.hmap[0m
+2026-05-05T17:55:42.2662710Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App-all-target-headers.hmap[0m
+2026-05-05T17:55:42.2766550Z [17:55:41]: ▸ [35m[[36mApp[0m] [1mWrite Auxiliary File[0m App-all-non-framework-target-headers.hmap[0m
+2026-05-05T17:55:42.2868860Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova.hmap[0m
+2026-05-05T17:55:42.2979610Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova.DependencyStaticMetadataFileList[0m
+2026-05-05T17:55:42.3086780Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova.DependencyMetadataFileList[0m
+2026-05-05T17:55:42.3195340Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova-project-headers.hmap[0m
+2026-05-05T17:55:42.3303370Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova-own-target-headers.hmap[0m
+2026-05-05T17:55:42.3407760Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova-generated-files.hmap[0m
+2026-05-05T17:55:42.3510110Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova-all-target-headers.hmap[0m
+2026-05-05T17:55:42.3614360Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mWrite Auxiliary File[0m CapacitorCordova-all-non-framework-target-headers.hmap[0m
+2026-05-05T17:55:42.3727140Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m e6072d4f65d7061329687fe24e3d63a7-common-args.resp[0m
+2026-05-05T17:55:42.3831890Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova.LinkFileList[0m
+2026-05-05T17:55:42.3934910Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m 7187679823f38a2a940e0043cdf9d637-common-args.resp[0m
+2026-05-05T17:55:42.4042530Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova_vers.c[0m
+2026-05-05T17:55:42.4152560Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova.hmap[0m
+2026-05-05T17:55:42.4258760Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova.DependencyStaticMetadataFileList[0m
+2026-05-05T17:55:42.4364410Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova.DependencyMetadataFileList[0m
+2026-05-05T17:55:42.4470750Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova-project-headers.hmap[0m
+2026-05-05T17:55:42.4575650Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova-own-target-headers.hmap[0m
+2026-05-05T17:55:42.4686000Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova-generated-files.hmap[0m
+2026-05-05T17:55:42.4794360Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova-all-target-headers.hmap[0m
+2026-05-05T17:55:42.4900070Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mWrite Auxiliary File[0m Cordova-all-non-framework-target-headers.hmap[0m
+2026-05-05T17:55:42.5031610Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m NSDictionary+CordovaPreferences.h[0m
+2026-05-05T17:55:42.5137750Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CapacitorCordova.h[0m
+2026-05-05T17:55:42.5242500Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVWebViewProcessPoolFactory.h[0m
+2026-05-05T17:55:42.5344980Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVViewController.h[0m
+2026-05-05T17:55:42.5457290Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVURLProtocol.h[0m
+2026-05-05T17:55:42.5580830Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVScreenOrientationDelegate.h[0m
+2026-05-05T17:55:42.5831170Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVPluginResult.h[0m
+2026-05-05T17:55:42.5863810Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVPlugin.h[0m
+2026-05-05T17:55:42.6017760Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVPluginManager.h[0m
+2026-05-05T17:55:42.6146120Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVPlugin+Resources.h[0m
+2026-05-05T17:55:42.6956640Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVInvokedUrlCommand.h[0m
+2026-05-05T17:55:42.7099820Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVConfigParser.h[0m
+2026-05-05T17:55:42.7259270Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVCommandDelegateImpl.h[0m
+2026-05-05T17:55:42.7393550Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVCommandDelegate.h[0m
+2026-05-05T17:55:42.7564870Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVAvailabilityDeprecated.h[0m
+2026-05-05T17:55:42.7693730Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDVAvailability.h[0m
+2026-05-05T17:55:42.7799830Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CDV.h[0m
+2026-05-05T17:55:42.7921620Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m AppDelegate.h[0m
+2026-05-05T17:55:42.8030370Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopy[0m module.modulemap -> CapacitorCordova.modulemap[0m
+2026-05-05T17:55:42.8145770Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopy[0m module.modulemap -> module.modulemap[0m
+2026-05-05T17:55:42.8249940Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mProcessing[0m ResourceBundle-CapacitorCordova-CapacitorCordova-Info.plist[0m
+2026-05-05T17:55:42.8367920Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mCopying[0m PrivacyInfo.xcprivacy[0m
+2026-05-05T17:55:42.8527800Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor.hmap[0m
+2026-05-05T17:55:42.8690530Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor.DependencyStaticMetadataFileList[0m
+2026-05-05T17:55:42.8824710Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor.DependencyMetadataFileList[0m
+2026-05-05T17:55:42.8941500Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor-project-headers.hmap[0m
+2026-05-05T17:55:42.9105540Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor-own-target-headers.hmap[0m
+2026-05-05T17:55:42.9213620Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor-generated-files.hmap[0m
+2026-05-05T17:55:42.9320450Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor-all-target-headers.hmap[0m
+2026-05-05T17:55:42.9444200Z [17:55:41]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mWrite Auxiliary File[0m Capacitor-all-non-framework-target-headers.hmap[0m
+2026-05-05T17:55:42.9551230Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m unextended-module-swiftunextension.modulemap[0m
+2026-05-05T17:55:42.9664700Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m unextended-module-overlay.yaml[0m
+2026-05-05T17:55:42.9802370Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m module-swiftextension.modulemap[0m
+2026-05-05T17:55:42.9945990Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m e6072d4f65d7061329687fe24e3d63a7-common-args.resp[0m
+2026-05-05T17:55:43.0077180Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor_const_extract_protocols.json[0m
+2026-05-05T17:55:43.0180370Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor.SwiftFileList[0m
+2026-05-05T17:55:43.0294420Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor.SwiftConstValuesFileList[0m
+2026-05-05T17:55:43.0409970Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor.LinkFileList[0m
+2026-05-05T17:55:43.0528360Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor-OutputFileMap.json[0m
+2026-05-05T17:55:43.0657610Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m 7187679823f38a2a940e0043cdf9d637-common-args.resp[0m
+2026-05-05T17:55:43.0783110Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor_vers.c[0m
+2026-05-05T17:55:43.0895550Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor.hmap[0m
+2026-05-05T17:55:43.1042760Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor.DependencyStaticMetadataFileList[0m
+2026-05-05T17:55:43.1153670Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor.DependencyMetadataFileList[0m
+2026-05-05T17:55:43.1267460Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor-project-headers.hmap[0m
+2026-05-05T17:55:43.1375970Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor-own-target-headers.hmap[0m
+2026-05-05T17:55:43.1483020Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor-generated-files.hmap[0m
+2026-05-05T17:55:43.1593510Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor-all-target-headers.hmap[0m
+2026-05-05T17:55:43.1703850Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mWrite Auxiliary File[0m Capacitor-all-non-framework-target-headers.hmap[0m
+2026-05-05T17:55:43.1807150Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m Capacitor.h[0m
+2026-05-05T17:55:43.1913380Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPPluginMethod.h[0m
+2026-05-05T17:55:43.1915290Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPPluginCall.h[0m
+2026-05-05T17:55:43.2100170Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPPlugin.h[0m
+2026-05-05T17:55:43.2251320Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPInstanceDescriptor.h[0m
+2026-05-05T17:55:43.2371470Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPInstanceConfiguration.h[0m
+2026-05-05T17:55:43.2474110Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPBridgedPlugin.h[0m
+2026-05-05T17:55:43.2577740Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPBridgedJSTypes.h[0m
+2026-05-05T17:55:43.2680520Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m CAPBridgeViewController+CDVScreenOrientationDelegate.h[0m
+2026-05-05T17:55:43.2783700Z [17:55:41]: ▸ [35m[[36mCapacitor[0m] [1mCopy[0m module.modulemap -> module.modulemap[0m
+2026-05-05T17:55:43.2895900Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mRegisterExecutionPolicyException[0m CapacitorCordova.bundle[0m
+2026-05-05T17:55:43.2999050Z [17:55:41]: ▸ [35m[[36mCapacitorCordova-CapacitorCordova[0m] [1mTouching[0m CapacitorCordova.bundle[0m
+2026-05-05T17:55:43.3115400Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mProcessing[0m CapacitorCordova-Info.plist[0m
+2026-05-05T17:55:43.3222880Z [17:55:41]: ▸ [35m[[36mCapacitorCordova[0m] [1mCopying[0m CapacitorCordova.bundle[0m
+2026-05-05T17:55:44.5852220Z [17:55:44]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m Cordova_vers.c[0m
+2026-05-05T17:55:48.2327970Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m NSDictionary+CordovaPreferences.m[0m
+2026-05-05T17:55:48.2430220Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CapacitorCordova-dummy.m[0m
+2026-05-05T17:55:48.2532670Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVViewController.m[0m
+2026-05-05T17:55:48.2632270Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVURLProtocol.m[0m
+2026-05-05T17:55:48.2734380Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVPluginResult.m[0m
+2026-05-05T17:55:48.3819720Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVInvokedUrlCommand.m[0m
+2026-05-05T17:55:48.3953660Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVConfigParser.m[0m
+2026-05-05T17:55:48.3954530Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m AppDelegate.m[0m
+2026-05-05T17:55:48.8133020Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVWebViewProcessPoolFactory.m[0m
+2026-05-05T17:55:48.8321160Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVPluginManager.m[0m
+2026-05-05T17:55:48.8446350Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVPlugin.m[0m
+2026-05-05T17:55:48.9052870Z [17:55:48]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVPlugin+Resources.m[0m
+2026-05-05T17:55:50.7738880Z [17:55:50]: ▸ [35m[[36mCapacitorCordova[0m] [1mCompiling[0m CDVCommandDelegateImpl.m[0m
+2026-05-05T17:55:50.7837190Z [17:55:50]: ▸ [35m[[36mCapacitorCordova[0m] [1mLinking[0m Cordova[0m
+2026-05-05T17:55:50.7938190Z [17:55:50]: ▸ [35m[[36mCapacitorCordova[0m] [1mGenerating[0m Cordova.framework.dSYM[0m
+2026-05-05T17:55:50.8063040Z [17:55:50]: ▸ [35m[[36mCapacitorCordova[0m] [1mRegisterExecutionPolicyException[0m Cordova.framework[0m
+2026-05-05T17:55:50.8140800Z [17:55:50]: ▸ [35m[[36mCapacitorCordova[0m] [1mTouching[0m Cordova.framework[0m
+2026-05-05T17:55:50.8242330Z [17:55:50]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mCopying[0m PrivacyInfo.xcprivacy[0m
+2026-05-05T17:55:50.8343150Z [17:55:50]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mProcessing[0m ResourceBundle-Capacitor-Capacitor-Info.plist[0m
+2026-05-05T17:55:50.8446090Z [17:55:50]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mRegisterExecutionPolicyException[0m Capacitor.bundle[0m
+2026-05-05T17:55:50.8547210Z [17:55:50]: ▸ [35m[[36mCapacitor-Capacitor[0m] [1mTouching[0m Capacitor.bundle[0m
+2026-05-05T17:55:50.8650870Z [17:55:50]: ▸ [35m[[36mCapacitor[0m] [1mProcessing[0m Capacitor-Info.plist[0m
+2026-05-05T17:55:50.8752780Z [17:55:50]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m native-bridge.js[0m
+2026-05-05T17:55:50.8853970Z [17:55:50]: ▸ [35m[[36mCapacitor[0m] [1mCopying[0m Capacitor.bundle[0m
+2026-05-05T17:56:04.8791110Z [17:56:04]: ▸ [35m::warning file=/Users/runner/work/zijide/zijide/node_modules/@capacitor/ios/Capacitor/Capacitor/CapacitorBridge.swift,line=226,col=89::'tmpVCAppeared' is deprecated: obsolete[0m
+2026-05-05T17:56:04.8832620Z [17:56:04]: ▸ [35m        observers.append(NotificationCenter.default.addObserver(forName: type(of: self).tmpVCAppeared.name, object: .none, queue: .none) { [weak self] _ in[0m
+2026-05-05T17:56:04.8848070Z [17:56:04]: ▸ [35m                                                                                        ^[0m
+2026-05-05T17:56:04.8851710Z [17:56:04]: ▸ [35m::warning file=/Users/runner/work/zijide/zijide/node_modules/@capacitor/ios/Capacitor/Capacitor/CapacitorBridge.swift,line=227,col=19::'tmpWindow' is deprecated: obsolete[0m
+2026-05-05T17:56:04.8855410Z [17:56:04]: ▸ [35m            self?.tmpWindow = nil[0m
+2026-05-05T17:56:04.8859940Z [17:56:04]: ▸ [35m                  ^[0m
+2026-05-05T17:56:04.8862480Z [17:56:04]: ▸ [35m::warning file=/Users/runner/work/zijide/zijide/node_modules/@capacitor/ios/Capacitor/Capacitor/TmpViewController.swift,line=6,col=57::'tmpVCAppeared' is deprecated: obsolete[0m
+2026-05-05T17:56:04.8863830Z [17:56:04]: ▸ [35m        NotificationCenter.default.post(CapacitorBridge.tmpVCAppeared)[0m
+2026-05-05T17:56:04.8864760Z [17:56:04]: ▸ [35m                                                        ^[0m
+2026-05-05T17:56:04.9326750Z [17:56:04]: ▸ [35m[[36mCapacitor[0m] [1mCopy[0m arm64-apple-ios.swiftmodule -> Capacitor.swiftmodule[0m
+2026-05-05T17:56:04.9426790Z [17:56:04]: ▸ [35m[[36mCapacitor[0m] [1mCopy[0m arm64-apple-ios.swiftdoc -> Capacitor.swiftdoc[0m
+2026-05-05T17:56:04.9529040Z [17:56:04]: ▸ [35m[[36mCapacitor[0m] [1mCopy[0m arm64-apple-ios.abi.json -> Capacitor.abi.json[0m
+2026-05-05T17:56:05.3137380Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m Capacitor_vers.c[0m
+2026-05-05T17:56:05.3233990Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m Capacitor-dummy.m[0m
+2026-05-05T17:56:05.5803960Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m CAPPluginCall.m[0m
+2026-05-05T17:56:05.6010130Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m WKWebView+Capacitor.m[0m
+2026-05-05T17:56:05.6622890Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m UIStatusBarManager+CAPHandleTapAction.m[0m
+2026-05-05T17:56:05.6839310Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m CAPPluginMethod.m[0m
+2026-05-05T17:56:05.6941040Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m CAPPlugin.m[0m
+2026-05-05T17:56:05.8070560Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m CAPInstanceDescriptor.m[0m
+2026-05-05T17:56:05.8171430Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m CAPInstanceConfiguration.m[0m
+2026-05-05T17:56:05.8273540Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m CAPBridgedJSTypes.m[0m
+2026-05-05T17:56:05.8879710Z [17:56:05]: ▸ [35m[[36mCapacitor[0m] [1mCompiling[0m CAPBridgeViewController+CDVScreenOrientationDelegate.m[0m
+2026-05-05T17:56:06.0820260Z [17:56:06]: ▸ [35m[[36mPods-App[0m] [1mCompiling[0m Pods_App_vers.c[0m
+2026-05-05T17:56:06.0924290Z [17:56:06]: ▸ [35m[[36mCapacitor[0m] [1mLinking[0m Capacitor[0m
+2026-05-05T17:56:06.3908620Z [17:56:06]: ▸ [35m::warning ::ld: search path '/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.yNvQZS/Metal.xctoolchain/usr/lib/swift/iphoneos' not found[0m
+2026-05-05T17:56:06.3925610Z [17:56:06]: ▸ [35m[[36mCapacitor[0m] [1mGenerating[0m Capacitor.framework.dSYM[0m
+2026-05-05T17:56:06.6498330Z [17:56:06]: ▸ [35m[[36mCapacitor[0m] [1mExtract App Intents Metadata[0m
+2026-05-05T17:56:06.8690040Z [17:56:06]: ▸ [35m[[36mCapacitor[0m] [1mRegisterExecutionPolicyException[0m Capacitor.framework[0m
+2026-05-05T17:56:06.8793700Z [17:56:06]: ▸ [35m[[36mCapacitor[0m] [1mTouching[0m Capacitor.framework[0m
+2026-05-05T17:56:06.8892460Z [17:56:06]: ▸ [35m[[36mPods-App[0m] [1mProcessing[0m Pods-App-Info.plist[0m
+2026-05-05T17:56:07.3468280Z [17:56:07]: ▸ [35m[[36mPods-App[0m] [1mCompiling[0m Pods-App-dummy.m[0m
+2026-05-05T17:56:07.3888450Z [17:56:07]: ▸ [35m[[36mPods-App[0m] [1mRegisterExecutionPolicyException[0m Pods_App.framework[0m
+2026-05-05T17:56:07.3892950Z [17:56:07]: ▸ [35m[[36mPods-App[0m] [1mTouching[0m Pods_App.framework[0m
+2026-05-05T17:56:07.3947380Z [17:56:07]: ▸ [35m[[36mApp[0m] [1mRunning script[0m [CP] Check Pods Manifest.lock[0m
+2026-05-05T17:56:07.4456630Z [17:56:07]: ▸ [35m[[36mApp[0m] [1mGenerate Asset Symbols[0m Assets.xcassets[0m
+2026-05-05T17:56:07.5485150Z [17:56:07]: ▸ [35m[[36mApp[0m] [1mCopying[0m public[0m
+2026-05-05T17:56:07.5587010Z [17:56:07]: ▸ [35m[[36mApp[0m] [1mCopying[0m config.xml[0m
+2026-05-05T17:56:07.5609400Z [17:56:07]: ▸ [35m[[36mApp[0m] [1mCopying[0m capacitor.config.json[0m
+2026-05-05T17:56:07.5610200Z [17:56:07]: ▸ [35m[[36mApp[0m] [1mCompiling[0m Main.storyboard[0m
+2026-05-05T17:56:08.8130210Z [17:56:08]: ▸ [35m[[36mApp[0m] [1mCompiling[0m LaunchScreen.storyboard[0m
+2026-05-05T17:56:21.3151510Z [17:56:21]: ▸ [35m[36;1mnote: [0mEmplaced /Users/runner/Library/Developer/Xcode/DerivedData/App-fwtlkvqurybrlpflsoyphrkrttqe/Build/Intermediates.noindex/ArchiveIntermediates/App/InstallationBuildProductsLocation/Applications/App.app/AppIcon76x76@2x~ipad.png (in target 'App' from project 'App')[0m
+2026-05-05T17:56:21.3282850Z [17:56:21]: ▸ [35m[36;1mnote: [0mEmplaced /Users/runner/Library/Developer/Xcode/DerivedData/App-fwtlkvqurybrlpflsoyphrkrttqe/Build/Intermediates.noindex/ArchiveIntermediates/App/InstallationBuildProductsLocation/Applications/App.app/Assets.car (in target 'App' from project 'App')[0m
+2026-05-05T17:56:21.3407560Z [17:56:21]: ▸ [35m[36;1mnote: [0mEmplaced /Users/runner/Library/Developer/Xcode/DerivedData/App-fwtlkvqurybrlpflsoyphrkrttqe/Build/Intermediates.noindex/ArchiveIntermediates/App/InstallationBuildProductsLocation/Applications/App.app/AppIcon60x60@2x.png (in target 'App' from project 'App')[0m
+2026-05-05T17:56:21.3510460Z [17:56:21]: ▸ [35m[[36mApp[0m] [1mProcessing[0m Info.plist[0m
+2026-05-05T17:56:26.2750590Z [17:56:26]: ▸ [35m[[36mApp[0m] [1mCopy[0m arm64-apple-ios.swiftdoc -> App.swiftdoc[0m
+2026-05-05T17:56:26.2865310Z [17:56:26]: ▸ [35m[[36mApp[0m] [1mCopy[0m arm64-apple-ios.swiftmodule -> App.swiftmodule[0m
+2026-05-05T17:56:26.2961370Z [17:56:26]: ▸ [35m[[36mApp[0m] [1mCopy[0m arm64-apple-ios.abi.json -> App.abi.json[0m
+2026-05-05T17:56:26.3064080Z [17:56:26]: ▸ [35m[[36mApp[0m] [1mLinking[0m App[0m
+2026-05-05T17:56:26.7517200Z [17:56:26]: ▸ [35m::warning ::ld: search path '/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.yNvQZS/Metal.xctoolchain/usr/lib/swift/iphoneos' not found[0m
+2026-05-05T17:56:26.7657850Z [17:56:26]: ▸ [35m[[36mApp[0m] [1mGenerating[0m App.app.dSYM[0m
+2026-05-05T17:56:26.8701080Z [17:56:26]: ▸ [35m[[36mApp[0m] [1mRunning script[0m [CP] Embed Pods Frameworks[0m
+2026-05-05T17:56:27.6932970Z [17:56:27]: ▸ [35m[[36mApp[0m] [1mExtract App Intents Metadata[0m
+2026-05-05T17:56:27.7216650Z [17:56:27]: ▸ [35m[1mSigning[0m App.app (in target 'App' from project 'App')[0m
+2026-05-05T17:56:28.1138760Z [17:56:28]: ▸ [35m[[36mApp[0m] [1mRegisterExecutionPolicyException[0m App.app[0m
+2026-05-05T17:56:28.1241340Z [17:56:28]: ▸ [35m[[36mApp[0m] [1mValidate[0m App.app[0m
+2026-05-05T17:56:28.1344120Z [17:56:28]: ▸ [35m[[36mApp[0m] [1mTouching[0m App.app[0m
+2026-05-05T17:56:28.2152590Z [17:56:28]: ▸ [35m::warning ::Run script build phase '[CP] Embed Pods Frameworks' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'App' from project 'App')[0m
+2026-05-05T17:56:28.2557240Z [17:56:28]: ▸ [35m[32;1mArchive Succeeded[0m
+2026-05-05T17:56:28.3265910Z [17:56:28]: [33mGenerated plist file with the following values:[0m
+2026-05-05T17:56:28.3367910Z [17:56:28]: ▸ [35m-----------------------------------------[0m
+2026-05-05T17:56:28.3473190Z [17:56:28]: ▸ [35m{[0m
+2026-05-05T17:56:28.3578170Z [17:56:28]: ▸ [35m  "signingStyle": "manual",[0m
+2026-05-05T17:56:28.3680810Z [17:56:28]: ▸ [35m  "teamID": "***",[0m
+2026-05-05T17:56:28.3783390Z [17:56:28]: ▸ [35m  "provisioningProfiles": {[0m
+2026-05-05T17:56:28.3886590Z [17:56:28]: ▸ [35m    "com.warrescue.appname": "com.warrescue.appname AppStore 1778003718"[0m
+2026-05-05T17:56:28.3987250Z [17:56:28]: ▸ [35m  },[0m
+2026-05-05T17:56:28.4088000Z [17:56:28]: ▸ [35m  "method": "app-store"[0m
+2026-05-05T17:56:28.4189060Z [17:56:28]: ▸ [35m}[0m
+2026-05-05T17:56:28.4290290Z [17:56:28]: ▸ [35m-----------------------------------------[0m
+2026-05-05T17:56:28.4392820Z [17:56:28]: [36m$ /usr/bin/xcrun /Users/runner/hostedtoolcache/Ruby/3.2.11/arm64/lib/ruby/gems/3.2.0/gems/fastlane-2.233.1/gym/lib/assets/wrap_xcodebuild/xcbuild-safe.sh -exportArchive -exportOptionsPlist '/var/folders/tb/y368xp_x10s3ty1b_mtl5mxr0000gn/T/gym_config20260505-6541-1rv5lg.plist' -archivePath /Users/runner/Library/Developer/Xcode/Archives/2026-05-05/App\ 2026-05-05\ 17.55.31.xcarchive -exportPath '/var/folders/tb/y368xp_x10s3ty1b_mtl5mxr0000gn/T/gym_output20260505-6541-jmvpnr' [0m
+2026-05-05T17:56:32.3383360Z [17:56:32]: Compressing 3 dSYM(s)
+2026-05-05T17:56:32.3487370Z [17:56:32]: [36m$ cd '/Users/runner/Library/Developer/Xcode/Archives/2026-05-05/App 2026-05-05 17.55.31.xcarchive/dSYMs' && zip -r '/Users/runner/work/zijide/zijide/ios/App/App.app.dSYM.zip' *.dSYM[0m
+2026-05-05T17:56:32.7211390Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/ (stored 0%)[0m
+2026-05-05T17:56:32.7313610Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/ (stored 0%)[0m
+2026-05-05T17:56:32.7416200Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/Resources/ (stored 0%)[0m
+2026-05-05T17:56:32.7527330Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/Resources/Relocations/ (stored 0%)[0m
+2026-05-05T17:56:32.7627940Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/Resources/Relocations/aarch64/ (stored 0%)[0m
+2026-05-05T17:56:32.7732520Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/Resources/Relocations/aarch64/App.yml (deflated 83%)[0m
+2026-05-05T17:56:32.7831380Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/Resources/DWARF/ (stored 0%)[0m
+2026-05-05T17:56:32.7934670Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/Resources/DWARF/App (deflated 60%)[0m
+2026-05-05T17:56:32.8036430Z [17:56:32]: ▸ [35m  adding: App.app.dSYM/Contents/Info.plist (deflated 52%)[0m
+2026-05-05T17:56:32.8138690Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/ (stored 0%)[0m
+2026-05-05T17:56:32.8242300Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/ (stored 0%)[0m
+2026-05-05T17:56:32.8344800Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/Resources/ (stored 0%)[0m
+2026-05-05T17:56:32.8447020Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/Resources/Relocations/ (stored 0%)[0m
+2026-05-05T17:56:32.8549270Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/Resources/Relocations/aarch64/ (stored 0%)[0m
+2026-05-05T17:56:32.8651330Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/Resources/Relocations/aarch64/Capacitor.yml (deflated 86%)[0m
+2026-05-05T17:56:32.8753310Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/Resources/DWARF/ (stored 0%)[0m
+2026-05-05T17:56:32.8857730Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/Resources/DWARF/Capacitor (deflated 65%)[0m
+2026-05-05T17:56:32.8959570Z [17:56:32]: ▸ [35m  adding: Capacitor.framework.dSYM/Contents/Info.plist (deflated 52%)[0m
+2026-05-05T17:56:32.9062780Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/ (stored 0%)[0m
+2026-05-05T17:56:32.9164980Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/ (stored 0%)[0m
+2026-05-05T17:56:32.9267610Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/Resources/ (stored 0%)[0m
+2026-05-05T17:56:32.9369530Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/Resources/Relocations/ (stored 0%)[0m
+2026-05-05T17:56:32.9471530Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/Resources/Relocations/aarch64/ (stored 0%)[0m
+2026-05-05T17:56:32.9574630Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/Resources/Relocations/aarch64/Cordova.yml (deflated 85%)[0m
+2026-05-05T17:56:32.9676740Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/Resources/DWARF/ (stored 0%)[0m
+2026-05-05T17:56:32.9779880Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/Resources/DWARF/Cordova (deflated 60%)[0m
+2026-05-05T17:56:32.9884450Z [17:56:32]: ▸ [35m  adding: Cordova.framework.dSYM/Contents/Info.plist (deflated 52%)[0m
+2026-05-05T17:56:32.9887990Z 
+2026-05-05T17:56:32.9989610Z [17:56:32]: [32mSuccessfully exported and compressed dSYM file[0m
+2026-05-05T17:56:33.0091560Z [17:56:32]: [32mSuccessfully exported and signed the ipa file:[0m
+2026-05-05T17:56:33.0193980Z [17:56:32]: /Users/runner/work/zijide/zijide/ios/App/App.ipa
+2026-05-05T17:56:33.0296680Z [17:56:32]: [32m---------------------------------[0m
+2026-05-05T17:56:33.0398280Z [17:56:32]: [32m--- Step: upload_to_app_store ---[0m
+2026-05-05T17:56:33.0500260Z [17:56:32]: [32m---------------------------------[0m
+2026-05-05T17:56:33.0601900Z [17:56:32]: Creating authorization token for App Store Connect API
+2026-05-05T17:56:33.0702750Z 
+2026-05-05T17:56:33.0803870Z +---------------------------------------------------------------+
+2026-05-05T17:56:33.0905760Z |                    [32mdeliver 2.233.1 Summary[0m                    |
+2026-05-05T17:56:33.1007410Z +--------------------------------------+------------------------+
+2026-05-05T17:56:33.1108940Z | api_key                              | ********               |
+2026-05-05T17:56:33.1211050Z | skip_metadata                        | true                   |
+2026-05-05T17:56:33.1312610Z | skip_screenshots                     | true                   |
+2026-05-05T17:56:33.1415190Z | force                                | true                   |
+2026-05-05T17:56:33.1520680Z | precheck_include_in_app_purchases    | false                  |
+2026-05-05T17:56:33.1622400Z | app_identifier                       | com.warrescue.appname  |
+2026-05-05T17:56:33.1725140Z | screenshots_path                     | ./fastlane/screenshots |
+2026-05-05T17:56:33.1827900Z | metadata_path                        | ./fastlane/metadata    |
+2026-05-05T17:56:33.1929500Z | app_version                          | 1.0                    |
+2026-05-05T17:56:33.2031030Z | ipa                                  | App.ipa                |
+2026-05-05T17:56:33.2132970Z | platform                             | ios                    |
+2026-05-05T17:56:33.2234320Z | edit_live                            | false                  |
+2026-05-05T17:56:33.2335830Z | use_live_version                     | false                  |
+2026-05-05T17:56:33.2438310Z | preview_frame_time_code              | 00:00:05:00            |
+2026-05-05T17:56:33.2540240Z | overwrite_preview_videos             | false                  |
+2026-05-05T17:56:33.2641630Z | skip_binary_upload                   | false                  |
+2026-05-05T17:56:33.2743440Z | skip_app_version_update              | false                  |
+2026-05-05T17:56:33.2846160Z | overwrite_screenshots                | false                  |
+2026-05-05T17:56:33.2948280Z | screenshot_processing_timeout        | 3600                   |
+2026-05-05T17:56:33.3049750Z | sync_screenshots                     | false                  |
+2026-05-05T17:56:33.3151310Z | submit_for_review                    | false                  |
+2026-05-05T17:56:33.3252860Z | verify_only                          | false                  |
+2026-05-05T17:56:33.3354490Z | reject_if_possible                   | false                  |
+2026-05-05T17:56:33.3456180Z | version_check_wait_retry_limit       | 7                      |
+2026-05-05T17:56:33.3557700Z | phased_release                       | false                  |
+2026-05-05T17:56:33.3659840Z | reset_ratings                        | false                  |
+2026-05-05T17:56:33.3761370Z | run_precheck_before_submit           | true                   |
+2026-05-05T17:56:33.3863410Z | precheck_default_rule_level          | warn                   |
+2026-05-05T17:56:33.3972330Z | ignore_language_directory_validation | false                  |
+2026-05-05T17:56:33.4073910Z +--------------------------------------+------------------------+
+2026-05-05T17:56:33.4174830Z 
+2026-05-05T17:56:33.4276040Z [17:56:32]: Making sure the latest version on App Store Connect matches '1.0'...
+2026-05-05T17:56:33.4378970Z [17:56:33]: [32m'1.0' is the latest version on App Store Connect[0m
+2026-05-05T17:56:33.4481030Z [17:56:33]: Uploading binary to App Store Connect
+2026-05-05T17:56:33.4582330Z [17:56:33]: Going to upload updated app to App Store Connect
+2026-05-05T17:56:33.4683840Z [17:56:33]: [32mThis might take a few minutes. Please don't interrupt the script.[0m
+2026-05-05T17:56:36.0898860Z [17:56:36]: [33m[altool] Running altool at path '/Applications/Xcode_26.3.app/Contents/SharedFrameworks/ContentDelivery.framework/Resources/altool'...
+2026-05-05T17:56:36.1001870Z [0m
+2026-05-05T17:56:36.1105330Z [17:56:36]: [33m[altool] 
+2026-05-05T17:56:36.1211870Z [31m
+2026-05-05T17:56:36.1212700Z [0m
+2026-05-05T17:56:36.1415060Z [!] Error uploading ipa file: 
+2026-05-05T17:56:36.1419450Z [17:56:36]: [33m[altool] 2026-05-05 17:56:36.080 [1m[31mERROR: [ContentDelivery.Uploader.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:36.1526860Z  [Application Loader Error Output]: [ContentDelivery.Uploader.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:36.1535630Z [0m
+2026-05-05T17:56:36.1622800Z [Application Loader Error Output]: [altool.6000005C44C0] Failed to upload package.[0m
+2026-05-05T17:56:36.1624520Z [17:56:36]: [33m[altool]    NSUnderlyingError : The provided entity includes an attribute with a value that has already been used (-19241) The bundle version must be higher than the previously uploaded version.
+2026-05-05T17:56:36.1730500Z [Application Loader Error Output]: [altool.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:36.1738930Z [0m
+2026-05-05T17:56:36.1837780Z [0m
+2026-05-05T17:56:36.1838590Z [17:56:36]: [33m[altool]       status : 409
+2026-05-05T17:56:36.1944250Z [0m
+2026-05-05T17:56:36.2043720Z [17:56:36]: [33m[altool]       detail : The bundle version must be higher than the previously uploaded version.
+2026-05-05T17:56:36.2234610Z [0m
+2026-05-05T17:56:36.2357360Z [17:56:36]: [33m[altool]       source : 
+2026-05-05T17:56:36.2560170Z [0m
+2026-05-05T17:56:36.2725930Z [17:56:36]: [33m[altool]          pointer : /data/attributes/cfBundleVersion
+2026-05-05T17:56:36.2829160Z [0m
+2026-05-05T17:56:36.2931930Z [17:56:36]: [33m[altool]       id : 51f2c1f7-f507-4896-8013-ee593ab38af1
+2026-05-05T17:56:36.3040580Z [0m
+2026-05-05T17:56:36.3043050Z [17:56:36]: [33m[altool]       code : ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE
+2026-05-05T17:56:36.3144990Z [0m
+2026-05-05T17:56:36.3248940Z [17:56:36]: [33m[altool]       title : The provided entity includes an attribute with a value that has already been used
+2026-05-05T17:56:36.3350760Z [0m
+2026-05-05T17:56:36.3452260Z [17:56:36]: [33m[altool]       meta : 
+2026-05-05T17:56:36.3554010Z [0m
+2026-05-05T17:56:36.3656690Z [17:56:36]: [33m[altool]          previousBundleVersion : 6
+2026-05-05T17:56:36.3759100Z [0m
+2026-05-05T17:56:36.3861090Z [17:56:36]: [33m[altool]    previousBundleVersion : 6
+2026-05-05T17:56:36.3986930Z [0m
+2026-05-05T17:56:36.4093390Z [17:56:36]: [33m[altool]    iris-code : ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE[0m
+2026-05-05T17:56:36.4195970Z [0m
+2026-05-05T17:56:36.4298430Z [17:56:36]: [33m[altool] 2026-05-05 17:56:36.082 [1m[31mERROR: [altool.6000005C44C0] Failed to upload package.[0m
+2026-05-05T17:56:36.4400460Z [0m
+2026-05-05T17:56:36.4502630Z [17:56:36]: [33m[altool] Failed to upload archive at '/var/folders/tb/y368xp_x10s3ty1b_mtl5mxr0000gn/T/e4fd7cfc-ab0d-449b-934e-730300e9c3d6.ipa'.
+2026-05-05T17:56:36.4605240Z [0m
+2026-05-05T17:56:36.4708150Z [17:56:36]: [33m[altool] 2026-05-05 17:56:36.083 [1m[31mERROR: [altool.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:36.4810230Z [0m
+2026-05-05T17:56:36.4912280Z [17:56:36]: [33m[altool]    NSUnderlyingError : The provided entity includes an attribute with a value that has already been used (-19241) The bundle version must be higher than the previously uploaded version.
+2026-05-05T17:56:36.5013990Z [0m
+2026-05-05T17:56:36.5116740Z [17:56:36]: [33m[altool]       status : 409
+2026-05-05T17:56:36.5219010Z [0m
+2026-05-05T17:56:36.5321760Z [17:56:36]: [33m[altool]       detail : The bundle version must be higher than the previously uploaded version.
+2026-05-05T17:56:36.5423800Z [0m
+2026-05-05T17:56:36.5548760Z [17:56:36]: [33m[altool]       source : 
+2026-05-05T17:56:36.5652770Z [0m
+2026-05-05T17:56:36.5894860Z [17:56:36]: [33m[altool]          pointer : /data/attributes/cfBundleVersion
+2026-05-05T17:56:36.5997100Z [0m
+2026-05-05T17:56:36.6098840Z [17:56:36]: [33m[altool]       id : 51f2c1f7-f507-4896-8013-ee593ab38af1
+2026-05-05T17:56:36.6197870Z [0m
+2026-05-05T17:56:36.6299780Z [17:56:36]: [33m[altool]       code : ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE
+2026-05-05T17:56:36.6399510Z [0m
+2026-05-05T17:56:36.6502180Z [17:56:36]: [33m[altool]       title : The provided entity includes an attribute with a value that has already been used
+2026-05-05T17:56:36.6601870Z [0m
+2026-05-05T17:56:36.6702230Z [17:56:36]: [33m[altool]       meta : 
+2026-05-05T17:56:36.6740940Z [0m
+2026-05-05T17:56:36.6742090Z [17:56:36]: [33m[altool]          previousBundleVersion : 6
+2026-05-05T17:56:36.6856480Z [0m
+2026-05-05T17:56:36.6976350Z [17:56:36]: [33m[altool]    previousBundleVersion : 6
+2026-05-05T17:56:36.7078670Z [0m
+2026-05-05T17:56:36.7180490Z [17:56:36]: [33m[altool]    iris-code : ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE
+2026-05-05T17:56:36.7282180Z [0m
+2026-05-05T17:56:36.7383630Z [17:56:36]: [33m[altool] [0m
+2026-05-05T17:56:36.7487510Z [0m
+2026-05-05T17:56:36.7586750Z [17:56:36]: Application Loader output above ^
+2026-05-05T17:56:36.7690610Z [17:56:36]: [31m[ContentDelivery.Uploader.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:36.7790610Z [0m
+2026-05-05T17:56:36.7893650Z [17:56:36]: [31m[altool.6000005C44C0] Failed to upload package.[0m
+2026-05-05T17:56:36.7994160Z [0m
+2026-05-05T17:56:36.8097830Z [17:56:36]: [31m[altool.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:36.8196950Z [0m
+2026-05-05T17:56:36.8298740Z [17:56:36]: [31mCould not download/upload from App Store Connect![0m
+2026-05-05T17:56:36.8400190Z +-------------------------------------------------------------------------------------------------------------------+
+2026-05-05T17:56:36.8501050Z |                                                   [33mLane Context[0m                                                    |
+2026-05-05T17:56:36.8602030Z +---------------------+---------------------------------------------------------------------------------------------+
+2026-05-05T17:56:36.8702960Z | DEFAULT_PLATFORM    | ios                                                                                         |
+2026-05-05T17:56:36.8806130Z | PLATFORM_NAME       | ios                                                                                         |
+2026-05-05T17:56:36.8904870Z | LANE_NAME           | ios release                                                                                 |
+2026-05-05T17:56:36.9006920Z | CERT_FILE_PATH      | /Users/runner/work/zijide/zijide/ios/App/4W6HV6WB3U.cer                                     |
+2026-05-05T17:56:36.9108540Z | CERT_CERTIFICATE_ID | 4W6HV6WB3U                                                                                  |
+2026-05-05T17:56:36.9209250Z | SIGH_PROFILE_PATH   | /Users/runner/work/zijide/zijide/ios/App/AppStore_com.warrescue.appname.mobileprovision     |
+2026-05-05T17:56:36.9311180Z | SIGH_PROFILE_PATHS  | ["/Users/runner/work/zijide/zijide/ios/App/AppStore_com.warrescue.appname.mobileprovision"] |
+2026-05-05T17:56:36.9412810Z | SIGH_UDID           | 9ed26821-490a-421a-b2ae-58d5648b7ccc                                                        |
+2026-05-05T17:56:36.9514830Z | SIGH_UUID           | 9ed26821-490a-421a-b2ae-58d5648b7ccc                                                        |
+2026-05-05T17:56:36.9964190Z | SIGH_NAME           | com.warrescue.appname AppStore 1778003718                                                   |
+2026-05-05T17:56:37.0394580Z | SIGH_PROFILE_TYPE   | app-store                                                                                   |
+2026-05-05T17:56:37.0399060Z | IPA_OUTPUT_PATH     | /Users/runner/work/zijide/zijide/ios/App/App.ipa                                            |
+2026-05-05T17:56:37.0666380Z | XCODEBUILD_ARCHIVE  | /Users/runner/Library/Developer/Xcode/Archives/2026-05-05/App 2026-05-05 17.55.31.xcarchive |
+2026-05-05T17:56:37.0769010Z | DSYM_OUTPUT_PATH    | /Users/runner/work/zijide/zijide/ios/App/App.app.dSYM.zip                                   |
+2026-05-05T17:56:37.0797720Z +---------------------+---------------------------------------------------------------------------------------------+
+2026-05-05T17:56:37.0799020Z [17:56:36]: [31mCalled from Fastfile at line 105[0m
+2026-05-05T17:56:37.0799480Z [17:56:36]: [31m```[0m
+2026-05-05T17:56:37.0799820Z [17:56:36]: [31m    103:	[0m
+2026-05-05T17:56:37.0801980Z [17:56:36]: [31m    104:	    # Upload to App Store Connect[0m
+2026-05-05T17:56:37.0803530Z [17:56:36]: [31m => 105:	    upload_to_app_store([0m
+2026-05-05T17:56:37.0804170Z [17:56:36]: [31m    106:	      api_key: api_key,[0m
+2026-05-05T17:56:37.0804660Z [17:56:36]: [31m    107:	      skip_metadata: true,[0m
+2026-05-05T17:56:37.0805040Z [17:56:36]: [31m```[0m
+2026-05-05T17:56:37.0805470Z [17:56:36]: [31mError uploading ipa file: 
+2026-05-05T17:56:37.0806850Z  [Application Loader Error Output]: [ContentDelivery.Uploader.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:37.0808150Z [Application Loader Error Output]: [altool.6000005C44C0] Failed to upload package.[0m
+2026-05-05T17:56:37.0809620Z [Application Loader Error Output]: [altool.6000005C44C0] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘6’. (ID: 51f2c1f7-f507-4896-8013-ee593ab38af1)
+2026-05-05T17:56:37.0810590Z [0m
+2026-05-05T17:56:37.0810740Z 
+2026-05-05T17:56:37.0811060Z +------------------------------------------------------------------------------------+
+2026-05-05T17:56:37.0811750Z |                                  [32mfastlane summary[0m                                  |
+2026-05-05T17:56:37.0812300Z +------+---------------------------------------------------------------+-------------+
+2026-05-05T17:56:37.0813240Z | Step | Action                                                        | Time (in s) |
+2026-05-05T17:56:37.0814810Z +------+---------------------------------------------------------------+-------------+
+2026-05-05T17:56:37.0815450Z | 1    | default_platform                                              | 0           |
+2026-05-05T17:56:37.0816010Z | 2    | app_store_connect_api_key                                     | 0           |
+2026-05-05T17:56:37.0816620Z | 3    | Switch to ios revoke_orphaned_certs lane                      | 0           |
+2026-05-05T17:56:37.0817970Z | 4    | get_certificates                                              | 2           |
+2026-05-05T17:56:37.0818600Z | 5    | security set-key-partition-list -S apple-tool:,apple:,codesig | 0           |
+2026-05-05T17:56:37.0819240Z | 6    | security find-identity -v -p codesigning '/Users/runner/Libra | 0           |
+2026-05-05T17:56:37.0819860Z | 7    | get_provisioning_profile                                      | 2           |
+2026-05-05T17:56:37.0820500Z | 8    | update_code_signing_settings                                  | 0           |
+2026-05-05T17:56:37.0821070Z | 9    | build_app                                                     | 72          |
+2026-05-05T17:56:37.0821820Z | 💥   | [31mupload_to_app_store[0m                                           | 3           |
+2026-05-05T17:56:37.0822400Z +------+---------------------------------------------------------------+-------------+
+2026-05-05T17:56:37.0822670Z 
+2026-05-05T17:56:37.0822950Z [17:56:36]: [31mfastlane finished with errors[0m
+2026-05-05T17:56:37.0849250Z ##[error]Process completed with exit code 1.
+2026-05-05T17:56:37.1019360Z ##[group]Run actions/upload-artifact@v4
+2026-05-05T17:56:37.1019800Z with:
+2026-05-05T17:56:37.1019970Z   name: WarRescue-iOS
+2026-05-05T17:56:37.1020160Z   path: ios/App/*.ipa
+2026-05-05T17:56:37.1020340Z   retention-days: 30
+2026-05-05T17:56:37.1020640Z   if-no-files-found: ignore
+2026-05-05T17:56:37.1021280Z   compression-level: 6
+2026-05-05T17:56:37.1021500Z   overwrite: false
+2026-05-05T17:56:37.1021690Z   include-hidden-files: false
+2026-05-05T17:56:37.1021890Z env:
+2026-05-05T17:56:37.1022410Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T17:56:37.1023280Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T17:56:37.1023550Z   APPLE_TEAM_ID: ***
+2026-05-05T17:56:37.1025050Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-05T17:56:37.1026570Z   API_KEY_PATH: /Users/runner/.private_keys/AuthKey.p8
+2026-05-05T17:56:37.1026910Z   KEYCHAIN_PATH: /Users/runner/Library/Keychains/build.keychain-db
+2026-05-05T17:56:37.1027240Z   KEYCHAIN_PASSWORD: ci_build_temp_pwd_1778003711
+2026-05-05T17:56:37.1027480Z ##[endgroup]
+2026-05-05T17:56:37.6637680Z With the provided path, there will be 1 file uploaded
+2026-05-05T17:56:37.6648690Z Artifact name is valid!
+2026-05-05T17:56:37.6655920Z Root directory input is valid!
+2026-05-05T17:56:38.0545960Z Beginning upload of artifact content to blob storage
+2026-05-05T17:56:38.9876310Z Uploaded bytes 3427332
+2026-05-05T17:56:39.0607860Z Finished uploading artifact content to blob storage!
+2026-05-05T17:56:39.0613640Z SHA256 digest of uploaded artifact zip is fcff2d9489dc57bd883029014b73e9b907cb06d556922c4e2052279734c1ed41
+2026-05-05T17:56:39.0614680Z Finalizing artifact upload
+2026-05-05T17:56:39.2753420Z Artifact WarRescue-iOS.zip successfully finalized. Artifact ID 6813483443
+2026-05-05T17:56:39.2854070Z Artifact WarRescue-iOS has been successfully uploaded! Final size is 3427332 bytes. Artifact ID is 6813483443
+2026-05-05T17:56:39.2955270Z Artifact download URL: https://github.com/chainnexlink/zijide/actions/runs/25393035921/artifacts/6813483443
+2026-05-05T17:56:39.3075860Z Post job cleanup.
+2026-05-05T17:56:39.4557210Z [command]/opt/homebrew/bin/git version
+2026-05-05T17:56:39.4914440Z git version 2.54.0
+2026-05-05T17:56:39.5420890Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/053a2447-15ce-4ed5-b7e7-fe0608970258/.gitconfig'
+2026-05-05T17:56:39.5515190Z Temporarily overriding HOME='/Users/runner/work/_temp/053a2447-15ce-4ed5-b7e7-fe0608970258' before making global git config changes
+2026-05-05T17:56:39.5617930Z Adding repository directory to the temporary git global config as a safe directory
+2026-05-05T17:56:39.5719680Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/zijide/zijide
+2026-05-05T17:56:39.6023880Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-05-05T17:56:39.6254410Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-05-05T17:56:39.6933590Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-05-05T17:56:39.7035180Z http.https://github.com/.extraheader
+2026-05-05T17:56:39.7356480Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-05-05T17:56:39.7587350Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-05-05T17:56:39.8418800Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-05-05T17:56:39.8502410Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-05-05T17:56:40.0325220Z Cleaning up orphan processes
+2026-05-05T17:56:40.6749200Z Terminate orphan process: pid (8894) (log)
+2026-05-05T17:56:40.8150910Z Terminate orphan process: pid (7685) (ibtoold)
+2026-05-05T17:56:41.1479260Z Terminate orphan process: pid (6947) (ibtoold)
+2026-05-05T17:56:41.1976100Z Terminate orphan process: pid (6943) (ibtoold)
+2026-05-05T17:56:41.5527630Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

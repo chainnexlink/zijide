@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/slate_900"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <!-- Logo -->
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_icon_brand"
+            android:padding="16dp"
+            android:src="@android:drawable/ic_dialog_alert"
+            android:layout_marginTop="60dp"
+            android:contentDescription="Logo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/slogan"
+            android:textColor="@color/slate_400"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp" />
+
+        <!-- Tab Switcher -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/bg_card"
+            android:padding="4dp">
+
+            <Button
+                android:id="@+id/btnLoginTab"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="@string/login"
+                android:textColor="@color/white"
+                android:background="@drawable/bg_button_primary"
+                android:textSize="15sp"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnRegisterTab"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="@string/register"
+                android:textColor="@color/slate_400"
+                android:background="@android:color/transparent"
+                android:textSize="15sp"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <!-- ==================== Login Form ==================== -->
+        <LinearLayout
+            android:id="@+id/loginForm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp"
+            android:visibility="visible">
+
+            <!-- Login Method Toggle: Phone / Email -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/btnPhoneMethod"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/phone"
+                    android:textColor="@color/red_500"
+                    android:background="@drawable/bg_chip_selected"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="4dp"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btnEmailMethod"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/email"
+                    android:textColor="@color/slate_400"
+                    android:background="@drawable/bg_chip"
+                    android:textSize="14sp"
+                    android:layout_marginStart="4dp"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <!-- Phone Input Group -->
+            <LinearLayout
+                android:id="@+id/phoneInputGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/phone"
+                    android:textColor="@color/slate_300"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <Spinner
+                        android:id="@+id/spinnerCountryCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:minWidth="100dp"
+                        android:background="@drawable/bg_button_secondary"
+                        android:popupBackground="@color/slate_800"
+                        android:layout_marginEnd="8dp" />
+
+                    <EditText
+                        android:id="@+id/etPhone"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_phone"
+                        android:inputType="phone"
+                        style="@style/WarAlarm.Input" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/verification_code"
+                    android:textColor="@color/slate_300"
+                    android:textSize="14sp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <EditText
+                        android:id="@+id/etVerificationCode"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:hint="@string/auth_enter_code"
+                        android:inputType="number"
+                        android:maxLength="6"
+                        android:layout_marginEnd="8dp"
+                        style="@style/WarAlarm.Input" />
+
+                    <Button
+                        android:id="@+id/btnGetCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="@string/get_code"
+                        android:textColor="@color/red_500"
+                        android:background="@drawable/bg_button_secondary"
+                        android:textAllCaps="false"
+                        android:textSize="13sp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+
+                    <TextView
+                        android:id="@+id/tvCodeCountdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:gravity="center"
+                        android:textColor="@color/slate_400"
+                        android:textSize="13sp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Email Input Group -->
+            <LinearLayout
+                android:id="@+id/emailInputGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/email"
+                    android:textColor="@color/slate_300"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="8dp" />
+
+                <EditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="email@example.com"
+                    android:inputType="textEmailAddress"
+                    style="@style/WarAlarm.Input" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/password"
+                    android:textColor="@color/slate_300"
+                    android:textSize="14sp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="8dp" />
+
+                <EditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="@string/password"
+                    android:inputType="textPassword"
+                    style="@style/WarAlarm.Input" />
+            </LinearLayout>
+
+            <!-- Invite Code (optional) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/auth_invite_code_optional"
+                android:textColor="@color/slate_300"
+                android:textSize="14sp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etInviteCode"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:hint="WARXXXXXX"
+                android:inputType="textCapCharacters"
+                android:maxLength="9"
+                style="@style/WarAlarm.Input" />
+
+            <!-- Error Message -->
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/red_500"
+                android:textSize="13sp"
+                android:visibility="gone"
+                android:padding="12dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_alert_red" />
+
+            <!-- Login Button -->
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/login"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_button_primary"
+                android:textAllCaps="false" />
+
+            <!-- Login Agreement hint -->
+            <TextView
+                android:id="@+id/tvLoginAgreement"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/slate_400"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="2dp" />
+
+            <!-- Guest Login Button -->
+            <Button
+                android:id="@+id/btnGuestLogin"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/guest_login"
+                android:textColor="@color/slate_300"
+                android:textSize="14sp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_button_secondary"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <!-- ==================== Register Form ==================== -->
+        <LinearLayout
+            android:id="@+id/registerForm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp"
+            android:visibility="gone">
+
+            <!-- Phone -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/phone"
+                android:textColor="@color/slate_300"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Spinner
+                    android:id="@+id/spinnerRegCountryCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:minWidth="100dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:popupBackground="@color/slate_800"
+                    android:layout_marginEnd="8dp" />
+
+                <EditText
+                    android:id="@+id/etRegPhone"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:hint="@string/hint_phone"
+                    android:inputType="phone"
+                    style="@style/WarAlarm.Input" />
+            </LinearLayout>
+
+            <!-- Verification Code -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/verification_code"
+                android:textColor="@color/slate_300"
+                android:textSize="14sp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/etRegCode"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:hint="@string/auth_enter_code"
+                    android:inputType="number"
+                    android:maxLength="6"
+                    android:layout_marginEnd="8dp"
+                    style="@style/WarAlarm.Input" />
+
+                <Button
+                    android:id="@+id/btnRegGetCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="@string/get_code"
+                    android:textColor="@color/red_500"
+                    android:background="@drawable/bg_button_secondary"
+                    android:textAllCaps="false"
+                    android:textSize="13sp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp" />
+
+                <TextView
+                    android:id="@+id/tvRegCodeCountdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:gravity="center"
+                    android:textColor="@color/slate_400"
+                    android:textSize="13sp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Invite Code (optional) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/auth_invite_code_optional"
+                android:textColor="@color/slate_300"
+                android:textSize="14sp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etRegInviteCode"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:hint="WARXXXXXX"
+                android:inputType="textCapCharacters"
+                android:maxLength="9"
+                style="@style/WarAlarm.Input" />
+
+            <!-- Trial hint -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/auth_trial_hint"
+                android:textColor="@color/green_400"
+                android:textSize="12sp"
+                android:layout_marginTop="12dp"
+                android:drawablePadding="6dp"
+                android:gravity="center" />
+
+            <!-- User Agreement Checkbox -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
+
+                <CheckBox
+                    android:id="@+id/cbRegAgree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/red_500" />
+
+                <TextView
+                    android:id="@+id/tvRegAgreement"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/slate_400"
+                    android:textSize="12sp"
+                    android:lineSpacingExtra="2dp" />
+            </LinearLayout>
+
+            <!-- Register Error -->
+            <TextView
+                android:id="@+id/tvRegError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/red_500"
+                android:textSize="13sp"
+                android:visibility="gone"
+                android:padding="12dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_alert_red" />
+
+            <!-- Register Button -->
+            <Button
+                android:id="@+id/btnRegister"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/register"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_button_primary"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

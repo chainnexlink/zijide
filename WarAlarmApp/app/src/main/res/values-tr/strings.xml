@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WarRescue</string>
+    <string name="slogan">Savaş bölgelerinde her saniye önemlidir</string>
+
+    <!-- Auth -->
+    <string name="login">Giriş</string>
+    <string name="register">Kayıt</string>
+    <string name="demo_login">Demo Dene</string>
+    <string name="phone">Telefon</string>
+    <string name="email">E-posta</string>
+    <string name="password">Şifre</string>
+    <string name="confirm_password">Şifreyi onayla</string>
+    <string name="verification_code">Doğrulama kodu</string>
+    <string name="get_code">Kod al</string>
+    <string name="invite_code">Davet kodu</string>
+    <string name="optional">İsteğe bağlı</string>
+    <string name="agree_terms">Kullanım şartlarını kabul ediyorum</string>
+    <string name="guest_login">Misafir girişi (7 gün deneme)</string>
+    <string name="fill_required">Lütfen tüm zorunlu alanları doldurun</string>
+    <string name="code_sent_demo">Doğrulama kodu gönderildi (Demo)</string>
+
+    <!-- Nav -->
+    <string name="home">Ana Sayfa</string>
+    <string name="map_nav">Harita</string>
+    <string name="family">Aile</string>
+    <string name="settings">Ayarlar</string>
+    <string name="sos">SOS</string>
+
+    <!-- Dashboard -->
+    <string name="current_safe">Şu an güvenli</string>
+    <string name="ai_monitoring">AI izleme aktif · Tehdit yok</string>
+    <string name="ai_monitoring_threat">AI izleme aktif · Tehdit algılandı</string>
+    <string name="simulation_alert">Tatbikat</string>
+    <string name="test_alert">Test uyarısı</string>
+    <string name="escape_route">Kaçış rotası</string>
+    <string name="navigation">Navigasyon</string>
+    <string name="nearby_shelter">Sığınaklar</string>
+    <string name="available">mevcut</string>
+    <string name="ai_monitor">AI İzleme</string>
+    <string name="active">Aktif</string>
+    <string name="family_status">Aile durumu</string>
+    <string name="view_all">Tümünü gör</string>
+
+    <!-- Announcements -->
+    <string name="announcements">Platform Duyuruları</string>
+    <string name="no_announcements">Duyuru yok</string>
+    <string name="announcement_reward">Puan Ödülü</string>
+    <string name="announcement_subscription">Abonelik</string>
+    <string name="announcement_system">Sistem Bildirimi</string>
+
+    <!-- Announcement Pages -->
+    <string name="announcement_all">Tümü</string>
+    <string name="announcement_detail">Duyuru Detayı</string>
+    <string name="announcement_content_label">Detaylar</string>
+    <string name="announcement_type_label">Tür</string>
+    <string name="announcement_published_at">Yayınlandı</string>
+    <string name="announcement_source">Kaynak</string>
+    <string name="announcement_official">Resmi</string>
+    <string name="announcement_just_now">Az önce</string>
+    <string name="announcement_minutes_ago">dk önce</string>
+    <string name="announcement_hours_ago">saat önce</string>
+    <string name="announcement_days_ago">gün önce</string>
+
+    <!-- Demo Announcements -->
+    <string name="demo_announce_1_title">Şehir uyarısı puan ödülü için 3 kullanıcıyı tebrikler</string>
+    <string name="demo_announce_1_content">Kullanıcılar Alex, Maria ve John, Kiev şehir uyarısını ilk onaylayanlar arasındaydı ve sırasıyla 100, 80 ve 80 puan kazandı. Toplum güvenliğine katkınız için teşekkürler!</string>
+    <string name="demo_announce_2_title">Pro Abonelik Planı Yükseltildi</string>
+    <string name="demo_announce_2_content">Pro üyeler artık çoklu şehir uyarı bildirimleri, öncelikli sığınak navigasyonu, 10 kişiye kadar aile grubu alıyor. İlk ay %50 indirim!</string>
+    <string name="demo_announce_3_title">Platform Puan Kuralları Güncellendi</string>
+    <string name="demo_announce_3_content">Şehir uyarısı puan ödülü kuralları güncellendi: ilk 10 kullanıcı puan kazanır. 1.: 100p, 2.-3.: 80p, 4.-5.: 60p, 6.-10.: 50p</string>
+
+    <string name="alerts">Uyarılar</string>
+    <string name="no_data">Veri yok</string>
+    <string name="network_info">5G · 85%</string>
+
+    <!-- City Alert -->
+    <string name="city_alert">Şehir uyarısı</string>
+    <string name="city_alert_desc">Gerçek zamanlı toplu şehir uyarıları</string>
+    <string name="city_alert_detail">Şehir uyarısı detayı</string>
+    <string name="city_alert_trigger">%d kullanıcı 5 dakikada onayladı</string>
+    <string name="city_alert_active">Uyarı aktif</string>
+    <string name="city_alert_pending">Daha fazla onay bekleniyor</string>
+    <string name="city_alert_resolved">Çözüldü</string>
+    <string name="city_alert_respond">Onaylıyorum</string>
+    <string name="city_alert_responded">Onaylandı</string>
+    <string name="city_alert_users">Yanıt veren kullanıcılar</string>
+    <string name="city_alert_timeline">Olay zaman çizelgesi</string>
+    <string name="city_alert_source_ai">AI izleme tarafından tetiklendi</string>
+    <string name="city_alert_source_user">Şehir kullanıcıları tarafından tetiklendi</string>
+    <string name="city_alert_parallel">AI izleme + Toplu uyarılar paralel</string>
+    <string name="city_alert_count">%d şehir uyarısı</string>
+    <string name="user_responded">%d yanıt verdi</string>
+    <string name="within_5min">5 dakika içinde</string>
+    <string name="trigger_condition">Tetikleme: 3 kullanıcı 5 dakikada onaylar</string>
+    <string name="city_alert_trigger_desc">AI izlemesiyle paralel hızlı tetikleme mekanizması</string>
+    <string name="city_alert_long_press">Uyarıyı tetiklemek için 3 saniye basılı tutun</string>
+    <string name="city_alert_trigger_hint">Yakındaki 3\u20135 kullanıcı tetiklediğinde tam uyarı ve kurtarma yanıtı etkinleşir</string>
+    <string name="city_alert_nearby_count">Yakındaki %d kullanıcı tetikledi</string>
+    <string name="city_alert_triggering">Tetikleniyor\u2026</string>
+    <string name="city_alert_triggered_success">Uyarı tetiklendi! Yakındaki kullanıcılar bilgilendirildi</string>
+    <string name="city_alert_hold_to_trigger">Tamamlanana kadar basılı tutun</string>
+    <string name="city_alert_mechanism_title">Şehir uyarısı tetikleme mekanizması</string>
+    <string name="city_alert_mechanism_desc">Şehir uyarısı, AI izlemesiyle paralel çalışan hızlı bir tetikleme mekanizmasıdır. Aynı şehirde 3\u20135 kullanıcı uyarı tetiklediğinde, sistem otomatik olarak AI uyarılarıyla aynı yanıt sürecini başlatır ve kurtarma mantığı eşzamanlı olarak tetiklenir.</string>
+    <string name="city_alert_advantage_title">Şehir uyarısı neden daha hızlı?</string>
+    <string name="city_alert_advantage">Şehir uyarısı AI izlemesinden daha hızlı yanıt verebilir çünkü AI izlemesi devlet verilerini toplayıp analiz etmek zorundayken, şehir uyarısı doğrudan kullanıcılar tarafından tetiklenir.</string>
+    <string name="city_alert_no_active">Yakında aktif tetikleme yok</string>
+    <string name="city_alert_threshold_info">Tam uyarıyı etkinleştirmek için yakında %1$d\u2013%2$d kullanıcı gerekli</string>
+    <string name="city_alert_nearby_status">Yakın tetikleme durumu</string>
+    <string name="city_alert_trigger_instruction">Tehlike hissettiğinizde, şehir uyarısı göndermek için aşağıdaki düğmeye 3 saniye basılı tutun</string>
+    <string name="city_alert_how_it_works">Nasıl çalışır</string>
+    <string name="city_alert_step1">Kullanıcı tehlike hisseder ve şehir uyarısını tetiklemek için 3 saniye basılı tutar</string>
+    <string name="city_alert_step2">Sistem şehir genelinde tetikleme sinyallerini toplar; 3\u20135 tetiklemede eşiğe ulaşılır</string>
+    <string name="city_alert_step3">Eşiğe ulaşıldığında, AI uyarılarıyla aynı tam yanıt süreci etkinleşir</string>
+    <string name="city_alert_step4">Kurtarma mantığı eşzamanlı olarak tetiklenir ve orijinal yanıt zaman çizelgesini takip eder</string>
+
+    <!-- Alert Types -->
+    <string name="air_strike">Hava saldırısı</string>
+    <string name="artillery">Topçu ateşi</string>
+    <string name="conflict">Çatışma</string>
+    <string name="curfew">Sokağa çıkma yasağı</string>
+    <string name="chemical">Kimyasal</string>
+    <string name="other">Diğer</string>
+
+    <!-- Alert Severity -->
+    <string name="severity_red">Kırmızı</string>
+    <string name="severity_orange">Turuncu</string>
+    <string name="severity_yellow">Sarı</string>
+    <string name="severity_all">Tümü</string>
+
+    <!-- Shelter -->
+    <string name="shelters">Sığınaklar</string>
+    <string name="shelter_detail">Sığınak detayı</string>
+    <string name="shelter_list">Sığınak listesi</string>
+    <string name="capacity">Kapasite</string>
+    <string name="capacity_label">Kapasite: </string>
+    <string name="distance">Mesafe</string>
+    <string name="distance_label">Mesafe: </string>
+    <string name="status_open">Açık</string>
+    <string name="status_full">Dolu</string>
+    <string name="status_closed">Kapalı</string>
+    <string name="navigate_to">Yön bul</string>
+    <string name="navigate_to_shelter">Sığınağa yön bul</string>
+    <string name="start_navigate">Navigasyonu başlat</string>
+    <string name="shelter_type">Sığınak türü</string>
+    <string name="shelter_underground">Yeraltı</string>
+    <string name="shelter_bunker">Sığınak</string>
+    <string name="shelter_building">Bina</string>
+    <string name="current_occupancy">Mevcut doluluk</string>
+    <string name="shelter_address">Adres</string>
+    <string name="shelter_facilities">Tesisler</string>
+    <string name="shelter_water">İçme suyu</string>
+    <string name="shelter_power">Acil güç</string>
+    <string name="shelter_medical">Tıbbi kit</string>
+    <string name="shelter_ventilation">Havalandırma</string>
+    <string name="shelter_communication">İletişim</string>
+
+    <!-- Settings -->
+    <string name="account">Hesap</string>
+    <string name="profile">Profil</string>
+    <string name="profile_desc">Avatar, takma ad ve bilgileri düzenle</string>
+    <string name="security">Güvenlik</string>
+    <string name="security_desc">Şifre, telefon ve e-posta</string>
+    <string name="subscription">Abonelik</string>
+    <string name="subscription_desc">Planınızı yönetin</string>
+    <string name="preferences">Tercihler</string>
+    <string name="notifications">Bildirimler</string>
+    <string name="notifications_desc">Push, ses, titreşim</string>
+    <string name="alert_settings">Uyarı ayarları</string>
+    <string name="alert_settings_desc">Menzil, uyarı türleri</string>
+    <string name="map_settings">Harita ayarları</string>
+    <string name="map_settings_desc">Harita türü, çevrimdışı haritalar</string>
+    <string name="storage">Depolama</string>
+    <string name="storage_desc">Önbelleği temizle, alanı yönet</string>
+    <string name="features">Özellikler</string>
+    <string name="emergency_profile">Acil tıbbi bilgi</string>
+    <string name="emergency_profile_desc">Kan grubu, alerjiler, kişiler</string>
+    <string name="family_group">Aile grubu</string>
+    <string name="family_group_desc">Üyeleri ve izinleri yönet</string>
+    <string name="mutual_aid">1 km Karşılıklı Yardım</string>
+    <string name="mutual_aid_desc">Yakın SOS uyarılarına abone ol</string>
+    <string name="about">Hakkında</string>
+    <string name="help">Yardım merkezi</string>
+    <string name="terms">Kullanım şartları</string>
+    <string name="about_app">Uygulama hakkında</string>
+    <string name="dark_mode">Karanlık mod</string>
+    <string name="language">Dil</string>
+    <string name="language_current">Türkçe</string>
+    <string name="change">Değiştir</string>
+    <string name="logout">Çıkış</string>
+    <string name="confirm_logout">Çıkışı onayla</string>
+    <string name="logout_desc">Tekrar giriş yapmanız gerekecek</string>
+    <string name="pro_member">Pro Üye</string>
+    <string name="select_language">Dil seçin</string>
+
+    <!-- Profile -->
+    <string name="nickname">Takma ad</string>
+    <string name="phone_number">Telefon numarası</string>
+    <string name="city">Şehir</string>
+    <string name="emergency_contact">Acil durum kişisi</string>
+    <string name="contact_name">Kişi adı</string>
+    <string name="contact_phone">Kişi telefonu</string>
+    <string name="save_success">Başarıyla kaydedildi</string>
+
+    <!-- Emergency Profile -->
+    <string name="basic_info">Temel bilgiler</string>
+    <string name="blood_type">Kan grubu</string>
+    <string name="age">Yaş</string>
+    <string name="height_cm">Boy (cm)</string>
+    <string name="weight_kg">Kilo (kg)</string>
+    <string name="allergy_history">Alerji geçmişi</string>
+    <string name="drug_allergy">İlaç alerjisi</string>
+    <string name="food_allergy">Gıda alerjisi</string>
+    <string name="chronic_disease">Kronik hastalık</string>
+    <string name="medical_history">Tıbbi geçmiş</string>
+    <string name="current_medication">Mevcut ilaçlar</string>
+    <string name="none">Yok</string>
+
+    <!-- Subscription -->
+    <string name="current_plan">Mevcut plan</string>
+    <string name="plan_free">Ücretsiz</string>
+    <string name="plan_pro">Pro</string>
+    <string name="plan_family">Aile</string>
+    <string name="plan_expire">%1$s tarihine kadar geçerli · %2$d gün kaldı</string>
+    <string name="subscription_plans">Planlar</string>
+    <string name="current">Mevcut</string>
+    <string name="above_current">Mevcut planınız</string>
+    <string name="upgrade">Yükselt</string>
+    <string name="payment_method">Ödeme yöntemi</string>
+    <string name="per_month">/ay</string>
+
+    <!-- SOS -->
+    <string name="sos_emergency">SOS Acil Durum</string>
+    <string name="sos_long_press">Acil sinyal göndermek için aşağıya uzun basın</string>
+    <string name="sos_hold_trigger">Tetiklemek için 3 sn basılı tutun</string>
+    <string name="sos_activated">SOS aktif</string>
+    <string name="sos_sending">Acil sinyal gönderiliyor…</string>
+    <string name="sos_cancel">SOS İptal</string>
+    <string name="sos_cancel_confirm">SOS acil durumu iptal edilsin mi?</string>
+    <string name="sos_action_family">Tüm aileyi bilgilendir</string>
+    <string name="sos_action_family_desc">Push bildirim + SMS uyarısı</string>
+    <string name="sos_action_location">Canlı konum paylaş</string>
+    <string name="sos_action_location_desc">GPS koordinatlarını aile ile paylaş</string>
+    <string name="sos_action_rescue">Yakın kurtarma ile iletişim</string>
+    <string name="sos_action_rescue_desc">1 km içinde yardım talebi gönder</string>
+    <string name="sos_action_record">Otomatik kanıt kaydı</string>
+    <string name="sos_action_record_desc">Ses kaydet, buluta kaydet</string>
+    <string name="sos_sent">SOS gönderildi</string>
+    <string name="sos_notifying">Aile ve yakın kurtarma ekipleri bilgilendiriliyor…</string>
+    <string name="sos_send_time_default">Gönderim zamanı: --</string>
+    <string name="sos_actions_trigger">Yardım talebi aşağıdaki işlemleri tetikleyecek</string>
+    <string name="sos_history">SOS Geçmişi</string>
+    <string name="sos_history_detail">SOS Detayı</string>
+    <string name="sos_total">Toplam</string>
+    <string name="sos_alert_trigger">Uyarı tetiklendi</string>
+    <string name="sos_manual_trigger">Manuel tetikleme</string>
+    <string name="sos_resolved">Çözüldü</string>
+
+    <!-- Simulation -->
+    <string name="simulation_drill">Uyarı tatbikatı</string>
+    <string name="select_scenario">Senaryo seçin</string>
+    <string name="start_simulation">Tatbikatı başlat</string>
+    <string name="air_strike_sim">Hava saldırısı tatbikatı</string>
+    <string name="air_strike_sim_desc">Hava saldırısı uyarısı ve kaçış rotası simülasyonu</string>
+    <string name="artillery_sim">Topçu ateşi tatbikatı</string>
+    <string name="artillery_sim_desc">Topçu ateşi uyarısı ve sığınak navigasyonu simülasyonu</string>
+    <string name="chemical_sim">Kimyasal sızıntı tatbikatı</string>
+    <string name="chemical_sim_desc">Kimyasal sızıntı uyarısı simülasyonu</string>
+    <string name="curfew_sim">Sokağa çıkma yasağı tatbikatı</string>
+    <string name="curfew_sim_desc">Sokağa çıkma yasağı bildirimi simülasyonu</string>
+    <string name="sim_starting">Tatbikat başlatılıyor…</string>
+    <string name="sim_complete">Tatbikat tamamlandı!</string>
+    <string name="sim_report">Tatbikat raporu</string>
+    <string name="sim_score">Genel puan</string>
+    <string name="sim_response_time">Yanıt süresi</string>
+    <string name="sim_steps_completed">Tamamlanan adımlar</string>
+    <string name="sim_back_home">Ana sayfaya dön</string>
+    <string name="sim_retry">Tekrar dene</string>
+    <string name="sim_completion_rate">Tamamlanma</string>
+    <string name="sim_scenario_info">Senaryo bilgisi</string>
+    <string name="sim_steps_unit">adım</string>
+    <string name="sim_excellent">Mükemmel</string>
+    <string name="sim_family_notified">Aile bilgilendirildi</string>
+    <string name="sim_score_breakdown">Puan detayı</string>
+    <string name="sim_detect_speed">Algılama hızı</string>
+    <string name="sim_alert_accuracy">Uyarı doğruluğu</string>
+    <string name="sim_notification_speed">Bildirim hızı</string>
+    <string name="sim_route_planning">Rota planlama</string>
+    <string name="sim_family_coordination">Aile koordinasyonu</string>
+    <string name="sim_suggestions">Öneriler</string>
+    <string name="sim_suggestion_1">Yakın sığınakları ve rotaları tanıyın</string>
+    <string name="sim_suggestion_2">Tüm aile üyelerinin WarRescue uygulamasına sahip olduğundan emin olun</string>
+    <string name="sim_suggestion_3">Hazırlıklı olmak için düzenli tatbikatlar yapın</string>
+    <string name="sim_summary">Tüm uyarı süreci sadece saniyeler sürer\nWarRescue sizi her zaman korur</string>
+    <string name="sim_step_progress">Adım %1$d/%2$d: %3$s</string>
+
+    <!-- Simulation Steps -->
+    <string name="sim_step_ai_scan">AI Veri Taraması</string>
+    <string name="sim_step_threat_analysis">Tehdit Analizi</string>
+    <string name="sim_step_gen_red_alert">Kırmızı uyarı oluştur</string>
+    <string name="sim_step_gen_orange_alert">Turuncu uyarı oluştur</string>
+    <string name="sim_step_gen_yellow_notice">Sarı bildirim oluştur</string>
+    <string name="sim_step_push_notify">Uyarı gönder</string>
+    <string name="sim_step_notify_family">Aileyi bilgilendir</string>
+    <string name="sim_step_plan_route">Kaçış rotası planla</string>
+    <string name="sim_step_nav_shelter">Sığınağa yön bul</string>
+    <string name="sim_step_monitoring">Sürekli izleme</string>
+    <string name="sim_step_mark_safe_zone">Güvenli bölgeleri işaretle</string>
+    <string name="sim_step_info_collect">Bilgi toplama</string>
+    <string name="sim_step_verify">Bildirimi doğrula</string>
+    <string name="sim_step_set_reminder">Hatırlatıcı ayarla</string>
+    <string name="sim_step_keep_update">Sürekli güncellemeler</string>
+    <string name="sim_step_air_scan_desc">Uydu ve radar verileri taranıyor\u2026</string>
+    <string name="sim_step_air_threat_desc">AI kuzeydoğudan uçak tespit etti, güven %92</string>
+    <string name="sim_step_air_alert_desc">Hava saldırısı uyarısı! Kiev\'de hava tehdidi</string>
+    <string name="sim_step_push_desc">Acil bildirim gönderildi</string>
+    <string name="sim_step_family_desc">4 aile üyesi bilgilendirildi</string>
+    <string name="sim_step_route_desc">En yakın sığınak rotası: Merkez Metro (0,8 km)</string>
+    <string name="sim_step_monitor_desc">AI sürekli tehditleri izliyor</string>
+    <string name="sim_step_art_scan_desc">Akustik ve sismik veriler analiz ediliyor\u2026</string>
+    <string name="sim_step_art_threat_desc">Çoklu topçu ateşi tespit edildi, 5 km yarıçap</string>
+    <string name="sim_step_art_alert_desc">Topçu ateşi uyarısı! Donetsk bölgesinde bombardıman</string>
+    <string name="sim_step_push_sms_desc">Acil bildirim ve SMS gönderildi</string>
+    <string name="sim_step_family_loc_desc">4 üye canlı konumla bilgilendirildi</string>
+    <string name="sim_step_shelter_desc">Belediye sığınağına navigasyon (1,2 km)</string>
+    <string name="sim_step_art_monitor_desc">Bombardıman izleniyor, güvenli olunca otomatik kaldırılacak</string>
+    <string name="sim_step_chem_scan_desc">Hava kalitesi sensörleri analiz ediliyor\u2026</string>
+    <string name="sim_step_chem_threat_desc">Endüstriyel saldırı sonrası anormal kimyasallar</string>
+    <string name="sim_step_chem_alert_desc">Kimyasal sızıntı riski! Kapıları ve pencereleri kapatın</string>
+    <string name="sim_step_chem_push_desc">Kılavuzlu acil bildirim gönderildi</string>
+    <string name="sim_step_chem_family_desc">Aile bilgilendirildi: maske takın, pencereleri kapatın</string>
+    <string name="sim_step_chem_zone_desc">Güvenli tahliye bölgeleri haritada işaretlendi</string>
+    <string name="sim_step_chem_monitor_desc">Hava kalitesi izleniyor, güvenlik onayı bekleniyor</string>
+    <string name="sim_step_curfew_scan_desc">Hükümet duyuruları alınıyor\u2026</string>
+    <string name="sim_step_curfew_verify_desc">Sokağa çıkma yasağı onaylandı: 22:00-06:00</string>
+    <string name="sim_step_curfew_notice_desc">Sokağa çıkma yasağı bildirimi! Hükümet yasak ilan etti</string>
+    <string name="sim_step_curfew_push_desc">Sokağa çıkma yasağı bildirimi gönderildi</string>
+    <string name="sim_step_curfew_family_desc">Tüm aile üyeleri yasak hakkında bilgilendirildi</string>
+    <string name="sim_step_curfew_reminder_desc">Güvenli dönüş için 21:45 hatırlatıcısı ayarlandı</string>
+    <string name="sim_step_curfew_update_desc">Yasak değişiklikleri gerçek zamanlı izleniyor</string>
+
+    <!-- Route Plan -->
+    <string name="route_plan">Rota planı</string>
+    <string name="current_location">Mevcut konum</string>
+    <string name="recommended_routes">Önerilen rotalar</string>
+    <string name="safety_high">Güvenlik: Yüksek</string>
+    <string name="safety_medium">Güvenlik: Orta</string>
+    <string name="safety_low">Güvenlik: Düşük</string>
+    <string name="danger_zones">Tehlikeli bölgeler (Kaçının)</string>
+    <string name="danger_extreme">Aşırı tehlike</string>
+    <string name="danger_no_pass">Geçiş yok</string>
+
+    <!-- Route Plan details -->
+    <string name="route_detail_fmt">%1$.1f km · ~%2$d dk yürüyüş · %3$s · %4$d/%5$d</string>
+    <string name="navigating_to">%s konumuna navigasyon…</string>
+    <string name="danger_high">Yüksek risk</string>
+    <string name="current_location_addr">Kiev Merkez · Maydan yakını</string>
+    <string name="danger_east_industry">Doğu sanayi bölgesi</string>
+    <string name="danger_east_desc">Bombardıman tespit edildi, 5 km etki yarıçapı</string>
+    <string name="danger_north_bridge">Kuzey köprüsü (nehir geçişi)</string>
+    <string name="danger_north_desc">Ciddi yapısal hasar, geçiş yok</string>
+    <string name="danger_airport">Havalimanı bölgesi</string>
+    <string name="danger_airport_desc">Tekrarlanan saldırılar, uzak durun</string>
+
+    <!-- Mutual Aid details -->
+    <string name="aid_emergency_medical">Acil tıbbi yardım</string>
+    <string name="aid_emergency_medical_meta">0,3 km · 5 dk önce</string>
+    <string name="aid_emergency_medical_desc">Kullanıcı bombardımanda hafif yaralandı, ilk yardım gerekiyor</string>
+    <string name="aid_supply_share">Malzeme paylaşımı</string>
+    <string name="aid_supply_share_meta">0,6 km · 15 dk önce</string>
+    <string name="aid_supply_share_desc">Kullanıcı fazla su ve yiyecek paylaşıyor</string>
+    <string name="aid_translate">Çeviri yardımı</string>
+    <string name="aid_translate_meta">0,8 km · 1 saat önce</string>
+    <string name="aid_translate_desc">Yabancı yardım görevlileri İngilizce-Ukraynaca çeviri istiyor</string>
+    <string name="aid_receive_range_desc">1 km (500 m-3 km ayarlanabilir)</string>
+    <string name="aid_response_method_desc">Push + Titreşim + Ses</string>
+    <string name="aid_my_skills">Becerilerim</string>
+    <string name="aid_my_skills_desc">İlk yardım, sürüş, çeviri</string>
+    <string name="aid_auto_response">Otomatik yanıt</string>
+    <string name="aid_auto_response_desc">Yakın SOS\'ta otomatik konum paylaş</string>
+    <string name="mutual_aid_1km">1 km</string>
+
+    <!-- Mutual Aid -->
+    <string name="mutual_aid_title">1 km Karşılıklı Yardım</string>
+    <string name="mutual_aid_enabled">Karşılıklı yardım etkin</string>
+    <string name="mutual_aid_disabled">Karşılıklı yardım devre dışı</string>
+    <string name="mutual_aid_coverage">Menzil: %1$s · %2$d yakın kullanıcı çevrimiçi</string>
+    <string name="nearby_users">Yakın kullanıcılar</string>
+    <string name="aid_count">Yardım sayısı</string>
+    <string name="avg_response">Ort. yanıt</string>
+    <string name="nearby_events">Yakın olaylar</string>
+    <string name="status_waiting">Bekliyor</string>
+    <string name="status_ongoing">Devam ediyor</string>
+    <string name="status_done">Tamamlandı</string>
+    <string name="aid_settings">Yardım ayarları</string>
+    <string name="receive_range">Alım menzili</string>
+    <string name="response_method">Yanıt yöntemi</string>
+
+    <!-- Family -->
+    <string name="family_members">Aile üyeleri</string>
+    <string name="online">Çevrimiçi</string>
+    <string name="offline">Çevrimdışı</string>
+    <string name="admin">Yönetici</string>
+    <string name="member">Üye</string>
+    <string name="invite_member">Üye davet et</string>
+    <string name="invite_copied">Davet bağlantısı kopyalandı</string>
+    <string name="family_settings">Aile ayarları</string>
+    <string name="meeting_point">Buluşma noktası</string>
+    <string name="meeting_point_desc">Acil buluşma noktası belirle</string>
+    <string name="location_sharing">Konum paylaşımı</string>
+    <string name="location_sharing_desc">Tüm üyelerle canlı konum paylaş</string>
+    <string name="sos_link">SOS Bağlantısı</string>
+    <string name="sos_link_desc">Herhangi bir üyenin SOS\'u herkesi bilgilendirir</string>
+    <string name="family_member_detail">Üye detayı</string>
+    <string name="last_seen">Son görülme: %s</string>
+    <string name="member_location">Üye konumu</string>
+    <string name="send_message">Mesaj gönder</string>
+    <string name="view_track">İzi görüntüle</string>
+
+    <!-- Invite Friends -->
+    <string name="invite_friends">Arkadaş davet et</string>
+    <string name="invite_code_label">Davet kodunuz</string>
+    <string name="copy_code">Kodu kopyala</string>
+    <string name="share_invite">Arkadaşlarla paylaş</string>
+    <string name="invite_reward">Davet ödülü</string>
+    <string name="invite_stats">Davet istatistikleri</string>
+    <string name="invite_code_copied">Davet kodu panoya kopyalandı!</string>
+    <string name="invite_share_text">WarRescue akıllı uyarı uygulamasını kullanıyorum, katılın!\nDavet kodu: %1$s\nİndir: https://warrescue.app</string>
+    <string name="invite_share_chooser">Daveti paylaş</string>
+    <string name="invite_per_friend">1 arkadaş davet et</string>
+    <string name="invite_per_friend_desc">İkiniz de 7 gün ücretsiz Pro alırsınız</string>
+    <string name="invite_five_friends">5 arkadaş davet et</string>
+    <string name="invite_five_friends_desc">Ekstra 1 ay Pro üyelik</string>
+    <string name="invite_count">Davet edilen: %d</string>
+    <string name="invite_count_desc">%1$d gün ücretsiz deneme (%2$d gün kullanıldı)</string>
+    <string name="invite_pending">Bekleyen: %d</string>
+    <string name="invite_pending_desc">Arkadaş kayıt olduğunda ödül etkinleşir</string>
+
+    <!-- Alert Settings -->
+    <string name="alert_type_settings">Uyarı türleri</string>
+    <string name="alert_level_settings">Uyarı seviyeleri</string>
+    <string name="monitor_range">İzleme menzili</string>
+    <string name="monitor_radius">Yarıçap: %d km</string>
+    <string name="monitor_radius_desc">%d km içindeki uyarıları algıla</string>
+    <string name="alert_air_strike">Hava saldırısı uyarısı</string>
+    <string name="alert_artillery">Topçu ateşi uyarısı</string>
+    <string name="alert_conflict">Silahlı çatışma</string>
+    <string name="alert_curfew">Sokağa çıkma yasağı bildirimi</string>
+    <string name="alert_chemical">Kimyasal sızıntı</string>
+    <string name="level_red">Kırmızı (Kritik)</string>
+    <string name="level_orange">Turuncu (Uyarı)</string>
+    <string name="level_yellow">Sarı (Dikkat)</string>
+    <string name="ai_monitor_history">İzleme geçmişi</string>
+    <string name="ai_monitor_detail">İzleme detayı</string>
+
+    <!-- Notification Settings -->
+    <string name="push_notifications">Push bildirimleri</string>
+    <string name="notif_alert_push">Uyarı bildirimi</string>
+    <string name="notif_alert_push_desc">Yeni uyarılarda bilgilendir</string>
+    <string name="notif_family_status">Aile durum değişikliği</string>
+    <string name="notif_family_status_desc">Aile çevrimiçi/çevrimdışı olduğunda bilgilendir</string>
+    <string name="notif_sos">SOS Bildirimi</string>
+    <string name="notif_sos_desc">SOS acil durumunda bilgilendir</string>
+    <string name="sound_vibration">Ses ve titreşim</string>
+    <string name="notif_alert_sound">Uyarı sesi</string>
+    <string name="notif_alert_sound_desc">Yeni uyarılarda ses çal</string>
+    <string name="notif_vibration">Titreşim</string>
+    <string name="notif_vibration_desc">Yeni uyarılarda titret</string>
+    <string name="notif_dnd">Rahatsız etmeyin</string>
+    <string name="notif_dnd_desc">Sessiz 22:00–07:00</string>
+    <string name="sms_notifications">SMS bildirimleri</string>
+    <string name="notif_twilio">Twilio SMS geçidi</string>
+    <string name="notif_twilio_desc">Çevrimdışıyken SMS ile uyarı al</string>
+    <string name="notif_sms_level">Sadece kırmızı/turuncu</string>
+    <string name="notif_sms_level_desc">SMS yalnızca kritik uyarılar için</string>
+
+    <!-- Profile Hints -->
+    <string name="hint_nickname">Takma ad girin</string>
+    <string name="hint_phone">Telefon numarası girin</string>
+    <string name="hint_email">E-posta girin</string>
+    <string name="hint_city">Şehir seçin</string>
+    <string name="hint_name">Ad girin</string>
+    <string name="hint_phone_number">Telefon girin</string>
+    <string name="profile_saved">Profil kaydedildi</string>
+    <string name="default_city">Kiev</string>
+    <string name="default_contact_name">Mehmet</string>
+
+    <!-- Emergency Profile Hints -->
+    <string name="hint_blood_type">ör. A+, B-, O+</string>
+    <string name="hint_age">Yaş girin</string>
+    <string name="hint_height">Boy girin</string>
+    <string name="hint_weight">Kilo girin</string>
+    <string name="hint_drug_allergy">ör. Penisilin</string>
+    <string name="hint_food_allergy">ör. Fıstık, deniz ürünleri</string>
+    <string name="hint_chronic">ör. Hipertansiyon, diyabet</string>
+    <string name="hint_medication">İlaç adı girin</string>
+    <string name="contact_1_name">Kişi 1 Adı</string>
+    <string name="contact_1_phone">Kişi 1 Telefonu</string>
+    <string name="emergency_saved">Tıbbi bilgiler kaydedildi</string>
+    <string name="default_drug_allergy">Penisilin</string>
+    <string name="default_contact_1_name">Baba</string>
+
+    <!-- SOS History -->
+    <string name="sos_history_records">Geçmiş</string>
+    <string name="sos_rec_air_title">Hava saldırısı uyarısı tetiklendi</string>
+    <string name="sos_rec_air_desc">Kiev şehrinde hava tehdidi tespit edildi</string>
+    <string name="sos_rec_air_timeline">14:32 Tetiklendi → 14:33 Aile bilgilendirildi → 14:45 Uyarı kaldırıldı</string>
+    <string name="sos_rec_manual_desc">Kullanıcı acil talep başlattı</string>
+    <string name="sos_rec_manual_timeline_1">09:15 Tetiklendi → 09:16 Aile bilgilendirildi → 09:20 İptal edildi</string>
+    <string name="sos_rec_art_title">Topçu ateşi uyarısı tetiklendi</string>
+    <string name="sos_rec_art_desc">Donetsk bölgesinde bombardıman tespit edildi</string>
+    <string name="sos_rec_art_timeline">22:48 Tetiklendi → 22:49 Herkes bilgilendirildi → 23:30 Uyarı kaldırıldı</string>
+    <string name="sos_rec_drill_desc">Kullanıcı acil talep başlattı (Tatbikat)</string>
+    <string name="sos_rec_drill_timeline">06:30 Tetiklendi → 06:31 Bildirim gönderildi → 06:32 İptal edildi</string>
+    <string name="sos_rec_chem_title">Kimyasal sızıntı uyarısı</string>
+    <string name="sos_rec_chem_desc">Sanayi bölgesinde kimyasal sızıntı riski tespit edildi</string>
+    <string name="sos_rec_chem_timeline">18:20 Tetiklendi → 18:21 Herkes bilgilendirildi → 19:45 Uyarı kaldırıldı</string>
+
+    <!-- Subscription -->
+    <string name="subscription_manage">Abonelik</string>
+    <string name="plan_pro_personal">Pro Kişisel</string>
+    <string name="plan_expire_demo">2026-05-22 tarihine kadar geçerli · 28 gün kaldı</string>
+    <string name="plan_free_features">Temel uyarılar\nGünde 5 sorgu\n1 aile üyesi</string>
+    <string name="plan_pro_price">¥39.99/ay</string>
+    <string name="plan_pro_features">7/24 AI gerçek zamanlı uyarılar\nSınırsız sorgu\n5 aile üyesi\nKaçış rotası planlama\nSOS acil durum\nSMS (Twilio)</string>
+    <string name="plan_family_price">¥199.99/ay</string>
+    <string name="plan_family_features">Tüm Pro özellikleri\n20\'ye kadar aile üyesi\nAile grubu yönetimi\nÖncelikli yanıt\nÖzel destek\nÇoklu cihaz senkronizasyonu</string>
+    <string name="payment_google_pay">Google Pay</string>
+    <string name="payment_google_desc">Hızlı ve güvenli ödeme</string>
+    <string name="payment_card">Kredi / Banka kartı</string>
+    <string name="payment_card_desc">Visa / Mastercard / UnionPay</string>
+    <string name="payment_paypal">PayPal</string>
+    <string name="payment_paypal_desc">Uluslararası ödeme</string>
+    <string name="payment_redirect">Ödemeye yönlendiriliyor…</string>
+    <string name="time_ago_minutes">%d dk önce</string>
+    <string name="time_ago_hours">%d saat önce</string>
+    <string name="time_ago_days">%d gün önce</string>
+
+    <!-- Common -->
+    <string name="confirm">Onayla</string>
+    <string name="cancel">İptal</string>
+    <string name="close">Kapat</string>
+    <string name="loading">Yükleniyor…</string>
+    <string name="save">Kaydet</string>
+    <string name="search">Ara</string>
+    <string name="filter">Filtrele</string>
+    <string name="reset">Sıfırla</string>
+    <string name="back">Geri</string>
+    <string name="view_details">Detaylar</string>
+    <string name="confirm_sos">SOS gönderilsin mi?</string>
+    <string name="sos_warning">Tüm aile ve yakın kurtarma bilgilendirilecek</string>
+    <string name="alert_detail_title">Uyarı detayı</string>
+    <string name="detailed_description">Detaylı açıklama</string>
+    <string name="legend_red_alert">Kırmızı uyarı</string>
+    <string name="legend_orange_alert">Turuncu uyarı</string>
+    <string name="legend_yellow_alert">Sarı uyarı</string>
+    <string name="reliability">Güvenilirlik</string>
+    <string name="search_alerts">Uyarı ara…</string>
+    <string name="time_range">Zaman aralığı</string>
+    <string name="type">Tür</string>
+    <string name="location">Konum</string>
+    <string name="time">Zaman</string>
+    <string name="minutes_ago">dk</string>
+    <string name="hours_ago">saat</string>
+    <string name="days_ago">gün</string>
+    <string name="just_now">Az önce</string>
+    <string name="demo_user">Demo kullanıcı</string>
+    <string name="version">Sürüm %s</string>
+    <string name="app_restart_hint">Dil değişikliğinin uygulanması için uygulamayı yeniden başlatın</string>
+
+    <!-- Demo Data - Alerts -->
+    <string name="demo_alert_1_title">Kiev\'de hava saldırısı uyarısı tespit edildi</string>
+    <string name="demo_alert_1_desc">AI sistemi kuzeydoğudan hava tehdidi sinyali algıladı, derhal en yakın sığınağa gidin</string>
+    <string name="demo_alert_1_city">Kiev</string>
+    <string name="demo_country_ukraine">Ukrayna</string>
+    <string name="demo_alert_2_title">Donetsk bölgesinde topçu uyarısı</string>
+    <string name="demo_alert_2_desc">Çoklu bombardıman faaliyetleri tespit edildi, 5 km etki yarıçapı, açık alanlardan uzak durun</string>
+    <string name="demo_alert_2_city">Donetsk</string>
+    <string name="demo_alert_3_title">Güney Beyrut\'ta çatışma</string>
+    <string name="demo_alert_3_desc">Güney banliyölerde silahlı çatışma, yollar kapanmış olabilir, alternatif rotalar düşünün</string>
+    <string name="demo_alert_3_city">Beyrut</string>
+    <string name="demo_country_lebanon">Lübnan</string>
+    <string name="demo_alert_4_title">Bağdat sokağa çıkma yasağı bildirimi</string>
+    <string name="demo_alert_4_desc">Hükümet sokağa çıkma yasağı ilan etti, 22:00-06:00 arası dışarı çıkmak yasak</string>
+    <string name="demo_alert_4_city">Bağdat</string>
+    <string name="demo_country_iraq">Irak</string>
+    <string name="demo_alert_5_title">Tel Aviv hava savunma uyarısı</string>
+    <string name="demo_alert_5_desc">Demir Kubbe aktif, güneyden roket tehdidi tespit edildi</string>
+    <string name="demo_alert_5_city">Tel Aviv</string>
+    <string name="demo_country_israel">İsrail</string>
+    <string name="demo_alert_6_title">Harkiv kimyasal sızıntı riski</string>
+    <string name="demo_alert_6_desc">Sanayi bölgesine saldırı sonrası tehlikeli kimyasal sızıntısı olasılığı</string>
+    <string name="demo_alert_6_city">Harkiv</string>
+    <string name="demo_alert_7_title">Zaporizhzhia santral bölgesi uyarısı</string>
+    <string name="demo_alert_7_desc">Santral yakınında olağandışı faaliyet tespit edildi, dikkatli olun</string>
+    <string name="demo_alert_7_city">Zaporizhzhia</string>
+
+    <!-- Demo Data - Palestine/Gaza -->
+    <string name="demo_alert_8_title">Gazze şehrine hava saldırıları</string>
+    <string name="demo_alert_8_desc">Kuzey Gazze\'de çoklu hava saldırısı turu tespit edildi, derhal sığınağa gidin ve binalardan uzak durun</string>
+    <string name="demo_alert_8_city">Gazze</string>
+    <string name="demo_country_palestine">Filistin</string>
+    <string name="demo_alert_9_title">Refah geçidi yakınında topçu bombardımanı</string>
+    <string name="demo_alert_9_desc">Refah geçidi çevresinde sürekli topçu bombardımanı, sınır geçişi kapatılmış olabilir</string>
+    <string name="demo_alert_9_city">Refah</string>
+
+    <!-- Demo Data - Shelters -->
+    <string name="demo_shelter_1_name">Merkez Metro İstasyonu Sığınağı</string>
+    <string name="demo_shelter_1_addr">Kiev Merkez Metro İstasyonu B2 katı</string>
+    <string name="demo_shelter_2_name">Belediye Yeraltı Sığınağı</string>
+    <string name="demo_shelter_2_addr">Maydan Belediye Binası yeraltı kat 3</string>
+    <string name="demo_shelter_3_name">Okul Sığınağı</string>
+    <string name="demo_shelter_3_addr">42 No\'lu Okul bodrum katı</string>
+    <string name="demo_shelter_4_name">AVM Otopark Sığınak Bölgesi</string>
+    <string name="demo_shelter_4_addr">Ocean Plaza AVM B3 otopark</string>
+    <string name="demo_shelter_5_name">Konut Sığınağı</string>
+    <string name="demo_shelter_5_addr">Obolon Bölgesi 18 No\'lu Bina yeraltı</string>
+
+    <!-- Demo Data - Palestine Shelters -->
+    <string name="demo_shelter_6_name">UNRWA Okul Sığınağı</string>
+    <string name="demo_shelter_6_addr">UNRWA Okulu, Gazze merkez</string>
+    <string name="demo_shelter_7_name">Şifa Hastanesi Yeraltı Sığınağı</string>
+    <string name="demo_shelter_7_addr">Şifa Hastanesi yeraltı katı, Gazze</string>
+    <string name="demo_shelter_8_name">Merkez Cami Sığınağı</string>
+    <string name="demo_shelter_8_addr">Gazze Merkez Camii</string>
+
+    <!-- Demo Data - Family -->
+    <string name="demo_family_dad">Baba</string>
+    <string name="demo_family_mom">Anne</string>
+    <string name="demo_family_child">Mehmet</string>
+    <string name="demo_family_grandma">Büyükanne</string>
+    <string name="demo_family_last_seen">30 dk önce</string>
+
+    <!-- Demo Data - City Alerts -->
+    <string name="demo_city_alert_1_desc">Birçok kullanıcı kuzeydoğudan patlama ve siren sesleri duyduğunu onayladı</string>
+    <string name="demo_city_alert_2_desc">Sanayi bölgesine doğru sürekli bombardıman tespit edildi</string>
+    <string name="demo_city_alert_3_desc">Güney bölgede silahlı personel hareketi tespit edildi</string>
+    <string name="demo_city_alert_4_desc">Şehir merkezinde silahlı çatışma, yollar kapalı</string>
+    <string name="demo_city_alert_5_desc">Sanayi bölgesi yakınındaki kullanıcılar olağandışı koku bildirdi</string>
+    <string name="demo_city_alert_6_desc">Gazze\'deki birçok sakin sürekli patlamalar ve savaş uçakları duyduğunu onayladı</string>
+
+    <!-- Auth - New -->
+    <string name="auth_enter_code">6 haneli kodu girin</string>
+    <string name="auth_invite_code_optional">Davet kodu (isteğe bağlı)</string>
+    <string name="auth_trial_hint">7 günlük ücretsiz deneme için kaydolun</string>
+    <string name="auth_phone_invalid">Geçerli bir telefon numarası girin</string>
+    <string name="auth_code_invalid">6 haneli bir kod girin</string>
+    <string name="auth_code_not_sent">Önce doğrulama kodunu alın</string>
+    <string name="auth_code_wrong">Yanlış kod, tekrar deneyin</string>
+    <string name="auth_code_sent">Doğrulama kodu gönderildi: %1$s</string>
+    <string name="auth_resend_countdown">%1$d sn sonra tekrar gönder</string>
+    <string name="auth_login_success">Giriş başarılı</string>
+    <string name="auth_register_success">Kayıt başarılı, 7 günlük deneme etkinleştirildi</string>
+    <string name="auth_guest_welcome">Hoş geldiniz! Misafir modu 7 gün geçerli, sınırlı özellikler</string>
+    <string name="auth_email_invalid">Geçerli bir e-posta adresi girin</string>
+    <string name="auth_password_invalid">Şifre en az 6 karakter olmalı</string>
+    <string name="sub_plan_personal_name">Kişisel ¥39.99/ay</string>
+    <string name="sub_plan_family_name">Aile ¥199.99/ay</string>
+    <string name="sub_trial_active">Ücretsiz deneme aktif</string>
+    <string name="sub_no_subscription">Abonelik yok</string>
+    <string name="sub_choose_plan_hint">Size uygun planı seçin</string>
+    <string name="sub_expiring_warn">Abonelik %1$d gün içinde sona eriyor</string>
+    <string name="sub_invite_discount_active">Davet indirimi aktif - Yarı fiyat!</string>
+    <string name="sub_invite_discount_desc">Davetliniz kaydoldu, yarı fiyatın keyfini çıkarın</string>
+    <string name="sub_invite_count">%1$d arkadaş davet edildi</string>
+    <string name="sub_price_discount">¥%1$s/ay (eski ¥%2$s)</string>
+    <string name="sub_price_normal">¥%1$s/ay</string>
+    <string name="sub_personal_features">Gerçek zamanlı uyarılar\nKaçış rotası planlama\nSOS\nÇevrimdışı haritalar\nOtomatik kurtarma bildirimi</string>
+    <string name="sub_family_features">Tüm Kişisel özellikler\nAile konum paylaşımı\nUyarı senkronizasyonu\n5 aile üyesine kadar</string>
+    <string name="sub_subscribe">Şimdi Abone Ol</string>
+    <string name="sub_payment_lianlian">LianLian Pay</string>
+    <string name="sub_payment_lianlian_desc">Güvenli ve kolay çevrimiçi ödeme</string>
+    <string name="sub_guest_cannot">Misafirler abone olamaz, önce kaydolun</string>
+    <string name="sub_order_created">Sipariş: %1$s\nPlan: %2$s\nTutar: ¥%3$s</string>
+    <string name="sub_activated">%1$s 30 gün için etkinleştirildi</string>
+    <string name="invite_reward_rule_title">Arkadaşlarını kaydolmaya davet et</string>
+    <string name="invite_reward_rule_desc">Davetli kaydolduğunda yarı fiyat abonelik al</string>
+    <string name="invite_total_invited">Toplam davet: %1$d arkadaş</string>
+    <string name="invite_discount_months">%1$d aylık indirim kazanıldı</string>
+
+    <!-- Alert Escalation -->
+    <string name="alert_flashlight_title">Acil Uyar\u0131</string>
+    <string name="alert_flashlight_desc">G\u00fcvenlik tehdidi tespit edildi. G\u00fcvenlik durumunuzu hemen onaylay\u0131n</string>
+    <string name="alert_flashlight_active">Fla\u015f Uyar\u0131s\u0131 Aktif</string>
+    <string name="alert_flashlight_stop">Fla\u015f\u0131 Kapat</string>
+    <string name="alert_flashlight_countdown">AI do\u011frulama aramas\u0131na %1$d sn</string>
+    <string name="alert_i_am_safe">G\u00fcvendeyim</string>
+    <string name="alert_need_help">Yard\u0131ma ihtiyac\u0131m var</string>
+    <string name="alert_countdown_fmt">AI do\u011frulamas\u0131na %1$d sn</string>
+    <string name="alert_escalating">AI aramas\u0131na y\u00fckseltiliyor\u2026</string>
+    <string name="alert_escalation_hint">Yan\u0131t verilmezse sistem otomatik olarak arayacakt\u0131r</string>
+    <string name="alert_channel_name">Acil Uyar\u0131 Bildirimleri</string>
+    <string name="alert_channel_desc">Fla\u015f uyar\u0131lar\u0131 ve acil bildirimler</string>
+    <string name="alert_ai_call_title">AI G\u00fcvenlik Do\u011frulama Aramas\u0131</string>
+    <string name="alert_ai_call_desc">G\u00fcvenli\u011finizi do\u011frulamak i\u00e7in AI sesli arama</string>
+    <string name="alert_calling_user">Aran\u0131yor\u2026</string>
+    <string name="alert_call_simulated">AI arama sim\u00fclasyonu (Twilio yap\u0131land\u0131r\u0131lmad\u0131)</string>
+    <string name="alert_waiting_answer">Yan\u0131t bekleniyor\u2026 %1$d sn</string>
+    <string name="alert_ai_call_channel_name">AI Sesli Do\u011frulama</string>
+    <string name="alert_ai_call_channel_desc">AI sesli do\u011frulama bildirimleri</string>
+    <string name="rescue_triggered_title">Kurtarma Bildirimi Tetiklendi</string>
+    <string name="rescue_triggered_desc">Neden: %1$s</string>
+    <string name="rescue_triggered_detail">Uyar\u0131: %1$s\nNeden: %2$s\nAcil ki\u015filer ve kurtar\u0131c\u0131lar bilgilendirildi</string>
+    <string name="rescue_processing_title">Kurtarma Bildirimi \u0130\u015fleniyor</string>
+    <string name="rescue_processing_desc">Acil ki\u015filer bilgilendiriliyor\u2026</string>
+    <string name="rescue_channel_name">Kurtarma Bildirimleri</string>
+    <string name="rescue_channel_desc">Acil kurtarma bildirimleri</string>
+    <string name="rescue_sms_body">[WarRescue KURTARMA] %1$s tehlikede olabilir! Uyar\u0131: %2$s. Neden: %3$s. Hemen ileti\u015fime ge\u00e7in.</string>
+    <string name="rescue_reason_no_answer">AI aramas\u0131 yan\u0131ts\u0131z</string>
+    <string name="rescue_reason_call_failed">AI aramas\u0131 ba\u015far\u0131s\u0131z</string>
+    <string name="rescue_reason_no_phone">Telefon numaras\u0131 yap\u0131land\u0131r\u0131lmad\u0131</string>
+    <string name="rescue_reason_user_emergency">Kullan\u0131c\u0131 yard\u0131m istedi</string>
+    <string name="rescue_reason_timeout">Yan\u0131t s\u00fcresi doldu</string>
+</resources>

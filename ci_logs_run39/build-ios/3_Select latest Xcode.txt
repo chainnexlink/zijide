@@ -1,0 +1,39 @@
+﻿2026-05-08T17:46:24.2294580Z ##[group]Run echo "Available Xcode versions:"
+2026-05-08T17:46:24.2295220Z [36;1mecho "Available Xcode versions:"[0m
+2026-05-08T17:46:24.2295650Z [36;1mls -d /Applications/Xcode*.app 2>/dev/null || true[0m
+2026-05-08T17:46:24.2296140Z [36;1mLATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)[0m
+2026-05-08T17:46:24.2296590Z [36;1mecho "Selecting: $LATEST_XCODE"[0m
+2026-05-08T17:46:24.2296950Z [36;1msudo xcode-select -s "$LATEST_XCODE/Contents/Developer"[0m
+2026-05-08T17:46:24.2297310Z [36;1mxcodebuild -version[0m
+2026-05-08T17:46:24.2297610Z [36;1mxcrun --sdk iphoneos --show-sdk-version[0m
+2026-05-08T17:46:24.2336750Z shell: /bin/bash -e {0}
+2026-05-08T17:46:24.2337110Z env:
+2026-05-08T17:46:24.2337640Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:46:24.2338090Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:46:24.2338370Z   APPLE_TEAM_ID: ***
+2026-05-08T17:46:24.2338600Z ##[endgroup]
+2026-05-08T17:46:24.2652090Z Available Xcode versions:
+2026-05-08T17:46:24.2721760Z /Applications/Xcode_16.0.0.app
+2026-05-08T17:46:24.2722950Z /Applications/Xcode_16.0.app
+2026-05-08T17:46:24.2723780Z /Applications/Xcode_16.1.0.app
+2026-05-08T17:46:24.2724560Z /Applications/Xcode_16.1.app
+2026-05-08T17:46:24.2725380Z /Applications/Xcode_16.2.0.app
+2026-05-08T17:46:24.2726200Z /Applications/Xcode_16.2.app
+2026-05-08T17:46:24.2727040Z /Applications/Xcode_16.3.0.app
+2026-05-08T17:46:24.2727800Z /Applications/Xcode_16.3.app
+2026-05-08T17:46:24.2728630Z /Applications/Xcode_16.4.0.app
+2026-05-08T17:46:24.2729010Z /Applications/Xcode_16.4.app
+2026-05-08T17:46:24.2729290Z /Applications/Xcode_16.app
+2026-05-08T17:46:24.2729600Z /Applications/Xcode_26.0.1.app
+2026-05-08T17:46:24.2729880Z /Applications/Xcode_26.0.app
+2026-05-08T17:46:24.2730580Z /Applications/Xcode_26.1.1.app
+2026-05-08T17:46:24.2730880Z /Applications/Xcode_26.1.app
+2026-05-08T17:46:24.2731180Z /Applications/Xcode_26.2.0.app
+2026-05-08T17:46:24.2731470Z /Applications/Xcode_26.2.app
+2026-05-08T17:46:24.2731780Z /Applications/Xcode_26.3.0.app
+2026-05-08T17:46:24.2732090Z /Applications/Xcode_26.3.app
+2026-05-08T17:46:24.2732380Z /Applications/Xcode.app
+2026-05-08T17:46:24.2798040Z Selecting: /Applications/Xcode_26.3.0.app
+2026-05-08T17:46:26.8243490Z Xcode 26.3
+2026-05-08T17:46:26.8244200Z Build version 17C529
+2026-05-08T17:46:27.8541020Z 26.2

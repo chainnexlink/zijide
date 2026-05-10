@@ -1,0 +1,29 @@
+﻿2026-05-08T17:49:57.2327920Z ##[group]Run actions/upload-artifact@v4
+2026-05-08T17:49:57.2328180Z with:
+2026-05-08T17:49:57.2328340Z   name: WarRescue-iOS
+2026-05-08T17:49:57.2328510Z   path: ios/App/*.ipa
+2026-05-08T17:49:57.2328680Z   retention-days: 30
+2026-05-08T17:49:57.2328860Z   if-no-files-found: ignore
+2026-05-08T17:49:57.2329060Z   compression-level: 6
+2026-05-08T17:49:57.2329230Z   overwrite: false
+2026-05-08T17:49:57.2329410Z   include-hidden-files: false
+2026-05-08T17:49:57.2329590Z env:
+2026-05-08T17:49:57.2329800Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:49:57.2330110Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:49:57.2330350Z   APPLE_TEAM_ID: ***
+2026-05-08T17:49:57.2331800Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-08T17:49:57.2333500Z   API_KEY_PATH: /Users/runner/.private_keys/AuthKey.p8
+2026-05-08T17:49:57.2333840Z   KEYCHAIN_PATH: /Users/runner/Library/Keychains/build.keychain-db
+2026-05-08T17:49:57.2334170Z   KEYCHAIN_PASSWORD: ci_build_temp_pwd_1778262455
+2026-05-08T17:49:57.2334410Z ##[endgroup]
+2026-05-08T17:49:57.8102930Z With the provided path, there will be 1 file uploaded
+2026-05-08T17:49:57.8103660Z Artifact name is valid!
+2026-05-08T17:49:57.8106470Z Root directory input is valid!
+2026-05-08T17:49:57.9658350Z Beginning upload of artifact content to blob storage
+2026-05-08T17:49:58.2200360Z Uploaded bytes 3438696
+2026-05-08T17:49:58.2433900Z Finished uploading artifact content to blob storage!
+2026-05-08T17:49:58.2441510Z SHA256 digest of uploaded artifact zip is d655aab874d0593bbf1b28296790493713fce67808d4696c156ea5e42b61aed1
+2026-05-08T17:49:58.2450530Z Finalizing artifact upload
+2026-05-08T17:49:58.3746360Z Artifact WarRescue-iOS.zip successfully finalized. Artifact ID 6885324520
+2026-05-08T17:49:58.3747620Z Artifact WarRescue-iOS has been successfully uploaded! Final size is 3438696 bytes. Artifact ID is 6885324520
+2026-05-08T17:49:58.3750750Z Artifact download URL: https://github.com/chainnexlink/zijide/actions/runs/25570542323/artifacts/6885324520

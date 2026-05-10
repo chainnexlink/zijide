@@ -1,0 +1,9 @@
+﻿2026-05-08T17:47:10.6086710Z ##[group]Run sed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile
+2026-05-08T17:47:10.6087230Z [36;1msed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile[0m
+2026-05-08T17:47:10.6087830Z [36;1msed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' App.xcodeproj/project.pbxproj[0m
+2026-05-08T17:47:10.6122870Z shell: /bin/bash -e {0}
+2026-05-08T17:47:10.6123150Z env:
+2026-05-08T17:47:10.6123550Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:47:10.6123920Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:47:10.6124250Z   APPLE_TEAM_ID: ***
+2026-05-08T17:47:10.6124450Z ##[endgroup]

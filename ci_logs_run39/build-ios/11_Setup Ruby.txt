@@ -1,0 +1,29 @@
+﻿2026-05-08T17:47:12.6921120Z ##[group]Run ruby/setup-ruby@v1
+2026-05-08T17:47:12.6921910Z with:
+2026-05-08T17:47:12.6922360Z   ruby-version: 3.2
+2026-05-08T17:47:12.6922870Z   bundler-cache: true
+2026-05-08T17:47:12.6923560Z   token: ***
+2026-05-08T17:47:12.6924000Z env:
+2026-05-08T17:47:12.6924490Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:47:12.6925310Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:47:12.6926200Z   APPLE_TEAM_ID: ***
+2026-05-08T17:47:12.6926460Z ##[endgroup]
+2026-05-08T17:47:13.1354040Z ##[group]Modifying PATH
+2026-05-08T17:47:13.1355520Z Entries removed from PATH to avoid conflicts with default Ruby:
+2026-05-08T17:47:13.1365970Z   /opt/homebrew/lib/ruby/gems/3.3.0/bin
+2026-05-08T17:47:13.1368330Z   /opt/homebrew/opt/ruby@3.3/bin
+2026-05-08T17:47:13.1376300Z Entries added to PATH to use selected Ruby:
+2026-05-08T17:47:13.1381960Z   /Users/runner/hostedtoolcache/Ruby/3.2.11/arm64/bin
+2026-05-08T17:47:13.1385730Z ##[endgroup]
+2026-05-08T17:47:13.1388360Z ##[group]Print Ruby version
+2026-05-08T17:47:13.1461960Z [command]/Users/runner/hostedtoolcache/Ruby/3.2.11/arm64/bin/ruby --version
+2026-05-08T17:47:13.1811270Z ruby 3.2.11 (2026-03-27 revision 5483bfc1ae) [arm64-darwin23]
+2026-05-08T17:47:13.1828090Z Took   0.04 seconds
+2026-05-08T17:47:13.1829160Z ##[endgroup]
+2026-05-08T17:47:13.1830010Z ##[group]Installing Bundler
+2026-05-08T17:47:13.1831380Z Using Bundler shipped with ruby-3.2.11
+2026-05-08T17:47:13.1832600Z Took   0.00 seconds
+2026-05-08T17:47:13.1833880Z ##[endgroup]
+2026-05-08T17:47:13.1834740Z > bundle install
+2026-05-08T17:47:13.1849580Z Could not determine gemfile path, skipping "bundle install" and caching
+2026-05-08T17:47:13.1850080Z Took   0.00 seconds

@@ -1,0 +1,69 @@
+﻿2026-05-08T17:47:09.9739880Z ##[group]Run SOURCE="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+2026-05-08T17:47:09.9740640Z [36;1mSOURCE="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"[0m
+2026-05-08T17:47:09.9741320Z [36;1mDEST="ios/App/App/Assets.xcassets/AppIcon.appiconset"[0m
+2026-05-08T17:47:09.9741800Z [36;1m[0m
+2026-05-08T17:47:09.9742060Z [36;1m# Generate all required icon sizes from 1024x1024 source[0m
+2026-05-08T17:47:09.9742610Z [36;1msips -z 20 20 "$SOURCE" --out "$DEST/Icon-20.png"[0m
+2026-05-08T17:47:09.9743150Z [36;1msips -z 29 29 "$SOURCE" --out "$DEST/Icon-29.png"[0m
+2026-05-08T17:47:09.9743750Z [36;1msips -z 40 40 "$SOURCE" --out "$DEST/Icon-40.png"[0m
+2026-05-08T17:47:09.9744130Z [36;1msips -z 40 40 "$SOURCE" --out "$DEST/Icon-20@2x.png"[0m
+2026-05-08T17:47:09.9744620Z [36;1msips -z 58 58 "$SOURCE" --out "$DEST/Icon-29@2x.png"[0m
+2026-05-08T17:47:09.9744960Z [36;1msips -z 60 60 "$SOURCE" --out "$DEST/Icon-20@3x.png"[0m
+2026-05-08T17:47:09.9745380Z [36;1msips -z 80 80 "$SOURCE" --out "$DEST/Icon-40@2x.png"[0m
+2026-05-08T17:47:09.9745890Z [36;1msips -z 87 87 "$SOURCE" --out "$DEST/Icon-29@3x.png"[0m
+2026-05-08T17:47:09.9746360Z [36;1msips -z 120 120 "$SOURCE" --out "$DEST/Icon-40@3x.png"[0m
+2026-05-08T17:47:09.9746850Z [36;1msips -z 120 120 "$SOURCE" --out "$DEST/Icon-60@2x.png"[0m
+2026-05-08T17:47:09.9747380Z [36;1msips -z 152 152 "$SOURCE" --out "$DEST/Icon-76@2x.png"[0m
+2026-05-08T17:47:09.9747800Z [36;1msips -z 167 167 "$SOURCE" --out "$DEST/Icon-83.5@2x.png"[0m
+2026-05-08T17:47:09.9748420Z [36;1msips -z 180 180 "$SOURCE" --out "$DEST/Icon-60@3x.png"[0m
+2026-05-08T17:47:09.9749500Z [36;1mcp "$SOURCE" "$DEST/Icon-1024.png"[0m
+2026-05-08T17:47:09.9749840Z [36;1m[0m
+2026-05-08T17:47:09.9750120Z [36;1mecho "Generated icons:"[0m
+2026-05-08T17:47:09.9750470Z [36;1mls -la "$DEST"/Icon-*.png[0m
+2026-05-08T17:47:09.9793030Z shell: /bin/bash -e {0}
+2026-05-08T17:47:09.9793240Z env:
+2026-05-08T17:47:09.9793540Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:47:09.9793880Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:47:09.9794260Z   APPLE_TEAM_ID: ***
+2026-05-08T17:47:09.9794600Z ##[endgroup]
+2026-05-08T17:47:10.1034650Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.1037220Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20.png
+2026-05-08T17:47:10.1427450Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.1429480Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29.png
+2026-05-08T17:47:10.1776880Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.1779250Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40.png
+2026-05-08T17:47:10.2118850Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.2121990Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@2x.png
+2026-05-08T17:47:10.2512370Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.2516400Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@2x.png
+2026-05-08T17:47:10.2846930Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.2850130Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@3x.png
+2026-05-08T17:47:10.3166870Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.3170080Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@2x.png
+2026-05-08T17:47:10.3475000Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.3496670Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@3x.png
+2026-05-08T17:47:10.3851480Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.3860440Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@3x.png
+2026-05-08T17:47:10.4232870Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.4235260Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@2x.png
+2026-05-08T17:47:10.4739230Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.4741880Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-76@2x.png
+2026-05-08T17:47:10.5347300Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.5350090Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-83.5@2x.png
+2026-05-08T17:47:10.5755670Z /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+2026-05-08T17:47:10.5756600Z   /Users/runner/work/zijide/zijide/ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@3x.png
+2026-05-08T17:47:10.5909650Z Generated icons:
+2026-05-08T17:47:10.6029830Z -rw-r--r--  1 runner  staff  1125707 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-1024.png
+2026-05-08T17:47:10.6032110Z -rw-r--r--  1 runner  staff     1811 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20.png
+2026-05-08T17:47:10.6035350Z -rw-r--r--  1 runner  staff     3963 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@2x.png
+2026-05-08T17:47:10.6037400Z -rw-r--r--  1 runner  staff     7263 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-20@3x.png
+2026-05-08T17:47:10.6039340Z -rw-r--r--  1 runner  staff     2620 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29.png
+2026-05-08T17:47:10.6041290Z -rw-r--r--  1 runner  staff     6901 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@2x.png
+2026-05-08T17:47:10.6043270Z -rw-r--r--  1 runner  staff    13350 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-29@3x.png
+2026-05-08T17:47:10.6045180Z -rw-r--r--  1 runner  staff     3963 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40.png
+2026-05-08T17:47:10.6047130Z -rw-r--r--  1 runner  staff    11482 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@2x.png
+2026-05-08T17:47:10.6049430Z -rw-r--r--  1 runner  staff    23090 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-40@3x.png
+2026-05-08T17:47:10.6050650Z -rw-r--r--  1 runner  staff    23090 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@2x.png
+2026-05-08T17:47:10.6051410Z -rw-r--r--  1 runner  staff    46960 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-60@3x.png
+2026-05-08T17:47:10.6052200Z -rw-r--r--  1 runner  staff    34863 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-76@2x.png
+2026-05-08T17:47:10.6052990Z -rw-r--r--  1 runner  staff    41033 May  8 17:47 ios/App/App/Assets.xcassets/AppIcon.appiconset/Icon-83.5@2x.png

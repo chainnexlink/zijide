@@ -511,14 +511,13 @@ export default function Subscription() {
         <div className="mt-6 text-center text-xs text-slate-500 space-y-1">
           <p>{language === 'zh' ? '订阅将通过您的 Apple ID 账户付款' : 'Payment will be charged to your Apple ID account'}</p>
           <p>{language === 'zh' ? '订阅会自动续费，除非在当前周期结束前至少24小时关闭自动续费' : 'Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period'}</p>
-          <p>{language === 'zh' ? '个人方案：¥39.99/月（30天），家庭方案：¥99.99/月（30天）' : 'Personal Plan: $39.99/month (30 days), Family Plan: $99.99/month (30 days)'}</p>
           <div className="flex items-center justify-center gap-4 mt-2">
-            <Link to="/terms" className="text-slate-400 hover:text-white underline">
-              {language === 'zh' ? '使用条款(EULA)' : 'Terms of Use (EULA)'}
-            </Link>
-            <Link to="/privacy" className="text-slate-400 hover:text-white underline">
+            <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white underline">
+              {language === 'zh' ? '使用条款' : 'Terms of Use'}
+            </a>
+            <a href="/privacy" className="text-slate-400 hover:text-white underline">
               {language === 'zh' ? '隐私政策' : 'Privacy Policy'}
-            </Link>
+            </a>
           </div>
         </div>
       </main>

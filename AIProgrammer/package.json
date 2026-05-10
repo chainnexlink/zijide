@@ -1,0 +1,51 @@
+{
+  "name": "ai-programmer",
+  "version": "1.0.0",
+  "description": "AI智能编程助手 - 基于DeepSeek和豆包",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "npm run build:main && electron .",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "webpack --config webpack.renderer.config.js",
+    "build": "npm run build:main && npm run build:renderer",
+    "start": "electron ."
+  },
+  "keywords": [
+    "electron",
+    "ai",
+    "programming",
+    "assistant",
+    "deepseek",
+    "doubao"
+  ],
+  "author": "AIProgrammer Team",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@monaco-editor/react": "^4.6.0",
+    "framer-motion": "^10.16.0",
+    "lucide-react": "^0.294.0",
+    "react-router-dom": "^6.20.0",
+    "axios": "^1.6.2",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.3.0",
+    "electron-builder": "^24.9.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "ts-loader": "^9.5.0",
+    "html-webpack-plugin": "^5.5.0",
+    "css-loader": "^6.8.0",
+    "style-loader": "^3.3.0",
+    "babel-loader": "^9.1.0",
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/preset-react": "^7.23.0",
+    "@babel/preset-typescript": "^7.23.0"
+  }
+}

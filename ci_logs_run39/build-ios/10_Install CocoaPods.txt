@@ -1,0 +1,16 @@
+﻿2026-05-08T17:47:10.6899470Z ##[group]Run pod install
+2026-05-08T17:47:10.6899800Z [36;1mpod install[0m
+2026-05-08T17:47:10.6937810Z shell: /bin/bash -e {0}
+2026-05-08T17:47:10.6938060Z env:
+2026-05-08T17:47:10.6938410Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:47:10.6938780Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:47:10.6939040Z   APPLE_TEAM_ID: ***
+2026-05-08T17:47:10.6939240Z ##[endgroup]
+2026-05-08T17:47:12.2434400Z Analyzing dependencies
+2026-05-08T17:47:12.6758580Z Adding spec repo `trunk` with CDN `https://cdn.cocoapods.org/`
+2026-05-08T17:47:12.6760530Z Downloading dependencies
+2026-05-08T17:47:12.6762370Z Installing Capacitor (8.3.1)
+2026-05-08T17:47:12.6763230Z Installing CapacitorCordova (8.3.1)
+2026-05-08T17:47:12.6764030Z Generating Pods project
+2026-05-08T17:47:12.6764840Z Integrating client project
+2026-05-08T17:47:12.6766160Z Pod installation complete! There are 2 dependencies from the Podfile and 2 total pods installed.

@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WarRescue</string>
+    <string name="slogan">В зоне боевых действий каждая секунда на счету</string>
+
+    <!-- Auth -->
+    <string name="login">Вход</string>
+    <string name="register">Регистрация</string>
+    <string name="demo_login">Демо-режим</string>
+    <string name="phone">Телефон</string>
+    <string name="email">Эл. почта</string>
+    <string name="password">Пароль</string>
+    <string name="confirm_password">Подтвердите пароль</string>
+    <string name="verification_code">Код подтверждения</string>
+    <string name="get_code">Получить код</string>
+    <string name="invite_code">Код приглашения</string>
+    <string name="optional">Необязательно</string>
+    <string name="agree_terms">Я принимаю условия использования</string>
+    <string name="guest_login">Гостевой вход (7 дней)</string>
+    <string name="fill_required">Пожалуйста, заполните все обязательные поля</string>
+    <string name="code_sent_demo">Код подтверждения отправлен (Демо)</string>
+
+    <!-- Nav -->
+    <string name="home">Главная</string>
+    <string name="map_nav">Карта</string>
+    <string name="family">Семья</string>
+    <string name="settings">Настройки</string>
+    <string name="sos">SOS</string>
+
+    <!-- Dashboard -->
+    <string name="current_safe">Сейчас безопасно</string>
+    <string name="ai_monitoring">ИИ-мониторинг активен · Угроз нет</string>
+    <string name="ai_monitoring_threat">ИИ-мониторинг активен · Обнаружена угроза</string>
+    <string name="simulation_alert">Учение</string>
+    <string name="test_alert">Тестовая тревога</string>
+    <string name="escape_route">Маршрут эвакуации</string>
+    <string name="navigation">Навигация</string>
+    <string name="nearby_shelter">Укрытия</string>
+    <string name="available">доступно</string>
+    <string name="ai_monitor">ИИ-мониторинг</string>
+    <string name="active">Активен</string>
+    <string name="family_status">Статус семьи</string>
+    <string name="view_all">Показать все</string>
+
+    <!-- Announcements -->
+    <string name="announcements">Объявления платформы</string>
+    <string name="no_announcements">Нет объявлений</string>
+    <string name="announcement_reward">Бонус баллов</string>
+    <string name="announcement_subscription">Подписка</string>
+    <string name="announcement_system">Системное уведомление</string>
+
+    <!-- Announcement Pages -->
+    <string name="announcement_all">Все</string>
+    <string name="announcement_detail">Детали объявления</string>
+    <string name="announcement_content_label">Подробности</string>
+    <string name="announcement_type_label">Тип</string>
+    <string name="announcement_published_at">Опубликовано</string>
+    <string name="announcement_source">Источник</string>
+    <string name="announcement_official">Официальный</string>
+    <string name="announcement_just_now">Только что</string>
+    <string name="announcement_minutes_ago">мин назад</string>
+    <string name="announcement_hours_ago">ч назад</string>
+    <string name="announcement_days_ago">дн назад</string>
+
+    <!-- Demo Announcements -->
+    <string name="demo_announce_1_title">Поздравляем 3 пользователей с бонусом за городскую тревогу</string>
+    <string name="demo_announce_1_content">Пользователи Alex, Maria и John одними из первых подтвердили тревогу в Киеве, получив 100, 80 и 80 баллов соответственно. Спасибо за вклад в безопасность сообщества!</string>
+    <string name="demo_announce_2_title">Подписка Pro обновлена</string>
+    <string name="demo_announce_2_content">Члены Pro теперь получают оповещения по нескольким городам, приоритетную навигацию к укрытиям, семейную группу до 10 человек. Скидка 50% за первый месяц!</string>
+    <string name="demo_announce_3_title">Правила баллов платформы обновлены</string>
+    <string name="demo_announce_3_content">Правила бонусов за городскую тревогу обновлены: первые 10 пользователей получают баллы. 1-е место: 100, 2-3: 80, 4-5: 60, 6-10: 50</string>
+
+    <string name="alerts">Тревоги</string>
+    <string name="no_data">Нет данных</string>
+    <string name="network_info">5G · 85%</string>
+
+    <!-- City Alert -->
+    <string name="city_alert">Городская тревога</string>
+    <string name="city_alert_desc">Совместные городские оповещения в реальном времени</string>
+    <string name="city_alert_detail">Детали городской тревоги</string>
+    <string name="city_alert_trigger">%d пользователей подтвердили за 5 мин</string>
+    <string name="city_alert_active">Тревога активна</string>
+    <string name="city_alert_pending">Ожидание подтверждений</string>
+    <string name="city_alert_resolved">Снята</string>
+    <string name="city_alert_respond">Подтверждаю</string>
+    <string name="city_alert_responded">Подтверждено</string>
+    <string name="city_alert_users">Откликнувшиеся пользователи</string>
+    <string name="city_alert_timeline">Хронология событий</string>
+    <string name="city_alert_source_ai">Активировано ИИ-мониторингом</string>
+    <string name="city_alert_source_user">Активировано пользователями города</string>
+    <string name="city_alert_parallel">ИИ-мониторинг + Совместные тревоги параллельно</string>
+    <string name="city_alert_count">%d городских тревог</string>
+    <string name="user_responded">%d откликнулись</string>
+    <string name="within_5min">В течение 5 минут</string>
+    <string name="trigger_condition">Активация: 3 пользователя подтверждают за 5 минут</string>
+    <string name="city_alert_trigger_desc">Быстрый механизм активации параллельно с AI-мониторингом</string>
+    <string name="city_alert_long_press">Удерживайте 3 секунды для активации тревоги</string>
+    <string name="city_alert_trigger_hint">Полный отклик тревоги и спасения активируется когда 3\u20135 пользователей поблизости активируют</string>
+    <string name="city_alert_nearby_count">%d пользователей поблизости активировали</string>
+    <string name="city_alert_triggering">Активация\u2026</string>
+    <string name="city_alert_triggered_success">Тревога активирована! Пользователи поблизости уведомлены</string>
+    <string name="city_alert_hold_to_trigger">Удерживайте до завершения</string>
+    <string name="city_alert_mechanism_title">Механизм активации городской тревоги</string>
+    <string name="city_alert_mechanism_desc">Городская тревога — это быстрый механизм активации, работающий параллельно с AI-мониторингом. Когда 3\u20135 пользователей в том же городе активируют тревогу, система автоматически запускает тот же процесс реагирования, что и AI-оповещения, с одновременным запуском логики спасения.</string>
+    <string name="city_alert_advantage_title">Почему городская тревога быстрее?</string>
+    <string name="city_alert_advantage">Городская тревога может реагировать быстрее AI-мониторинга, потому что AI-мониторинг должен собирать и анализировать правительственные данные, тогда как городская тревога активируется непосредственно пользователями.</string>
+    <string name="city_alert_no_active">Активных активаций поблизости нет</string>
+    <string name="city_alert_threshold_info">Необходимо %1$d\u2013%2$d пользователей поблизости для активации полной тревоги</string>
+    <string name="city_alert_nearby_status">Статус активаций поблизости</string>
+    <string name="city_alert_trigger_instruction">Когда чувствуете опасность, удерживайте кнопку ниже 3 секунды для отправки городской тревоги</string>
+    <string name="city_alert_how_it_works">Как это работает</string>
+    <string name="city_alert_step1">Пользователь чувствует опасность и удерживает 3 секунды для активации городской тревоги</string>
+    <string name="city_alert_step2">Система собирает сигналы активации по городу; порог достигается при 3\u20135 активациях</string>
+    <string name="city_alert_step3">После достижения порога активируется полный процесс реагирования идентичный AI-оповещениям</string>
+    <string name="city_alert_step4">Логика спасения запускается одновременно по оригинальному графику реагирования</string>
+
+    <!-- Alert Types -->
+    <string name="air_strike">Авиаудар</string>
+    <string name="artillery">Артобстрел</string>
+    <string name="conflict">Конфликт</string>
+    <string name="curfew">Комендантский час</string>
+    <string name="chemical">Химическая угроза</string>
+    <string name="other">Другое</string>
+
+    <!-- Alert Severity -->
+    <string name="severity_red">Красный</string>
+    <string name="severity_orange">Оранжевый</string>
+    <string name="severity_yellow">Жёлтый</string>
+    <string name="severity_all">Все</string>
+
+    <!-- Shelter -->
+    <string name="shelters">Укрытия</string>
+    <string name="shelter_detail">Информация об укрытии</string>
+    <string name="shelter_list">Список укрытий</string>
+    <string name="capacity">Вместимость</string>
+    <string name="capacity_label">Вместимость: </string>
+    <string name="distance">Расстояние</string>
+    <string name="distance_label">Расстояние: </string>
+    <string name="status_open">Открыто</string>
+    <string name="status_full">Заполнено</string>
+    <string name="status_closed">Закрыто</string>
+    <string name="navigate_to">Навигация</string>
+    <string name="navigate_to_shelter">Навигация к укрытию</string>
+    <string name="start_navigate">Начать навигацию</string>
+    <string name="shelter_type">Тип укрытия</string>
+    <string name="shelter_underground">Подземное</string>
+    <string name="shelter_bunker">Бункер</string>
+    <string name="shelter_building">Здание</string>
+    <string name="current_occupancy">Текущая заполненность</string>
+    <string name="shelter_address">Адрес</string>
+    <string name="shelter_facilities">Оснащение</string>
+    <string name="shelter_water">Питьевая вода</string>
+    <string name="shelter_power">Аварийное питание</string>
+    <string name="shelter_medical">Аптечка</string>
+    <string name="shelter_ventilation">Вентиляция</string>
+    <string name="shelter_communication">Связь</string>
+
+    <!-- Settings -->
+    <string name="account">Аккаунт</string>
+    <string name="profile">Профиль</string>
+    <string name="profile_desc">Редактировать аватар, имя и информацию</string>
+    <string name="security">Безопасность</string>
+    <string name="security_desc">Пароль, телефон и почта</string>
+    <string name="subscription">Подписка</string>
+    <string name="subscription_desc">Управление планом</string>
+    <string name="preferences">Настройки</string>
+    <string name="notifications">Уведомления</string>
+    <string name="notifications_desc">Push, звук, вибрация</string>
+    <string name="alert_settings">Настройки тревог</string>
+    <string name="alert_settings_desc">Радиус, типы тревог</string>
+    <string name="map_settings">Настройки карты</string>
+    <string name="map_settings_desc">Тип карты, офлайн-карты</string>
+    <string name="storage">Хранилище</string>
+    <string name="storage_desc">Очистка кэша, управление местом</string>
+    <string name="features">Функции</string>
+    <string name="emergency_profile">Экстренная медицина</string>
+    <string name="emergency_profile_desc">Группа крови, аллергии, контакты</string>
+    <string name="family_group">Семейная группа</string>
+    <string name="family_group_desc">Управление участниками и правами</string>
+    <string name="mutual_aid">Взаимопомощь 1 км</string>
+    <string name="mutual_aid_desc">Подписка на SOS-оповещения поблизости</string>
+    <string name="about">О приложении</string>
+    <string name="help">Центр помощи</string>
+    <string name="terms">Условия использования</string>
+    <string name="about_app">О приложении</string>
+    <string name="dark_mode">Тёмная тема</string>
+    <string name="language">Язык</string>
+    <string name="language_current">Русский</string>
+    <string name="change">Изменить</string>
+    <string name="logout">Выйти</string>
+    <string name="confirm_logout">Подтвердить выход</string>
+    <string name="logout_desc">Потребуется повторный вход</string>
+    <string name="pro_member">Участник Pro</string>
+    <string name="select_language">Выберите язык</string>
+
+    <!-- Profile -->
+    <string name="nickname">Имя</string>
+    <string name="phone_number">Номер телефона</string>
+    <string name="city">Город</string>
+    <string name="emergency_contact">Контакт для экстренной связи</string>
+    <string name="contact_name">Имя контакта</string>
+    <string name="contact_phone">Телефон контакта</string>
+    <string name="save_success">Успешно сохранено</string>
+
+    <!-- Emergency Profile -->
+    <string name="basic_info">Основная информация</string>
+    <string name="blood_type">Группа крови</string>
+    <string name="age">Возраст</string>
+    <string name="height_cm">Рост (см)</string>
+    <string name="weight_kg">Вес (кг)</string>
+    <string name="allergy_history">История аллергий</string>
+    <string name="drug_allergy">Аллергия на лекарства</string>
+    <string name="food_allergy">Пищевая аллергия</string>
+    <string name="chronic_disease">Хронические заболевания</string>
+    <string name="medical_history">История болезней</string>
+    <string name="current_medication">Текущие лекарства</string>
+    <string name="none">Нет</string>
+
+    <!-- Subscription -->
+    <string name="current_plan">Текущий план</string>
+    <string name="plan_free">Бесплатный</string>
+    <string name="plan_pro">Pro</string>
+    <string name="plan_family">Семейный</string>
+    <string name="plan_expire">Действует до %1$s · Осталось %2$d дней</string>
+    <string name="subscription_plans">Планы</string>
+    <string name="current">Текущий</string>
+    <string name="above_current">Ваш текущий план</string>
+    <string name="upgrade">Обновить</string>
+    <string name="payment_method">Способ оплаты</string>
+    <string name="per_month">/мес</string>
+
+    <!-- SOS -->
+    <string name="sos_emergency">Экстренный SOS</string>
+    <string name="sos_long_press">Долгое нажатие для отправки сигнала SOS</string>
+    <string name="sos_hold_trigger">Удерживайте 3 сек</string>
+    <string name="sos_activated">SOS активирован</string>
+    <string name="sos_sending">Отправка сигнала SOS…</string>
+    <string name="sos_cancel">Отменить SOS</string>
+    <string name="sos_cancel_confirm">Отменить экстренный SOS?</string>
+    <string name="sos_action_family">Уведомить всю семью</string>
+    <string name="sos_action_family_desc">Push-уведомление + SMS-оповещение</string>
+    <string name="sos_action_location">Поделиться местоположением</string>
+    <string name="sos_action_location_desc">Передать GPS-координаты семье</string>
+    <string name="sos_action_rescue">Связаться со спасателями</string>
+    <string name="sos_action_rescue_desc">Отправить запрос о помощи в радиусе 1 км</string>
+    <string name="sos_action_record">Автозапись для доказательств</string>
+    <string name="sos_action_record_desc">Запись аудио, сохранение в облаке</string>
+    <string name="sos_sent">SOS отправлен</string>
+    <string name="sos_notifying">Уведомление семьи и ближайших спасателей…</string>
+    <string name="sos_send_time_default">Время отправки: --</string>
+    <string name="sos_actions_trigger">Запрос помощи запустит следующие действия</string>
+    <string name="sos_history">История SOS</string>
+    <string name="sos_history_detail">Детали SOS</string>
+    <string name="sos_total">Всего</string>
+    <string name="sos_alert_trigger">Тревога активирована</string>
+    <string name="sos_manual_trigger">Ручная активация</string>
+    <string name="sos_resolved">Снята</string>
+
+    <!-- Simulation -->
+    <string name="simulation_drill">Учебная тревога</string>
+    <string name="select_scenario">Выберите сценарий</string>
+    <string name="start_simulation">Начать учение</string>
+    <string name="air_strike_sim">Учение: авиаудар</string>
+    <string name="air_strike_sim_desc">Симуляция тревоги авиаудара и маршрута эвакуации</string>
+    <string name="artillery_sim">Учение: артобстрел</string>
+    <string name="artillery_sim_desc">Симуляция тревоги артобстрела и навигации к укрытию</string>
+    <string name="chemical_sim">Учение: химическая утечка</string>
+    <string name="chemical_sim_desc">Симуляция тревоги химической утечки</string>
+    <string name="curfew_sim">Учение: комендантский час</string>
+    <string name="curfew_sim_desc">Симуляция уведомления о комендантском часе</string>
+    <string name="sim_starting">Запуск учения…</string>
+    <string name="sim_complete">Учение завершено!</string>
+    <string name="sim_report">Отчёт об учении</string>
+    <string name="sim_score">Общая оценка</string>
+    <string name="sim_response_time">Время реакции</string>
+    <string name="sim_steps_completed">Выполненные шаги</string>
+    <string name="sim_back_home">На главную</string>
+    <string name="sim_retry">Повторить</string>
+    <string name="sim_completion_rate">Завершение</string>
+    <string name="sim_scenario_info">Информация о сценарии</string>
+    <string name="sim_steps_unit">шагов</string>
+    <string name="sim_excellent">Отлично</string>
+    <string name="sim_family_notified">Семья уведомлена</string>
+    <string name="sim_score_breakdown">Разбор оценки</string>
+    <string name="sim_detect_speed">Скорость обнаружения</string>
+    <string name="sim_alert_accuracy">Точность тревоги</string>
+    <string name="sim_notification_speed">Скорость уведомления</string>
+    <string name="sim_route_planning">Планирование маршрута</string>
+    <string name="sim_family_coordination">Координация семьи</string>
+    <string name="sim_suggestions">Рекомендации</string>
+    <string name="sim_suggestion_1">Изучите ближайшие укрытия и маршруты</string>
+    <string name="sim_suggestion_2">Убедитесь, что у всех членов семьи есть WarRescue</string>
+    <string name="sim_suggestion_3">Регулярно проводите учения для готовности</string>
+    <string name="sim_summary">Весь процесс оповещения занимает считанные секунды\nWarRescue защищает вас в любое время</string>
+    <string name="sim_step_progress">Шаг %1$d/%2$d: %3$s</string>
+
+    <!-- Simulation Steps -->
+    <string name="sim_step_ai_scan">Сканирование данных ИИ</string>
+    <string name="sim_step_threat_analysis">Анализ угроз</string>
+    <string name="sim_step_gen_red_alert">Генерация красной тревоги</string>
+    <string name="sim_step_gen_orange_alert">Генерация оранжевой тревоги</string>
+    <string name="sim_step_gen_yellow_notice">Генерация жёлтого уведомления</string>
+    <string name="sim_step_push_notify">Отправка тревоги</string>
+    <string name="sim_step_notify_family">Уведомление семьи</string>
+    <string name="sim_step_plan_route">Планирование маршрута эвакуации</string>
+    <string name="sim_step_nav_shelter">Навигация к укрытию</string>
+    <string name="sim_step_monitoring">Непрерывный мониторинг</string>
+    <string name="sim_step_mark_safe_zone">Обозначение безопасных зон</string>
+    <string name="sim_step_info_collect">Сбор информации</string>
+    <string name="sim_step_verify">Проверка уведомления</string>
+    <string name="sim_step_set_reminder">Установка напоминания</string>
+    <string name="sim_step_keep_update">Непрерывные обновления</string>
+    <string name="sim_step_air_scan_desc">Сканирование спутниковых и радарных данных\u2026</string>
+    <string name="sim_step_air_threat_desc">ИИ обнаружил самолёт с СВ, уверенность 92%</string>
+    <string name="sim_step_air_alert_desc">Воздушная тревога! Угроза с воздуха в Киеве</string>
+    <string name="sim_step_push_desc">Экстренное уведомление отправлено</string>
+    <string name="sim_step_family_desc">4 члена семьи уведомлены</string>
+    <string name="sim_step_route_desc">Маршрут к ближайшему укрытию: Центральное метро (0,8 км)</string>
+    <string name="sim_step_monitor_desc">ИИ непрерывно отслеживает угрозы</string>
+    <string name="sim_step_art_scan_desc">Анализ акустических и сейсмических данных\u2026</string>
+    <string name="sim_step_art_threat_desc">Обнаружены множественные обстрелы, радиус 5 км</string>
+    <string name="sim_step_art_alert_desc">Тревога артобстрела! Обстрел в Донецкой области</string>
+    <string name="sim_step_push_sms_desc">Экстренное уведомление и SMS отправлены</string>
+    <string name="sim_step_family_loc_desc">4 члена семьи уведомлены с геолокацией</string>
+    <string name="sim_step_shelter_desc">Навигация к бункеру мэрии (1,2 км)</string>
+    <string name="sim_step_art_monitor_desc">Мониторинг обстрелов, автоснятие при безопасности</string>
+    <string name="sim_step_chem_scan_desc">Анализ датчиков качества воздуха\u2026</string>
+    <string name="sim_step_chem_threat_desc">Аномальные химвещества после атаки на промзону</string>
+    <string name="sim_step_chem_alert_desc">Угроза химической утечки! Закройте двери и окна</string>
+    <string name="sim_step_chem_push_desc">Экстренное уведомление с инструкцией отправлено</string>
+    <string name="sim_step_chem_family_desc">Семья уведомлена: наденьте маски, закройте окна</string>
+    <string name="sim_step_chem_zone_desc">Безопасные зоны эвакуации отмечены на карте</string>
+    <string name="sim_step_chem_monitor_desc">Мониторинг качества воздуха, ожидание отбоя</string>
+    <string name="sim_step_curfew_scan_desc">Получение правительственных объявлений\u2026</string>
+    <string name="sim_step_curfew_verify_desc">Комендантский час подтверждён: 22:00-06:00</string>
+    <string name="sim_step_curfew_notice_desc">Комендантский час! Правительство ввело комендантский час</string>
+    <string name="sim_step_curfew_push_desc">Уведомление о комендантском часе отправлено</string>
+    <string name="sim_step_curfew_family_desc">Все члены семьи уведомлены о комендантском часе</string>
+    <string name="sim_step_curfew_reminder_desc">Напоминание в 21:45 для безопасного возвращения</string>
+    <string name="sim_step_curfew_update_desc">Отслеживание изменений комендантского часа в реальном времени</string>
+
+    <!-- Route Plan -->
+    <string name="route_plan">План маршрута</string>
+    <string name="current_location">Текущее местоположение</string>
+    <string name="recommended_routes">Рекомендуемые маршруты</string>
+    <string name="safety_high">Безопасность: Высокая</string>
+    <string name="safety_medium">Безопасность: Средняя</string>
+    <string name="safety_low">Безопасность: Низкая</string>
+    <string name="danger_zones">Опасные зоны (Избегать)</string>
+    <string name="danger_extreme">Крайне опасно</string>
+    <string name="danger_no_pass">Проход запрещён</string>
+
+    <!-- Route Plan details -->
+    <string name="route_detail_fmt">%1$.1f км · ~%2$d мин пешком · %3$s · %4$d/%5$d</string>
+    <string name="navigating_to">Навигация к %s…</string>
+    <string name="danger_high">Высокий риск</string>
+    <string name="current_location_addr">Центр Киева · Рядом с Майданом</string>
+    <string name="danger_east_industry">Восточная промзона</string>
+    <string name="danger_east_desc">Обнаружен обстрел, радиус поражения 5 км</string>
+    <string name="danger_north_bridge">Северный мост (через реку)</string>
+    <string name="danger_north_desc">Серьёзные повреждения, проход запрещён</string>
+    <string name="danger_airport">Зона аэропорта</string>
+    <string name="danger_airport_desc">Повторные обстрелы, держитесь подальше</string>
+
+    <!-- Mutual Aid details -->
+    <string name="aid_emergency_medical">Экстренная медпомощь</string>
+    <string name="aid_emergency_medical_meta">0,3 км · 5 мин назад</string>
+    <string name="aid_emergency_medical_desc">Пользователь легко ранен при обстреле, нужна первая помощь</string>
+    <string name="aid_supply_share">Обмен припасами</string>
+    <string name="aid_supply_share_meta">0,6 км · 15 мин назад</string>
+    <string name="aid_supply_share_desc">Пользователь делится водой и едой</string>
+    <string name="aid_translate">Помощь с переводом</string>
+    <string name="aid_translate_meta">0,8 км · 1 час назад</string>
+    <string name="aid_translate_desc">Иностранным волонтёрам нужен перевод англ.-укр.</string>
+    <string name="aid_receive_range_desc">1 км (настраивается 500 м-3 км)</string>
+    <string name="aid_response_method_desc">Push + Вибрация + Звук</string>
+    <string name="aid_my_skills">Мои навыки</string>
+    <string name="aid_my_skills_desc">Первая помощь, вождение, перевод</string>
+    <string name="aid_auto_response">Автоответ</string>
+    <string name="aid_auto_response_desc">Автоматически делиться местоположением при SOS рядом</string>
+    <string name="mutual_aid_1km">1 км</string>
+
+    <!-- Mutual Aid -->
+    <string name="mutual_aid_title">Взаимопомощь 1 км</string>
+    <string name="mutual_aid_enabled">Взаимопомощь включена</string>
+    <string name="mutual_aid_disabled">Взаимопомощь отключена</string>
+    <string name="mutual_aid_coverage">Радиус: %1$s · %2$d пользователей поблизости онлайн</string>
+    <string name="nearby_users">Пользователи рядом</string>
+    <string name="aid_count">Кол-во помощи</string>
+    <string name="avg_response">Среднее время отклика</string>
+    <string name="nearby_events">События поблизости</string>
+    <string name="status_waiting">Ожидание</string>
+    <string name="status_ongoing">В процессе</string>
+    <string name="status_done">Завершено</string>
+    <string name="aid_settings">Настройки помощи</string>
+    <string name="receive_range">Радиус приёма</string>
+    <string name="response_method">Способ отклика</string>
+
+    <!-- Family -->
+    <string name="family_members">Члены семьи</string>
+    <string name="online">Онлайн</string>
+    <string name="offline">Офлайн</string>
+    <string name="admin">Администратор</string>
+    <string name="member">Участник</string>
+    <string name="invite_member">Пригласить участника</string>
+    <string name="invite_copied">Ссылка-приглашение скопирована</string>
+    <string name="family_settings">Настройки семьи</string>
+    <string name="meeting_point">Точка сбора</string>
+    <string name="meeting_point_desc">Установить экстренную точку сбора</string>
+    <string name="location_sharing">Обмен местоположением</string>
+    <string name="location_sharing_desc">Делиться местоположением со всеми участниками</string>
+    <string name="sos_link">Связь SOS</string>
+    <string name="sos_link_desc">SOS любого участника уведомляет всех</string>
+    <string name="family_member_detail">Данные участника</string>
+    <string name="last_seen">Последний раз: %s</string>
+    <string name="member_location">Местоположение участника</string>
+    <string name="send_message">Отправить сообщение</string>
+    <string name="view_track">Просмотр маршрута</string>
+
+    <!-- Invite Friends -->
+    <string name="invite_friends">Пригласить друзей</string>
+    <string name="invite_code_label">Ваш код приглашения</string>
+    <string name="copy_code">Скопировать код</string>
+    <string name="share_invite">Поделиться с друзьями</string>
+    <string name="invite_reward">Награда за приглашение</string>
+    <string name="invite_stats">Статистика приглашений</string>
+    <string name="invite_code_copied">Код приглашения скопирован!</string>
+    <string name="invite_share_text">Я использую WarRescue для умных оповещений, присоединяйтесь!\nКод приглашения: %1$s\nСкачать: https://warrescue.app</string>
+    <string name="invite_share_chooser">Поделиться приглашением</string>
+    <string name="invite_per_friend">Пригласить 1 друга</string>
+    <string name="invite_per_friend_desc">Оба получите 7 дней Pro бесплатно</string>
+    <string name="invite_five_friends">Пригласить 5 друзей</string>
+    <string name="invite_five_friends_desc">Дополнительный месяц подписки Pro</string>
+    <string name="invite_count">Приглашено: %d</string>
+    <string name="invite_count_desc">%1$d дней бесплатного пробного периода (%2$d использовано)</string>
+    <string name="invite_pending">Ожидают: %d</string>
+    <string name="invite_pending_desc">Награда активируется при регистрации друга</string>
+
+    <!-- Alert Settings -->
+    <string name="alert_type_settings">Типы тревог</string>
+    <string name="alert_level_settings">Уровни тревог</string>
+    <string name="monitor_range">Радиус мониторинга</string>
+    <string name="monitor_radius">Радиус: %d км</string>
+    <string name="monitor_radius_desc">Обнаружение тревог в радиусе %d км</string>
+    <string name="alert_air_strike">Тревога авиаудара</string>
+    <string name="alert_artillery">Тревога артобстрела</string>
+    <string name="alert_conflict">Вооружённый конфликт</string>
+    <string name="alert_curfew">Комендантский час</string>
+    <string name="alert_chemical">Химическая утечка</string>
+    <string name="level_red">Красный (Критический)</string>
+    <string name="level_orange">Оранжевый (Предупреждение)</string>
+    <string name="level_yellow">Жёлтый (Внимание)</string>
+    <string name="ai_monitor_history">История мониторинга</string>
+    <string name="ai_monitor_detail">Детали мониторинга</string>
+
+    <!-- Notification Settings -->
+    <string name="push_notifications">Push-уведомления</string>
+    <string name="notif_alert_push">Push тревоги</string>
+    <string name="notif_alert_push_desc">Уведомлять о новых тревогах</string>
+    <string name="notif_family_status">Изменение статуса семьи</string>
+    <string name="notif_family_status_desc">Уведомлять о входе/выходе семьи</string>
+    <string name="notif_sos">Уведомление SOS</string>
+    <string name="notif_sos_desc">Уведомлять при экстренном SOS</string>
+    <string name="sound_vibration">Звук и вибрация</string>
+    <string name="notif_alert_sound">Звук тревоги</string>
+    <string name="notif_alert_sound_desc">Воспроизводить звук при новых тревогах</string>
+    <string name="notif_vibration">Вибрация</string>
+    <string name="notif_vibration_desc">Вибрация при новых тревогах</string>
+    <string name="notif_dnd">Не беспокоить</string>
+    <string name="notif_dnd_desc">Без звука 22:00–07:00</string>
+    <string name="sms_notifications">SMS-уведомления</string>
+    <string name="notif_twilio">SMS-шлюз Twilio</string>
+    <string name="notif_twilio_desc">Получать тревоги по SMS офлайн</string>
+    <string name="notif_sms_level">Только красный/оранжевый</string>
+    <string name="notif_sms_level_desc">SMS только для критических тревог</string>
+
+    <!-- Profile Hints -->
+    <string name="hint_nickname">Введите имя</string>
+    <string name="hint_phone">Введите номер телефона</string>
+    <string name="hint_email">Введите эл. почту</string>
+    <string name="hint_city">Выберите город</string>
+    <string name="hint_name">Введите имя</string>
+    <string name="hint_phone_number">Введите телефон</string>
+    <string name="profile_saved">Профиль сохранён</string>
+    <string name="default_city">Киев</string>
+    <string name="default_contact_name">Иван</string>
+
+    <!-- Emergency Profile Hints -->
+    <string name="hint_blood_type">напр. A+, B-, O+</string>
+    <string name="hint_age">Введите возраст</string>
+    <string name="hint_height">Введите рост</string>
+    <string name="hint_weight">Введите вес</string>
+    <string name="hint_drug_allergy">напр. Пенициллин</string>
+    <string name="hint_food_allergy">напр. Арахис, морепродукты</string>
+    <string name="hint_chronic">напр. Гипертония, диабет</string>
+    <string name="hint_medication">Введите название лекарства</string>
+    <string name="contact_1_name">Контакт 1 Имя</string>
+    <string name="contact_1_phone">Контакт 1 Телефон</string>
+    <string name="emergency_saved">Медицинская информация сохранена</string>
+    <string name="default_drug_allergy">Пенициллин</string>
+    <string name="default_contact_1_name">Папа</string>
+
+    <!-- SOS History -->
+    <string name="sos_history_records">История</string>
+    <string name="sos_rec_air_title">Тревога авиаудара активирована</string>
+    <string name="sos_rec_air_desc">Воздушная угроза обнаружена в Киеве</string>
+    <string name="sos_rec_air_timeline">14:32 Активирована → 14:33 Семья уведомлена → 14:45 Тревога снята</string>
+    <string name="sos_rec_manual_desc">Пользователь инициировал экстренный запрос</string>
+    <string name="sos_rec_manual_timeline_1">09:15 Активирована → 09:16 Семья уведомлена → 09:20 Отменена</string>
+    <string name="sos_rec_art_title">Тревога артобстрела активирована</string>
+    <string name="sos_rec_art_desc">Обстрел обнаружен в Донецкой области</string>
+    <string name="sos_rec_art_timeline">22:48 Активирована → 22:49 Все уведомлены → 23:30 Тревога снята</string>
+    <string name="sos_rec_drill_desc">Пользователь инициировал экстренный запрос (Учение)</string>
+    <string name="sos_rec_drill_timeline">06:30 Активирована → 06:31 Уведомление отправлено → 06:32 Отменена</string>
+    <string name="sos_rec_chem_title">Тревога химической утечки</string>
+    <string name="sos_rec_chem_desc">Угроза химической утечки обнаружена в промзоне</string>
+    <string name="sos_rec_chem_timeline">18:20 Активирована → 18:21 Все уведомлены → 19:45 Тревога снята</string>
+
+    <!-- Subscription -->
+    <string name="subscription_manage">Подписка</string>
+    <string name="plan_pro_personal">Pro Персональный</string>
+    <string name="plan_expire_demo">Действует до 2026-05-22 · Осталось 28 дней</string>
+    <string name="plan_free_features">Базовые тревоги\n5 запросов/день\n1 член семьи</string>
+    <string name="plan_pro_price">¥39.99/мес</string>
+    <string name="plan_pro_features">ИИ-тревоги 24/7\nБезлимитные запросы\n5 членов семьи\nПланирование маршрута\nЭкстренный SOS\nSMS (Twilio)</string>
+    <string name="plan_family_price">¥199.99/мес</string>
+    <string name="plan_family_features">Все функции Pro\nДо 20 членов семьи\nУправление семейной группой\nПриоритетный отклик\nВыделенная поддержка\nМультиустройственная синхр.</string>
+    <string name="payment_google_pay">Google Pay</string>
+    <string name="payment_google_desc">Быстрая и безопасная оплата</string>
+    <string name="payment_card">Кредитная / дебетовая карта</string>
+    <string name="payment_card_desc">Visa / Mastercard / UnionPay</string>
+    <string name="payment_paypal">PayPal</string>
+    <string name="payment_paypal_desc">Международный платёж</string>
+    <string name="payment_redirect">Перенаправление на оплату…</string>
+    <string name="time_ago_minutes">%d мин назад</string>
+    <string name="time_ago_hours">%d ч назад</string>
+    <string name="time_ago_days">%d дн назад</string>
+
+    <!-- Common -->
+    <string name="confirm">Подтвердить</string>
+    <string name="cancel">Отмена</string>
+    <string name="close">Закрыть</string>
+    <string name="loading">Загрузка…</string>
+    <string name="save">Сохранить</string>
+    <string name="search">Поиск</string>
+    <string name="filter">Фильтр</string>
+    <string name="reset">Сбросить</string>
+    <string name="back">Назад</string>
+    <string name="view_details">Подробнее</string>
+    <string name="confirm_sos">Отправить SOS?</string>
+    <string name="sos_warning">Будут уведомлены вся семья и ближайшие спасатели</string>
+    <string name="alert_detail_title">Детали тревоги</string>
+    <string name="detailed_description">Подробное описание</string>
+    <string name="legend_red_alert">Красная тревога</string>
+    <string name="legend_orange_alert">Оранжевая тревога</string>
+    <string name="legend_yellow_alert">Жёлтая тревога</string>
+    <string name="reliability">Надёжность</string>
+    <string name="search_alerts">Поиск тревог…</string>
+    <string name="time_range">Временной диапазон</string>
+    <string name="type">Тип</string>
+    <string name="location">Местоположение</string>
+    <string name="time">Время</string>
+    <string name="minutes_ago">мин</string>
+    <string name="hours_ago">ч</string>
+    <string name="days_ago">дн</string>
+    <string name="just_now">Только что</string>
+    <string name="demo_user">Демо-пользователь</string>
+    <string name="version">Версия %s</string>
+    <string name="app_restart_hint">Перезапустите приложение для применения нового языка</string>
+
+    <!-- Demo Data - Alerts -->
+    <string name="demo_alert_1_title">Обнаружена тревога авиаудара в Киеве</string>
+    <string name="demo_alert_1_desc">Система ИИ обнаружила сигнал воздушной угрозы с СВ, немедленно отправляйтесь в ближайшее укрытие</string>
+    <string name="demo_alert_1_city">Киев</string>
+    <string name="demo_country_ukraine">Украина</string>
+    <string name="demo_alert_2_title">Тревога артобстрела в Донецкой области</string>
+    <string name="demo_alert_2_desc">Обнаружены множественные обстрелы, радиус поражения 5 км, держитесь подальше от открытых мест</string>
+    <string name="demo_alert_2_city">Донецк</string>
+    <string name="demo_alert_3_title">Конфликт на юге Бейрута</string>
+    <string name="demo_alert_3_desc">Вооружённый конфликт в южных пригородах, дороги могут быть перекрыты, рассмотрите альтернативные маршруты</string>
+    <string name="demo_alert_3_city">Бейрут</string>
+    <string name="demo_country_lebanon">Ливан</string>
+    <string name="demo_alert_4_title">Комендантский час в Багдаде</string>
+    <string name="demo_alert_4_desc">Правительство ввело комендантский час, выход запрещён с 22:00 до 06:00</string>
+    <string name="demo_alert_4_city">Багдад</string>
+    <string name="demo_country_iraq">Ирак</string>
+    <string name="demo_alert_5_title">Тревога ПВО в Тель-Авиве</string>
+    <string name="demo_alert_5_desc">Железный купол активирован, обнаружена ракетная угроза с юга</string>
+    <string name="demo_alert_5_city">Тель-Авив</string>
+    <string name="demo_country_israel">Израиль</string>
+    <string name="demo_alert_6_title">Угроза химической утечки в Харькове</string>
+    <string name="demo_alert_6_desc">Возможная утечка опасных химикатов после атаки на промзону</string>
+    <string name="demo_alert_6_city">Харьков</string>
+    <string name="demo_alert_7_title">Тревога в зоне Запорожской электростанции</string>
+    <string name="demo_alert_7_desc">Обнаружена необычная активность вблизи электростанции, будьте бдительны</string>
+    <string name="demo_alert_7_city">Запорожье</string>
+
+    <!-- Demo Data - Palestine/Gaza -->
+    <string name="demo_alert_8_title">Авиаудары по городу Газа</string>
+    <string name="demo_alert_8_desc">Обнаружены множественные авиаудары в северной части Газы, немедленно укройтесь и держитесь подальше от зданий</string>
+    <string name="demo_alert_8_city">Газа</string>
+    <string name="demo_country_palestine">Палестина</string>
+    <string name="demo_alert_9_title">Артобстрел в районе перехода Рафах</string>
+    <string name="demo_alert_9_desc">Непрерывный артобстрел в районе перехода Рафах, пограничный переход может быть закрыт</string>
+    <string name="demo_alert_9_city">Рафах</string>
+
+    <!-- Demo Data - Shelters -->
+    <string name="demo_shelter_1_name">Укрытие центральной станции метро</string>
+    <string name="demo_shelter_1_addr">Центральная станция метро Киева уровень B2</string>
+    <string name="demo_shelter_2_name">Подземный бункер мэрии</string>
+    <string name="demo_shelter_2_addr">Мэрия на Майдане подземный уровень 3</string>
+    <string name="demo_shelter_3_name">Школьное бомбоубежище</string>
+    <string name="demo_shelter_3_addr">Школа №42 подвал</string>
+    <string name="demo_shelter_4_name">Укрытие на парковке ТЦ</string>
+    <string name="demo_shelter_4_addr">ТЦ Ocean Plaza парковка B3</string>
+    <string name="demo_shelter_5_name">Жилое бомбоубежище</string>
+    <string name="demo_shelter_5_addr">Район Оболонь дом 18 подвал</string>
+
+    <!-- Demo Data - Palestine Shelters -->
+    <string name="demo_shelter_6_name">Укрытие школы БАПОР</string>
+    <string name="demo_shelter_6_addr">Школа БАПОР, центр Газы</string>
+    <string name="demo_shelter_7_name">Подземное укрытие больницы Аш-Шифа</string>
+    <string name="demo_shelter_7_addr">Подземный уровень больницы Аш-Шифа, Газа</string>
+    <string name="demo_shelter_8_name">Укрытие центральной мечети</string>
+    <string name="demo_shelter_8_addr">Центральная мечеть Газы</string>
+
+    <!-- Demo Data - Family -->
+    <string name="demo_family_dad">Папа</string>
+    <string name="demo_family_mom">Мама</string>
+    <string name="demo_family_child">Ваня</string>
+    <string name="demo_family_grandma">Бабушка</string>
+    <string name="demo_family_last_seen">30 мин назад</string>
+
+    <!-- Demo Data - City Alerts -->
+    <string name="demo_city_alert_1_desc">Несколько пользователей подтвердили взрывы и сирены с СВ</string>
+    <string name="demo_city_alert_2_desc">Непрерывный обстрел в направлении промзоны</string>
+    <string name="demo_city_alert_3_desc">В южном районе замечено передвижение вооружённых людей</string>
+    <string name="demo_city_alert_4_desc">Вооружённый конфликт в центре города, дороги перекрыты</string>
+    <string name="demo_city_alert_5_desc">Пользователи у промзоны сообщили о необычном запахе</string>
+    <string name="demo_city_alert_6_desc">Жители Газы подтвердили непрерывные взрывы и пролёты боевых самолётов</string>
+
+    <!-- Auth - New -->
+    <string name="auth_enter_code">Введите 6-значный код</string>
+    <string name="auth_invite_code_optional">Код приглашения (необязательно)</string>
+    <string name="auth_trial_hint">Зарегистрируйтесь для 7-дневного бесплатного пробного периода</string>
+    <string name="auth_phone_invalid">Введите правильный номер телефона</string>
+    <string name="auth_code_invalid">Введите 6-значный код</string>
+    <string name="auth_code_not_sent">Сначала получите код подтверждения</string>
+    <string name="auth_code_wrong">Неверный код, попробуйте снова</string>
+    <string name="auth_code_sent">Код подтверждения отправлен: %1$s</string>
+    <string name="auth_resend_countdown">Повторить через %1$d с</string>
+    <string name="auth_login_success">Вход выполнен успешно</string>
+    <string name="auth_register_success">Регистрация успешна, 7-дневный пробный период активирован</string>
+    <string name="auth_guest_welcome">Добро пожаловать! Гостевой режим действует 7 дней с ограничениями</string>
+    <string name="auth_email_invalid">Введите правильный адрес электронной почты</string>
+    <string name="auth_password_invalid">Пароль должен быть не менее 6 символов</string>
+    <string name="sub_plan_personal_name">Персональный ¥39.99/мес</string>
+    <string name="sub_plan_family_name">Семейный ¥199.99/мес</string>
+    <string name="sub_trial_active">Бесплатный пробный период</string>
+    <string name="sub_no_subscription">Нет подписки</string>
+    <string name="sub_choose_plan_hint">Выберите подходящий план</string>
+    <string name="sub_expiring_warn">Подписка истекает через %1$d дней</string>
+    <string name="sub_invite_discount_active">Скидка за приглашение - Половина цены!</string>
+    <string name="sub_invite_discount_desc">Приглашённый зарегистрировался, наслаждайтесь скидкой</string>
+    <string name="sub_invite_count">Приглашено %1$d друзей</string>
+    <string name="sub_price_discount">¥%1$s/мес (было ¥%2$s)</string>
+    <string name="sub_price_normal">¥%1$s/мес</string>
+    <string name="sub_personal_features">Оповещения в реальном времени\nПланирование маршрута\nSOS\nОфлайн карты\nАвтоуведомление</string>
+    <string name="sub_family_features">Все функции Персонального\nСемейная геолокация\nСинхронизация\nДо 5 членов семьи</string>
+    <string name="sub_subscribe">Подписаться</string>
+    <string name="sub_payment_lianlian">LianLian Pay</string>
+    <string name="sub_payment_lianlian_desc">Безопасная онлайн-оплата</string>
+    <string name="sub_guest_cannot">Гости не могут подписаться, зарегистрируйтесь</string>
+    <string name="sub_order_created">Заказ: %1$s\nПлан: %2$s\nСумма: ¥%3$s</string>
+    <string name="sub_activated">%1$s активирован на 30 дней</string>
+    <string name="invite_reward_rule_title">Пригласите друзей зарегистрироваться</string>
+    <string name="invite_reward_rule_desc">Получите подписку за полцены</string>
+    <string name="invite_total_invited">Всего приглашено: %1$d друзей</string>
+    <string name="invite_discount_months">Получено %1$d месячных скидок</string>
+
+    <!-- Alert Escalation -->
+    <string name="alert_flashlight_title">Экстренное оповещение</string>
+    <string name="alert_flashlight_desc">Обнаружена угроза безопасности. Подтвердите свою безопасность</string>
+    <string name="alert_flashlight_active">Тревога вспышкой активна</string>
+    <string name="alert_flashlight_stop">Выключить вспышку</string>
+    <string name="alert_flashlight_countdown">%1$d сек. до звонка AI-проверки</string>
+    <string name="alert_i_am_safe">Я в безопасности</string>
+    <string name="alert_need_help">Мне нужна помощь</string>
+    <string name="alert_countdown_fmt">%1$d сек. до AI-проверки</string>
+    <string name="alert_escalating">Переход к AI-звонку…</string>
+    <string name="alert_escalation_hint">Без ответа система позвонит автоматически</string>
+    <string name="alert_channel_name">Экстренные оповещения</string>
+    <string name="alert_channel_desc">Тревоги вспышкой и экстренные уведомления</string>
+    <string name="alert_ai_call_title">AI-звонок проверки</string>
+    <string name="alert_ai_call_desc">AI звонит для проверки вашей безопасности</string>
+    <string name="alert_calling_user">Звоним на ваш телефон…</string>
+    <string name="alert_call_simulated">Симуляция AI-звонка (Twilio не настроен)</string>
+    <string name="alert_waiting_answer">Ожидание ответа… %1$d сек.</string>
+    <string name="alert_ai_call_channel_name">Голосовая AI-проверка</string>
+    <string name="alert_ai_call_channel_desc">Уведомления голосовой AI-проверки</string>
+    <string name="rescue_triggered_title">Уведомление о спасении активировано</string>
+    <string name="rescue_triggered_desc">Причина: %1$s</string>
+    <string name="rescue_triggered_detail">Тревога: %1$s\nПричина: %2$s\nЭкстренные контакты и спасатели уведомлены</string>
+    <string name="rescue_processing_title">Обработка уведомления о спасении</string>
+    <string name="rescue_processing_desc">Уведомление экстренных контактов…</string>
+    <string name="rescue_channel_name">Уведомления о спасении</string>
+    <string name="rescue_channel_desc">Экстренные уведомления о спасении</string>
+    <string name="rescue_sms_body">[WarRescue СПАСЕНИЕ] %1$s может быть в опасности! Тревога: %2$s. Причина: %3$s. Свяжитесь немедленно.</string>
+    <string name="rescue_reason_no_answer">AI-звонок не отвечен</string>
+    <string name="rescue_reason_call_failed">AI-звонок не удался</string>
+    <string name="rescue_reason_no_phone">Номер телефона не настроен</string>
+    <string name="rescue_reason_user_emergency">Пользователь запросил помощь</string>
+    <string name="rescue_reason_timeout">Тайм-аут ответа на тревогу</string>
+</resources>

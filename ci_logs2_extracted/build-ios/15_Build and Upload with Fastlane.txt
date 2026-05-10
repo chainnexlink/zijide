@@ -1,0 +1,236 @@
+﻿2026-05-05T18:04:21.5187420Z ##[group]Run if [ "true" = "true" ]; then
+2026-05-05T18:04:21.5187810Z [36;1mif [ "true" = "true" ]; then[0m
+2026-05-05T18:04:21.5188110Z [36;1m  fastlane release[0m
+2026-05-05T18:04:21.5188360Z [36;1melse[0m
+2026-05-05T18:04:21.5188550Z [36;1m  fastlane build_only[0m
+2026-05-05T18:04:21.5188770Z [36;1mfi[0m
+2026-05-05T18:04:21.5230730Z shell: /bin/bash -e {0}
+2026-05-05T18:04:21.5230960Z env:
+2026-05-05T18:04:21.5231330Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-05T18:04:21.5231680Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-05T18:04:21.5231960Z   APPLE_TEAM_ID: ***
+2026-05-05T18:04:21.5233490Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-05T18:04:21.5245860Z   API_KEY_PATH: /Users/runner/.private_keys/AuthKey.p8
+2026-05-05T18:04:21.5246230Z   KEYCHAIN_PATH: /Users/runner/Library/Keychains/build.keychain-db
+2026-05-05T18:04:21.5246580Z   KEYCHAIN_PASSWORD: ci_build_temp_pwd_1778004261
+2026-05-05T18:04:21.5246880Z ##[endgroup]
+2026-05-05T18:04:22.4165250Z [18:04:22]: [33mGet started using a Gemfile for fastlane https://docs.fastlane.tools/getting-started/ios/setup/#use-a-gemfile[0m
+2026-05-05T18:04:22.9973840Z [18:04:22]: Sending anonymous analytics information
+2026-05-05T18:04:23.0076660Z [18:04:22]: Learn more at https://docs.fastlane.tools/#metrics
+2026-05-05T18:04:23.0177490Z [18:04:22]: No personal or sensitive data is sent.
+2026-05-05T18:04:23.0217010Z [18:04:22]: You can disable this by adding `opt_out_usage` at the top of your Fastfile
+2026-05-05T18:04:23.0218100Z [18:04:23]: [32m------------------------------[0m
+2026-05-05T18:04:23.0218570Z [18:04:23]: [32m--- Step: default_platform ---[0m
+2026-05-05T18:04:23.0218970Z [18:04:23]: [32m------------------------------[0m
+2026-05-05T18:04:23.0219570Z [18:04:23]: [32mDriving the lane 'ios release' 🚀[0m
+2026-05-05T18:04:23.0220040Z [18:04:23]: [32m---------------------------------------[0m
+2026-05-05T18:04:23.0220510Z [18:04:23]: [32m--- Step: app_store_connect_api_key ---[0m
+2026-05-05T18:04:23.0220960Z [18:04:23]: [32m---------------------------------------[0m
+2026-05-05T18:04:23.0221450Z [18:04:23]: [32m------------------------------------------------------[0m
+2026-05-05T18:04:23.0222010Z [18:04:23]: [32m--- Step: Switch to ios revoke_orphaned_certs lane ---[0m
+2026-05-05T18:04:23.0222530Z [18:04:23]: [32m------------------------------------------------------[0m
+2026-05-05T18:04:23.0223020Z [18:04:23]: Cruising over to lane 'ios revoke_orphaned_certs' 🚖
+2026-05-05T18:04:23.3695720Z [18:04:23]: Found 2 certificate(s) of type DISTRIBUTION
+2026-05-05T18:04:23.6260060Z [18:04:23]: Found 0 certificate(s) of type IOS_DISTRIBUTION
+2026-05-05T18:04:23.6260830Z [18:04:23]: Total distribution certificates: 2
+2026-05-05T18:04:23.6262240Z [18:04:23]: [33mMaximum certificates reached, revoking all orphaned certificates...[0m
+2026-05-05T18:04:23.6263240Z [18:04:23]: Revoking certificate: 4W6HV6WB3U (Chaozhou Yicai Gift Trading Co., Ltd.)
+2026-05-05T18:04:23.8913490Z [18:04:23]: Revoking certificate: AHGCCP764K (Chaozhou Yicai Gift Trading Co., Ltd.)
+2026-05-05T18:04:24.1703940Z [18:04:24]: [32mRevoked 2 orphaned certificate(s)[0m
+2026-05-05T18:04:24.1704800Z [18:04:24]: Cruising back to lane 'ios release' 🚘
+2026-05-05T18:04:24.1756380Z [18:04:24]: [32m------------------------------[0m
+2026-05-05T18:04:24.1757160Z [18:04:24]: [32m--- Step: get_certificates ---[0m
+2026-05-05T18:04:24.1757890Z [18:04:24]: [32m------------------------------[0m
+2026-05-05T18:04:24.1759410Z 
+2026-05-05T18:04:24.1770250Z +-----------------------------------------------------------------------------+
+2026-05-05T18:04:24.1772210Z |                          [32mSummary for cert 2.233.1[0m                           |
+2026-05-05T18:04:24.1772920Z +-------------------------+---------------------------------------------------+
+2026-05-05T18:04:24.1773860Z | api_key                 | ********                                          |
+2026-05-05T18:04:24.1774400Z | platform                | ios                                               |
+2026-05-05T18:04:24.1774940Z | keychain_path           | /Users/runner/Library/Keychains/build.keychain-db |
+2026-05-05T18:04:24.1775480Z | keychain_password       | ********                                          |
+2026-05-05T18:04:24.1776020Z | development             | false                                             |
+2026-05-05T18:04:24.1776560Z | force                   | false                                             |
+2026-05-05T18:04:24.1777070Z | generate_apple_certs    | true                                              |
+2026-05-05T18:04:24.1777590Z | skip_set_partition_list | false                                             |
+2026-05-05T18:04:24.1778110Z +-------------------------+---------------------------------------------------+
+2026-05-05T18:04:24.1778340Z 
+2026-05-05T18:04:24.1781700Z [18:04:24]: Creating authorization token for App Store Connect API
+2026-05-05T18:04:24.4438410Z [18:04:24]: [33mCouldn't find an existing certificate... creating a new one[0m
+2026-05-05T18:04:25.0368630Z [18:04:25]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+2026-05-05T18:04:25.1210910Z [18:04:25]: Setting key partition list... (this can take a minute if there are a lot of keys installed)
+2026-05-05T18:04:25.1500870Z [18:04:25]: [32mSuccessfully generated Y369Z86SM5 which was imported to the local machine.[0m
+2026-05-05T18:04:25.1501820Z [18:04:25]: Verifying the certificate is properly installed locally...
+2026-05-05T18:04:26.0077720Z [18:04:26]: [32mSuccessfully installed certificate Y369Z86SM5[0m
+2026-05-05T18:04:26.0093530Z [18:04:26]: [32mUse signing certificate 'Y369Z86SM5' from now on![0m
+2026-05-05T18:04:26.0109950Z [18:04:26]: [32m--------------------------------------------------------------------[0m
+2026-05-05T18:04:26.0135780Z [18:04:26]: [32mStep: security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k 'ci_build_temp_pwd_1778004261' '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T18:04:26.0223440Z [18:04:26]: [32m--------------------------------------------------------------------[0m
+2026-05-05T18:04:26.0227600Z [18:04:26]: [36m$ security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k 'ci_build_temp_pwd_1778004261' '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T18:04:26.0416950Z [18:04:26]: ▸ [35mkeychain: "/Users/runner/Library/Keychains/build.keychain-db"[0m
+2026-05-05T18:04:26.0476560Z [18:04:26]: ▸ [35mversion: 512[0m
+2026-05-05T18:04:26.0547420Z [18:04:26]: ▸ [35mclass: 0x00000010[0m
+2026-05-05T18:04:26.0548100Z [18:04:26]: ▸ [35mattributes:[0m
+2026-05-05T18:04:26.0548580Z [18:04:26]: ▸ [35m0x00000000 <uint32>=0x00000010[0m
+2026-05-05T18:04:26.0549620Z [18:04:26]: ▸ [35m0x00000001 <blob>="Imported Private Key"[0m
+2026-05-05T18:04:26.0550290Z [18:04:26]: ▸ [35m0x00000002 <blob>=<NULL>[0m
+2026-05-05T18:04:26.0550900Z [18:04:26]: ▸ [35m0x00000003 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0553800Z [18:04:26]: ▸ [35m0x00000004 <uint32>=0x00000000[0m
+2026-05-05T18:04:26.0554630Z [18:04:26]: ▸ [35m0x00000005 <uint32>=0x00000000[0m
+2026-05-05T18:04:26.0555600Z [18:04:26]: ▸ [35m0x00000006 <blob>=0x31EE293C2B3262F96302B921BB33CA606F0BDD70  "1\356)<+2b\371c\002\271!\2733\312`o\013\335p"[0m
+2026-05-05T18:04:26.0556290Z [18:04:26]: ▸ [35m0x00000007 <blob>=<NULL>[0m
+2026-05-05T18:04:26.0557390Z [18:04:26]: ▸ [35m0x00000008 <blob>=0x7B38373139316361322D306663392D313164342D383439612D3030303530326235323132327D00  "{87191ca2-0fc9-11d4-849a-000502b52122}\000"[0m
+2026-05-05T18:04:26.0558480Z [18:04:26]: ▸ [35m0x00000009 <uint32>=0x0000002A  "\000\000\000*"[0m
+2026-05-05T18:04:26.0559810Z [18:04:26]: ▸ [35m0x0000000A <uint32>=0x00000800[0m
+2026-05-05T18:04:26.0560260Z [18:04:26]: ▸ [35m0x0000000B <uint32>=0x00000800[0m
+2026-05-05T18:04:26.0563770Z [18:04:26]: ▸ [35m0x0000000C <blob>=0x0000000000000000[0m
+2026-05-05T18:04:26.0564300Z [18:04:26]: ▸ [35m0x0000000D <blob>=0x0000000000000000[0m
+2026-05-05T18:04:26.0565140Z [18:04:26]: ▸ [35m0x0000000E <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0565710Z [18:04:26]: ▸ [35m0x0000000F <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0566180Z [18:04:26]: ▸ [35m0x00000010 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0566760Z [18:04:26]: ▸ [35m0x00000011 <uint32>=0x00000000[0m
+2026-05-05T18:04:26.0567230Z [18:04:26]: ▸ [35m0x00000012 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0567630Z [18:04:26]: ▸ [35m0x00000013 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0568040Z [18:04:26]: ▸ [35m0x00000014 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0568450Z [18:04:26]: ▸ [35m0x00000015 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0568860Z [18:04:26]: ▸ [35m0x00000016 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0569290Z [18:04:26]: ▸ [35m0x00000017 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0569700Z [18:04:26]: ▸ [35m0x00000018 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0570140Z [18:04:26]: ▸ [35m0x00000019 <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0570560Z [18:04:26]: ▸ [35m0x0000001A <uint32>=0x00000001[0m
+2026-05-05T18:04:26.0571140Z [18:04:26]: [32m--------------------------------------------------------------------[0m
+2026-05-05T18:04:26.0572600Z [18:04:26]: [32mStep: security find-identity -v -p codesigning '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T18:04:26.0573350Z [18:04:26]: [32m--------------------------------------------------------------------[0m
+2026-05-05T18:04:26.0574130Z [18:04:26]: [36m$ security find-identity -v -p codesigning '/Users/runner/Library/Keychains/build.keychain-db'[0m
+2026-05-05T18:04:26.0784510Z [18:04:26]: ▸ [35m1) DE7A96F21C054B6EFE63D95A5D2FC6FBB5053F4C "Apple Distribution: Chaozhou Yicai Gift Trading Co., Ltd. (***)"[0m
+2026-05-05T18:04:26.0787460Z [18:04:26]: ▸ [35m1 valid identities found[0m
+2026-05-05T18:04:26.0847830Z [18:04:26]: [32m--------------------------------------[0m
+2026-05-05T18:04:26.0900300Z [18:04:26]: [32m--- Step: get_provisioning_profile ---[0m
+2026-05-05T18:04:26.0901940Z [18:04:26]: [32m--------------------------------------[0m
+2026-05-05T18:04:26.0902720Z 
+2026-05-05T18:04:26.0903390Z +-------------------------------------------------------------+
+2026-05-05T18:04:26.0904820Z |                  [32mSummary for sigh 2.233.1[0m                   |
+2026-05-05T18:04:26.0906050Z +-------------------------------------+-----------------------+
+2026-05-05T18:04:26.0907200Z | api_key                             | ********              |
+2026-05-05T18:04:26.0908480Z | app_identifier                      | com.warrescue.appname |
+2026-05-05T18:04:26.0909940Z | platform                            | ios                   |
+2026-05-05T18:04:26.0911170Z | force                               | true                  |
+2026-05-05T18:04:26.0912310Z | adhoc                               | false                 |
+2026-05-05T18:04:26.0913590Z | developer_id                        | false                 |
+2026-05-05T18:04:26.0914930Z | development                         | false                 |
+2026-05-05T18:04:26.0916220Z | skip_install                        | false                 |
+2026-05-05T18:04:26.0917500Z | include_mac_in_profiles             | false                 |
+2026-05-05T18:04:26.0918910Z | ignore_profiles_with_different_name | false                 |
+2026-05-05T18:04:26.0920130Z | cert_id                             | Y369Z86SM5            |
+2026-05-05T18:04:26.0921370Z | skip_fetch_profiles                 | false                 |
+2026-05-05T18:04:26.0922670Z | include_all_certificates            | false                 |
+2026-05-05T18:04:26.0924380Z | skip_certificate_verification       | false                 |
+2026-05-05T18:04:26.0926580Z | readonly                            | false                 |
+2026-05-05T18:04:26.0927080Z | fail_on_name_taken                  | false                 |
+2026-05-05T18:04:26.0929910Z +-------------------------------------+-----------------------+
+2026-05-05T18:04:26.0930870Z 
+2026-05-05T18:04:26.0931540Z [18:04:26]: Creating authorization token for App Store Connect API
+2026-05-05T18:04:26.0932540Z [18:04:26]: Fetching profiles...
+2026-05-05T18:04:26.8116390Z [18:04:26]: Provisioning Profile cert_id : 'T6469DKL5N' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8117380Z [18:04:26]: Provisioning Profile cert_id : 'YH4487NUK7' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8118240Z [18:04:26]: Provisioning Profile cert_id : 'AHGCCP764K' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8119110Z [18:04:26]: Provisioning Profile cert_id : '2XM2MG8J83' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8119970Z [18:04:26]: Provisioning Profile cert_id : 'HC2VLSQ5CW' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8120820Z [18:04:26]: Provisioning Profile cert_id : '7R3ZZL7FYP' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8121680Z [18:04:26]: Provisioning Profile cert_id : '9KJ48YCX25' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8122770Z [18:04:26]: Provisioning Profile cert_id : 'JNX7DUJ4N9' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8124250Z [18:04:26]: Provisioning Profile cert_id : '4W6HV6WB3U' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8125090Z [18:04:26]: Provisioning Profile cert_id : 'WHKBGND8KC' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8125970Z [18:04:26]: Provisioning Profile cert_id : 'YC6WZRX6RA' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8126820Z [18:04:26]: Provisioning Profile cert_id : 'DN3LUPP52M' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8127650Z [18:04:26]: Provisioning Profile cert_id : '8GSW9YNTWW' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8128460Z [18:04:26]: Provisioning Profile cert_id : '9NC365T4US' does not match given cert_id : 'Y369Z86SM5', skipping this one...
+2026-05-05T18:04:26.8129000Z [18:04:26]: Verifying certificates...
+2026-05-05T18:04:26.8130000Z [18:04:26]: [33mNo existing profiles found, that match the certificates you have installed locally! Creating a new provisioning profile for you[0m
+2026-05-05T18:04:27.6398850Z [18:04:27]: [31mThe name 'com.warrescue.appname AppStore' is already taken, using another one.[0m
+2026-05-05T18:04:27.9004780Z [18:04:27]: [33mCreating new provisioning profile for 'com.warrescue.appname' with name 'com.warrescue.appname AppStore 1778004267' for 'ios' platform[0m
+2026-05-05T18:04:28.8599520Z [18:04:28]: [33mDownloading provisioning profile...[0m
+2026-05-05T18:04:28.8603220Z [18:04:28]: [32mSuccessfully downloaded provisioning profile...[0m
+2026-05-05T18:04:28.9782700Z [18:04:28]: Installing provisioning profile...
+2026-05-05T18:04:29.1126220Z [32m/Users/runner/work/zijide/zijide/ios/App/AppStore_com.warrescue.appname.mobileprovision[0m
+2026-05-05T18:04:29.1141410Z [18:04:29]: Setting Provisioning Profile type to 'app-store'
+2026-05-05T18:04:29.1144940Z [18:04:29]: [32m------------------------------------------[0m
+2026-05-05T18:04:29.1146400Z [18:04:29]: [32m--- Step: update_code_signing_settings ---[0m
+2026-05-05T18:04:29.1147140Z [18:04:29]: [32m------------------------------------------[0m
+2026-05-05T18:04:29.1147530Z 
+2026-05-05T18:04:29.1148010Z +-------------------------------------------------------------------+
+2026-05-05T18:04:29.1150260Z |                 [32mSummary for code signing settings[0m                 |
+2026-05-05T18:04:29.1154060Z +-----------------------+-------------------------------------------+
+2026-05-05T18:04:29.1156650Z | use_automatic_signing | false                                     |
+2026-05-05T18:04:29.1158540Z | team_id               | ***                                |
+2026-05-05T18:04:29.1159310Z | path                  | App.xcodeproj                             |
+2026-05-05T18:04:29.1160060Z | code_sign_identity    | Apple Distribution                        |
+2026-05-05T18:04:29.1160860Z | profile_name          | com.warrescue.appname AppStore 1778004267 |
+2026-05-05T18:04:29.1161620Z | bundle_identifier     | com.warrescue.appname                     |
+2026-05-05T18:04:29.1185900Z | targets               | ["App"]                                   |
+2026-05-05T18:04:29.1187590Z +-----------------------+-------------------------------------------+
+2026-05-05T18:04:29.1188510Z 
+2026-05-05T18:04:29.1603780Z [18:04:29]: Updating the Automatic Codesigning flag to disabled for the given project '/Users/runner/work/zijide/zijide/ios/App/App.xcodeproj/project.pbxproj'
+2026-05-05T18:04:29.1607960Z [18:04:29]: [33mSet Team id to: *** for target: App for build configuration: Debug[0m
+2026-05-05T18:04:29.1610110Z [18:04:29]: [33mSet Code Sign identity to: Apple Distribution for target: App for build configuration: Debug[0m
+2026-05-05T18:04:29.1613570Z [18:04:29]: [33mSet Provisioning Profile name to: com.warrescue.appname AppStore 1778004267 for target: App for build configuration: Debug[0m
+2026-05-05T18:04:29.1617430Z [18:04:29]: [33mSet Bundle identifier to: com.warrescue.appname for target: App for build configuration: Debug[0m
+2026-05-05T18:04:29.1620190Z [18:04:29]: [33mSet Team id to: *** for target: App for build configuration: Release[0m
+2026-05-05T18:04:29.1622420Z [18:04:29]: [33mSet Code Sign identity to: Apple Distribution for target: App for build configuration: Release[0m
+2026-05-05T18:04:29.1625270Z [18:04:29]: [33mSet Provisioning Profile name to: com.warrescue.appname AppStore 1778004267 for target: App for build configuration: Release[0m
+2026-05-05T18:04:29.1627850Z [18:04:29]: [33mSet Bundle identifier to: com.warrescue.appname for target: App for build configuration: Release[0m
+2026-05-05T18:04:29.1951730Z [18:04:29]: [32mSuccessfully updated project settings to use Code Sign Style = 'Manual'[0m
+2026-05-05T18:04:29.1952390Z [18:04:29]: [32mModified Targets:[0m
+2026-05-05T18:04:29.1953170Z [18:04:29]: [32m	 * App[0m
+2026-05-05T18:04:29.1953670Z [18:04:29]: [32mModified Build Configurations:[0m
+2026-05-05T18:04:29.1954390Z [18:04:29]: [32m	 * Debug[0m
+2026-05-05T18:04:29.1967400Z [18:04:29]: [32m	 * Release[0m
+2026-05-05T18:04:29.2051650Z [18:04:29]: [32m--------------------------------------------[0m
+2026-05-05T18:04:29.2053890Z [18:04:29]: [32m--- Step: latest_testflight_build_number ---[0m
+2026-05-05T18:04:29.2056120Z [18:04:29]: [32m--------------------------------------------[0m
+2026-05-05T18:04:29.2057750Z [18:04:29]: Creating authorization token for App Store Connect API
+2026-05-05T18:04:29.2122810Z +-------------------------------------------------------------------------------------------------------------------+
+2026-05-05T18:04:29.2125630Z |                                                   [33mLane Context[0m                                                    |
+2026-05-05T18:04:29.2127310Z +---------------------+---------------------------------------------------------------------------------------------+
+2026-05-05T18:04:29.2128990Z | DEFAULT_PLATFORM    | ios                                                                                         |
+2026-05-05T18:04:29.2130610Z | PLATFORM_NAME       | ios                                                                                         |
+2026-05-05T18:04:29.2132260Z | LANE_NAME           | ios release                                                                                 |
+2026-05-05T18:04:29.2134110Z | CERT_FILE_PATH      | /Users/runner/work/zijide/zijide/ios/App/Y369Z86SM5.cer                                     |
+2026-05-05T18:04:29.2137170Z | CERT_CERTIFICATE_ID | Y369Z86SM5                                                                                  |
+2026-05-05T18:04:29.2139130Z | SIGH_PROFILE_PATH   | /Users/runner/work/zijide/zijide/ios/App/AppStore_com.warrescue.appname.mobileprovision     |
+2026-05-05T18:04:29.2141470Z | SIGH_PROFILE_PATHS  | ["/Users/runner/work/zijide/zijide/ios/App/AppStore_com.warrescue.appname.mobileprovision"] |
+2026-05-05T18:04:29.2144320Z | SIGH_UDID           | d88cfba9-b7c2-4dc7-9233-728b772bd62f                                                        |
+2026-05-05T18:04:29.2146440Z | SIGH_UUID           | d88cfba9-b7c2-4dc7-9233-728b772bd62f                                                        |
+2026-05-05T18:04:29.2148490Z | SIGH_NAME           | com.warrescue.appname AppStore 1778004267                                                   |
+2026-05-05T18:04:29.2150360Z | SIGH_PROFILE_TYPE   | app-store                                                                                   |
+2026-05-05T18:04:29.2152250Z +---------------------+---------------------------------------------------------------------------------------------+
+2026-05-05T18:04:29.2154140Z [18:04:29]: [31mCalled from Fastfile at line 90[0m
+2026-05-05T18:04:29.2155040Z [18:04:29]: [31m```[0m
+2026-05-05T18:04:29.2156460Z [18:04:29]: [31m    88:	    # Auto-increment build number to avoid upload conflicts[0m
+2026-05-05T18:04:29.2158220Z [18:04:29]: [31m    89:	    increment_build_number([0m
+2026-05-05T18:04:29.2161320Z [18:04:29]: [31m => 90:	      build_number: latest_testflight_build_number(api_key: api_key) + 1,[0m
+2026-05-05T18:04:29.2162980Z [18:04:29]: [31m    91:	      xcodeproj: "App.xcodeproj"[0m
+2026-05-05T18:04:29.2164100Z [18:04:29]: [31m    92:	    )[0m
+2026-05-05T18:04:29.2164930Z [18:04:29]: [31m```[0m
+2026-05-05T18:04:29.2165970Z [18:04:29]: [31mNo value found for 'app_identifier'[0m
+2026-05-05T18:04:29.2208270Z 
+2026-05-05T18:04:29.2222610Z +------------------------------------------------------------------------------------+
+2026-05-05T18:04:29.2223620Z |                                  [32mfastlane summary[0m                                  |
+2026-05-05T18:04:29.2224110Z [31m
+2026-05-05T18:04:29.2235400Z [!] No value found for 'app_identifier'[0m
+2026-05-05T18:04:29.2236920Z +------+---------------------------------------------------------------+-------------+
+2026-05-05T18:04:29.2238940Z | Step | Action                                                        | Time (in s) |
+2026-05-05T18:04:29.2240610Z +------+---------------------------------------------------------------+-------------+
+2026-05-05T18:04:29.2242180Z | 1    | default_platform                                              | 0           |
+2026-05-05T18:04:29.2243750Z | 2    | app_store_connect_api_key                                     | 0           |
+2026-05-05T18:04:29.2246200Z | 3    | Switch to ios revoke_orphaned_certs lane                      | 0           |
+2026-05-05T18:04:29.2248420Z | 4    | get_certificates                                              | 1           |
+2026-05-05T18:04:29.2250150Z | 5    | security set-key-partition-list -S apple-tool:,apple:,codesig | 0           |
+2026-05-05T18:04:29.2252710Z | 6    | security find-identity -v -p codesigning '/Users/runner/Libra | 0           |
+2026-05-05T18:04:29.2254430Z | 7    | get_provisioning_profile                                      | 3           |
+2026-05-05T18:04:29.2256050Z | 8    | update_code_signing_settings                                  | 0           |
+2026-05-05T18:04:29.2258230Z | 💥   | [31mlatest_testflight_build_number[0m                                | 0           |
+2026-05-05T18:04:29.2259910Z +------+---------------------------------------------------------------+-------------+
+2026-05-05T18:04:29.2260730Z 
+2026-05-05T18:04:29.2261580Z [18:04:29]: [31mfastlane finished with errors[0m
+2026-05-05T18:04:29.2430100Z ##[error]Process completed with exit code 1.

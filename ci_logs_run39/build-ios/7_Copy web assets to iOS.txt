@@ -1,0 +1,11 @@
+﻿2026-05-08T17:47:08.8200480Z ##[group]Run npx cap copy ios
+2026-05-08T17:47:08.8201360Z [36;1mnpx cap copy ios[0m
+2026-05-08T17:47:08.8270330Z shell: /bin/bash -e {0}
+2026-05-08T17:47:08.8270730Z env:
+2026-05-08T17:47:08.8271280Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:47:08.8271810Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:47:08.8272210Z   APPLE_TEAM_ID: ***
+2026-05-08T17:47:08.8272540Z ##[endgroup]
+2026-05-08T17:47:09.8822000Z ✔ Copying web assets from dist to ios/App/App/public in 6.02ms
+2026-05-08T17:47:09.8827830Z ✔ Creating capacitor.config.json in ios/App/App in 521.33μs
+2026-05-08T17:47:09.8939480Z ✔ copy ios in 48.98ms

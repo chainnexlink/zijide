@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/slate_950"
+    android:clipToPadding="false"
+    android:paddingBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_brand"
+                android:padding="10dp"
+                android:src="@android:drawable/ic_dialog_alert"
+                android:contentDescription="Logo" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/network_info"
+                    android:textColor="@color/slate_400"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvCurrentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/slate_400"
+                android:textSize="13sp" />
+
+            <ImageView
+                android:id="@+id/btnSettings"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="8dp"
+                android:src="@android:drawable/ic_menu_manage"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Settings" />
+        </LinearLayout>
+
+        <!-- Safe Status Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_safe_status"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_icon_green"
+                android:padding="10dp"
+                android:src="@android:drawable/ic_secure"
+                android:contentDescription="Safe" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/current_safe"
+                android:textColor="@color/green_400"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ai_monitoring"
+                android:textColor="@color/slate_400"
+                android:textSize="13sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Quick Action Grid -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <!-- Simulation Alert -->
+            <LinearLayout
+                android:id="@+id/btnSimulation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="16dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_icon_red"
+                    android:padding="12dp"
+                    android:src="@android:drawable/ic_dialog_alert"
+                    android:contentDescription="Simulation" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/simulation_alert"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/test_alert"
+                    android:textColor="@color/slate_500"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Escape Route -->
+            <LinearLayout
+                android:id="@+id/btnRoute"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="16dp"
+                android:layout_marginStart="6dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_icon_blue"
+                    android:padding="12dp"
+                    android:src="@android:drawable/ic_menu_mapmode"
+                    android:contentDescription="Route" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/escape_route"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/navigation"
+                    android:textColor="@color/slate_500"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="6dp">
+
+            <!-- Nearby Shelter -->
+            <LinearLayout
+                android:id="@+id/btnShelters"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="16dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_icon_green"
+                    android:padding="12dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    android:contentDescription="Shelters" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nearby_shelter"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:id="@+id/tvShelterCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/available"
+                    android:textColor="@color/slate_500"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- AI Monitor -->
+            <LinearLayout
+                android:id="@+id/btnAIMonitor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="16dp"
+                android:layout_marginStart="6dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_icon_amber"
+                    android:padding="12dp"
+                    android:src="@android:drawable/ic_menu_compass"
+                    android:contentDescription="AI Monitor" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ai_monitor"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/active"
+                    android:textColor="@color/slate_500"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- City Alert Trigger Entry (同城预警触发入口) -->
+        <LinearLayout
+            android:id="@+id/cityAlertCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@color/orange_500" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/city_alert"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp" />
+
+                <TextView
+                    android:id="@+id/tvCityAlertStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/green_400"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/city_alert_trigger_desc"
+                android:textColor="@color/slate_400"
+                android:textSize="12sp"
+                android:layout_marginTop="6dp" />
+
+            <!-- Trigger Button -->
+            <TextView
+                android:id="@+id/btnCityAlertTrigger"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/city_alert_long_press"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/bg_trigger_button"
+                android:padding="14dp"
+                android:layout_marginTop="12dp" />
+
+            <!-- Progress bar for trigger countdown -->
+            <ProgressBar
+                android:id="@+id/pbTriggerProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:max="100"
+                android:progress="0"
+                android:visibility="gone"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvCityAlertHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/city_alert_trigger_hint"
+                android:textColor="@color/slate_500"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Announcements Card (公告栏) -->
+        <LinearLayout
+            android:id="@+id/announcementCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@color/amber_400" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/announcements"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp" />
+
+                <TextView
+                    android:id="@+id/btnViewAnnouncements"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/view_all"
+                    android:textColor="@color/blue_400"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Announcement items container -->
+            <LinearLayout
+                android:id="@+id/announcementList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp" />
+
+            <!-- Empty state -->
+            <TextView
+                android:id="@+id/tvNoAnnouncements"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/no_announcements"
+                android:textColor="@color/slate_500"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Family Status Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/family_status"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:drawableStart="@android:drawable/ic_menu_myplaces"
+                    android:drawablePadding="8dp" />
+
+                <TextView
+                    android:id="@+id/btnViewFamily"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/view_all"
+                    android:textColor="@color/blue_400"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFamilyMembers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

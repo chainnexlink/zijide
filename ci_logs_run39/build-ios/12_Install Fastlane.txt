@@ -1,0 +1,122 @@
+﻿2026-05-08T17:47:13.1911350Z ##[group]Run gem install fastlane
+2026-05-08T17:47:13.1911660Z [36;1mgem install fastlane[0m
+2026-05-08T17:47:13.1958170Z shell: /bin/bash -e {0}
+2026-05-08T17:47:13.1958440Z env:
+2026-05-08T17:47:13.1958740Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:47:13.1959080Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:47:13.1959350Z   APPLE_TEAM_ID: ***
+2026-05-08T17:47:13.1960960Z   PATH: /Users/runner/hostedtoolcache/node/22.22.2/arm64/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+2026-05-08T17:47:13.1962720Z ##[endgroup]
+2026-05-08T17:47:16.4660950Z Successfully installed rouge-3.28.0
+2026-05-08T17:47:16.4662140Z Successfully installed xcpretty-0.4.1
+2026-05-08T17:47:16.4662770Z Successfully installed xcpretty-travis-formatter-1.0.1
+2026-05-08T17:47:16.4663380Z Successfully installed nanaimo-0.4.0
+2026-05-08T17:47:16.4663850Z Successfully installed colored2-3.1.2
+2026-05-08T17:47:16.4664690Z Successfully installed claide-1.1.0
+2026-05-08T17:47:16.4665320Z Successfully installed CFPropertyList-3.0.8
+2026-05-08T17:47:16.4665960Z Successfully installed atomos-0.1.3
+2026-05-08T17:47:16.4666340Z Successfully installed xcodeproj-1.27.0
+2026-05-08T17:47:16.4666780Z Successfully installed word_wrap-1.0.0
+2026-05-08T17:47:16.4667230Z Successfully installed tty-cursor-0.7.1
+2026-05-08T17:47:16.4667670Z Successfully installed tty-spinner-0.9.3
+2026-05-08T17:47:16.4668060Z Successfully installed tty-screen-0.8.2
+2026-05-08T17:47:16.4668530Z Successfully installed unicode-display_width-2.6.0
+2026-05-08T17:47:16.4669010Z Successfully installed terminal-table-3.0.2
+2026-05-08T17:47:16.4669540Z Successfully installed terminal-notifier-2.0.0
+2026-05-08T17:47:16.4669940Z Successfully installed naturally-2.3.0
+2026-05-08T17:47:16.4670410Z Successfully installed simctl-1.6.10
+2026-05-08T17:47:16.4670840Z Successfully installed security-0.1.5
+2026-05-08T17:47:16.4671260Z RubyZip 3.0 is coming!
+2026-05-08T17:47:16.4671530Z **********************
+2026-05-08T17:47:16.4671720Z 
+2026-05-08T17:47:16.4672050Z The public API of some Rubyzip classes has been modernized to use named
+2026-05-08T17:47:16.4672690Z parameters for optional arguments. Please check your usage of the
+2026-05-08T17:47:16.4673160Z following classes:
+2026-05-08T17:47:16.4673520Z   * `Zip::File`
+2026-05-08T17:47:16.4673830Z   * `Zip::Entry`
+2026-05-08T17:47:16.4674180Z   * `Zip::InputStream`
+2026-05-08T17:47:16.4674520Z   * `Zip::OutputStream`
+2026-05-08T17:47:16.4674800Z   * `Zip::DOSTime`
+2026-05-08T17:47:16.4674990Z 
+2026-05-08T17:47:16.4675290Z Run your test suite with the `RUBYZIP_V3_API_WARN` environment
+2026-05-08T17:47:16.4676420Z variable set to see warnings about usage of the old API. This will
+2026-05-08T17:47:16.4677070Z help you to identify any changes that you need to make to your code.
+2026-05-08T17:47:16.4677680Z See https://github.com/rubyzip/rubyzip/wiki/Updating-to-version-3.x for
+2026-05-08T17:47:16.4678160Z more information.
+2026-05-08T17:47:16.4678340Z 
+2026-05-08T17:47:16.4678660Z Please ensure that your Gemfiles and .gemspecs are suitably restrictive
+2026-05-08T17:47:16.4679310Z to avoid an unexpected breakage when 3.0 is released (e.g. ~> 2.3.0).
+2026-05-08T17:47:16.4679920Z See https://github.com/rubyzip/rubyzip for details. The Changelog also
+2026-05-08T17:47:16.4680600Z lists other enhancements and bugfixes that have been implemented since
+2026-05-08T17:47:16.4681070Z version 2.3.0.
+2026-05-08T17:47:16.4681450Z Successfully installed rubyzip-2.4.1
+2026-05-08T17:47:16.4681830Z Successfully installed plist-3.7.2
+2026-05-08T17:47:16.4682360Z Building native extensions. This could take a while...
+2026-05-08T17:47:19.8868630Z Successfully installed nkf-0.2.0
+2026-05-08T17:47:19.8870520Z Successfully installed mutex_m-0.3.0
+2026-05-08T17:47:19.8870940Z Successfully installed multipart-post-2.4.1
+2026-05-08T17:47:19.8871480Z Successfully installed mini_magick-4.13.2
+2026-05-08T17:47:19.8871950Z Successfully installed logger-1.7.0
+2026-05-08T17:47:19.8872420Z Successfully installed base64-0.2.0
+2026-05-08T17:47:19.8872810Z Successfully installed jwt-2.10.2
+2026-05-08T17:47:19.8873270Z Successfully installed domain_name-0.6.20240107
+2026-05-08T17:47:19.8873720Z Successfully installed http-cookie-1.0.8
+2026-05-08T17:47:19.8874190Z Successfully installed highline-2.0.3
+2026-05-08T17:47:19.8874600Z Successfully installed mini_mime-1.1.5
+2026-05-08T17:47:19.8875040Z Successfully installed google-cloud-errors-1.6.0
+2026-05-08T17:47:19.8875560Z Successfully installed faraday-retry-1.0.4
+2026-05-08T17:47:19.8875990Z Successfully installed faraday-rack-1.0.0
+2026-05-08T17:47:19.8876400Z Successfully installed faraday-patron-1.0.0
+2026-05-08T17:47:19.8876990Z Successfully installed faraday-net_http_persistent-1.2.0
+2026-05-08T17:47:19.8877560Z Successfully installed faraday-net_http-1.0.2
+2026-05-08T17:47:19.8878070Z Successfully installed faraday-multipart-1.2.0
+2026-05-08T17:47:19.8878490Z Successfully installed faraday-httpclient-1.0.1
+2026-05-08T17:47:19.8879020Z Successfully installed faraday-excon-1.1.0
+2026-05-08T17:47:19.8879540Z Successfully installed faraday-em_synchrony-1.0.1
+2026-05-08T17:47:19.8880030Z Successfully installed faraday-em_http-1.0.0
+2026-05-08T17:47:19.8880420Z Successfully installed faraday-1.10.5
+2026-05-08T17:47:19.8881570Z Successfully installed google-cloud-env-2.1.1
+2026-05-08T17:47:19.8882060Z Successfully installed google-cloud-core-1.8.0
+2026-05-08T17:47:19.8882430Z Successfully installed multi_json-1.21.1
+2026-05-08T17:47:19.8882900Z Successfully installed public_suffix-7.0.5
+2026-05-08T17:47:19.8883340Z Successfully installed addressable-2.9.0
+2026-05-08T17:47:19.8883800Z Successfully installed signet-0.21.0
+2026-05-08T17:47:19.8884200Z Successfully installed os-1.1.4
+2026-05-08T17:47:19.8884700Z Successfully installed googleauth-1.11.2
+2026-05-08T17:47:19.8885160Z Successfully installed retriable-3.4.1
+2026-05-08T17:47:19.8885650Z Successfully installed uber-0.1.0
+2026-05-08T17:47:19.8886100Z Successfully installed trailblazer-option-0.1.2
+2026-05-08T17:47:19.8886570Z Successfully installed declarative-0.0.20
+2026-05-08T17:47:19.8886960Z Successfully installed representable-3.2.0
+2026-05-08T17:47:19.8887420Z Successfully installed httpclient-2.9.0
+2026-05-08T17:47:19.8887890Z Successfully installed google-apis-core-0.18.0
+2026-05-08T17:47:19.8888470Z Successfully installed google-apis-storage_v1-0.62.0
+2026-05-08T17:47:19.8888990Z Successfully installed google-apis-iamcredentials_v1-0.27.0
+2026-05-08T17:47:19.8889550Z Building native extensions. This could take a while...
+2026-05-08T17:47:35.5373850Z Successfully installed digest-crc-0.7.0
+2026-05-08T17:47:35.5381070Z Successfully installed google-cloud-storage-1.59.0
+2026-05-08T17:47:35.5386210Z Successfully installed google-apis-playcustomapp_v1-0.17.0
+2026-05-08T17:47:35.5386870Z Successfully installed google-apis-androidpublisher_v3-0.99.0
+2026-05-08T17:47:35.5389530Z Successfully installed gh_inspector-1.1.3
+2026-05-08T17:47:35.5391810Z Successfully installed fastlane-sirp-1.1.0
+2026-05-08T17:47:35.5394800Z Successfully installed fastimage-2.4.1
+2026-05-08T17:47:35.5397810Z Successfully installed faraday_middleware-1.2.1
+2026-05-08T17:47:35.5398870Z Successfully installed faraday-cookie_jar-0.0.8
+2026-05-08T17:47:35.5400270Z Successfully installed excon-0.112.0
+2026-05-08T17:47:35.5402880Z Successfully installed emoji_regex-3.2.3
+2026-05-08T17:47:35.5403430Z Successfully installed dotenv-2.8.1
+2026-05-08T17:47:35.5408380Z Successfully installed csv-3.3.5
+2026-05-08T17:47:35.5409180Z Successfully installed commander-4.6.0
+2026-05-08T17:47:35.5411570Z Successfully installed colored-1.2
+2026-05-08T17:47:35.5412160Z Successfully installed babosa-1.0.4
+2026-05-08T17:47:35.5413240Z Successfully installed aws-eventstream-1.4.0
+2026-05-08T17:47:35.5417020Z Successfully installed aws-sigv4-1.12.1
+2026-05-08T17:47:35.5417550Z Successfully installed jmespath-1.6.2
+2026-05-08T17:47:35.5420300Z Successfully installed aws-partitions-1.1246.0
+2026-05-08T17:47:35.5422250Z Successfully installed aws-sdk-core-3.246.0
+2026-05-08T17:47:35.5422940Z Successfully installed aws-sdk-kms-1.124.0
+2026-05-08T17:47:35.5424220Z Successfully installed aws-sdk-s3-1.221.0
+2026-05-08T17:47:35.5425830Z Successfully installed artifactory-3.0.17
+2026-05-08T17:47:35.5426260Z Successfully installed abbrev-0.1.2
+2026-05-08T17:47:35.5426690Z Successfully installed fastlane-2.233.1
+2026-05-08T17:47:35.5428100Z 87 gems installed

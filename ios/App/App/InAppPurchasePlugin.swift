@@ -31,20 +31,7 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task { @MainActor in
             do {
-                var storeProducts: [Product] = []
-                let requestedIds = Set(productIds)
-
-                // Retry up to 3 times with delay - sandbox/review environment may need time to sync
-                for attempt in 1...3 {
-                    storeProducts = try await Product.products(for: requestedIds)
-                    if !storeProducts.isEmpty {
-                        break
-                    }
-                    if attempt < 3 {
-                        try await Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000)
-                    }
-                }
-
+                let storeProducts = try await Product.products(for: Set(productIds))
                 var productList: [[String: Any]] = []
 
                 for product in storeProducts {
@@ -59,11 +46,7 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                     productList.append(productInfo)
                 }
 
-                call.resolve([
-                    "products": productList,
-                    "requestedCount": productIds.count,
-                    "returnedCount": storeProducts.count,
-                ])
+                call.resolve(["products": productList])
             } catch {
                 call.reject("Failed to fetch products: \(error.localizedDescription)")
             }
@@ -81,22 +64,11 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                 let product: Product
                 if let cached = self.products[productId] {
                     product = cached
+                } else if let fetched = try? await Product.products(for: [productId]).first {
+                    product = fetched
                 } else {
-                    // Retry fetching the specific product with delay
-                    var fetched: Product? = nil
-                    for attempt in 1...3 {
-                        fetched = try? await Product.products(for: [productId]).first
-                        if fetched != nil { break }
-                        if attempt < 3 {
-                            try await Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000)
-                        }
-                    }
-                    guard let foundProduct = fetched else {
-                        call.reject("Product not found: \(productId). Please ensure the product is configured in App Store Connect and try again.")
-                        return
-                    }
-                    product = foundProduct
-                    self.products[productId] = product
+                    call.reject("Product not found: \(productId)")
+                    return
                 }
 
                 let result = try await product.purchase()

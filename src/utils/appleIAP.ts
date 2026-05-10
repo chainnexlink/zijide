@@ -1,14 +1,14 @@
 /**
  * Apple IAP Bridge - 连接 Web 前端和 iOS 原生 StoreKit
  *
- * 在 Capacitor iOS 环境中，通过原生 InAppPurchasePlugin 桥接
- * 与 StoreKit 2 通信。在非 iOS 环境中，所有方法返回不可用状态。
+ * 在 Capacitor iOS 环境中，通过 @capgo/capacitor-purchases 或原生桥接
+ * 与 StoreKit 通信。在非 iOS 环境中，所有方法返回不可用状态。
  */
 
 // Apple 内购产品 ID，必须和 App Store Connect 中配置一致
 export const APPLE_PRODUCT_IDS = {
-  personal_monthly: 'com.warrescue.personal.monthly.v1',
-  family_monthly: 'com.warrescue.family.monthly.v3',
+  personal_monthly: 'com.warrescue.personal.monthly',
+  family_monthly: 'com.warrescue.family.monthly',
 } as const;
 
 export const PLAN_TO_PRODUCT: Record<string, string> = {
@@ -47,34 +47,20 @@ export function isIOSDevice(): boolean {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
-// 插件单例 - 在模块加载时注册一次，之后所有函数复用同一实例
-let _iapPlugin: any = null;
-let _pluginInitAttempted = false;
-
+// 获取 Capacitor IAP 插件实例
 function getIAPPlugin(): any {
-  if (_iapPlugin) return _iapPlugin;
-  if (_pluginInitAttempted) return _iapPlugin; // avoid retrying on failure
-
-  _pluginInitAttempted = true;
-
   const cap = (window as any).Capacitor;
   if (!cap) return null;
 
-  // Method 1: Direct access (auto-registered via CAPBridgedPlugin)
-  if (cap.Plugins?.InAppPurchase) {
-    _iapPlugin = cap.Plugins.InAppPurchase;
-    return _iapPlugin;
-  }
-  if (cap.Plugins?.InAppPurchasePlugin) {
-    _iapPlugin = cap.Plugins.InAppPurchasePlugin;
-    return _iapPlugin;
-  }
+  // Try direct access first (Capacitor auto-registers CAPBridgedPlugin)
+  if (cap.Plugins?.InAppPurchase) return cap.Plugins.InAppPurchase;
+  if (cap.Plugins?.InAppPurchasePlugin) return cap.Plugins.InAppPurchasePlugin;
 
-  // Method 2: registerPlugin (Capacitor 8 way) - must only be called ONCE
+  // Try registerPlugin (Capacitor 8 way for local plugins)
   try {
     if (cap.registerPlugin) {
-      _iapPlugin = cap.registerPlugin('InAppPurchase');
-      return _iapPlugin;
+      const plugin = cap.registerPlugin('InAppPurchase');
+      return plugin;
     }
   } catch (e) {
     console.warn('Failed to register InAppPurchase plugin:', e);
@@ -96,7 +82,7 @@ export async function initializeIAP(): Promise<boolean> {
   }
 
   try {
-    await plugin.initialize();
+    await plugin.initialize?.();
     return true;
   } catch (e) {
     console.error('IAP initialization failed:', e);
@@ -180,7 +166,7 @@ export async function getReceiptData(): Promise<string | undefined> {
   if (!plugin) return undefined;
 
   try {
-    const result = await plugin.getReceipt();
+    const result = await plugin.getReceipt?.();
     return result?.receiptData || result?.receipt;
   } catch (e) {
     console.error('Failed to get receipt:', e);
@@ -224,7 +210,7 @@ export async function finishTransaction(transactionId: string): Promise<void> {
   if (!plugin) return;
 
   try {
-    await plugin.finishTransaction({ transactionId });
+    await plugin.finishTransaction?.({ transactionId });
   } catch (e) {
     console.error('Failed to finish transaction:', e);
   }

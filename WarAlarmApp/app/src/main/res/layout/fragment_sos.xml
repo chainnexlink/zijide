@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/slate_950"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sos_emergency"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sos_long_press"
+            android:textColor="@color/slate_400"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
+
+        <!-- SOS Button Area -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="24dp">
+
+            <!-- Outer pulse ring -->
+            <View
+                android:id="@+id/pulseRing"
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_sos_ring"
+                android:alpha="0.3" />
+
+            <!-- Main SOS Button -->
+            <FrameLayout
+                android:id="@+id/sosButton"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_sos_main"
+                android:elevation="8dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/sosText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SOS"
+                        android:textColor="@color/white"
+                        android:textSize="42sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/sosHint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sos_hold_trigger"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+            </FrameLayout>
+        </FrameLayout>
+
+        <!-- Status Card -->
+        <LinearLayout
+            android:id="@+id/statusCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/statusTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sos_sent"
+                android:textColor="@color/red_500"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/statusDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sos_notifying"
+                android:textColor="@color/slate_300"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:id="@+id/statusTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/sos_send_time_default"
+                    android:textColor="@color/slate_400"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/btnCancelSos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_cancel"
+                    android:textColor="@color/amber_500"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:padding="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Info Cards -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sos_actions_trigger"
+            android:textColor="@color/slate_400"
+            android:textSize="13sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Action 1: Notify Family -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:padding="14dp"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_red">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_dialog_alert"
+                    android:tint="@color/red_500" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_family"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_family_desc"
+                    android:textColor="@color/slate_400"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Action 2: Share Location -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:padding="14dp"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_blue">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    android:tint="@color/blue_400" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_location"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_location_desc"
+                    android:textColor="@color/slate_400"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Action 3: Nearby Rescue -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:padding="14dp"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_green">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_menu_compass"
+                    android:tint="@color/green_400" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_rescue"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_rescue_desc"
+                    android:textColor="@color/slate_400"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Action 4: Record -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:padding="14dp"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_amber">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    android:tint="@color/amber_400" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_record"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_action_record_desc"
+                    android:textColor="@color/slate_400"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

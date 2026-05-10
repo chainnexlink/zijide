@@ -1,0 +1,26 @@
+﻿2026-05-08T17:46:29.7509710Z ##[group]Run npm ci
+2026-05-08T17:46:29.7510040Z [36;1mnpm ci[0m
+2026-05-08T17:46:29.7547770Z shell: /bin/bash -e {0}
+2026-05-08T17:46:29.7548050Z env:
+2026-05-08T17:46:29.7548420Z   APP_STORE_CONNECT_API_KEY_ID: ***
+2026-05-08T17:46:29.7548850Z   APP_STORE_CONNECT_API_ISSUER_ID: ***
+2026-05-08T17:46:29.7549160Z   APPLE_TEAM_ID: ***
+2026-05-08T17:46:29.7549430Z ##[endgroup]
+2026-05-08T17:46:31.7912260Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-05-08T17:46:31.8938760Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-05-08T17:46:31.9817790Z npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+2026-05-08T17:46:48.1120770Z 
+2026-05-08T17:46:48.1131460Z added 751 packages, and audited 752 packages in 18s
+2026-05-08T17:46:48.1140480Z 
+2026-05-08T17:46:48.1142130Z 103 packages are looking for funding
+2026-05-08T17:46:48.1154230Z   run `npm fund` for details
+2026-05-08T17:46:48.1156510Z 
+2026-05-08T17:46:48.1159060Z 2 vulnerabilities (1 moderate, 1 high)
+2026-05-08T17:46:48.1159670Z 
+2026-05-08T17:46:48.1392400Z To address issues that do not require attention, run:
+2026-05-08T17:46:48.1393240Z   npm audit fix
+2026-05-08T17:46:48.1393370Z 
+2026-05-08T17:46:48.1393640Z To address all issues (including breaking changes), run:
+2026-05-08T17:46:48.1393970Z   npm audit fix --force
+2026-05-08T17:46:48.1394210Z 
+2026-05-08T17:46:48.1394320Z Run `npm audit` for details.

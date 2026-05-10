@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WarRescue</string>
+    <string name="slogan">In war zones, every second matters</string>
+
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="demo_login">Try Demo</string>
+    <string name="phone">Phone</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="verification_code">Verification Code</string>
+    <string name="get_code">Get Code</string>
+    <string name="invite_code">Invite Code</string>
+    <string name="optional">Optional</string>
+    <string name="agree_terms">I agree to the Terms of Service</string>
+    <string name="guest_login">Guest Login (7-day trial)</string>
+    <string name="fill_required">Please fill in all required fields</string>
+    <string name="code_sent_demo">Verification code sent (Demo)</string>
+
+    <!-- Nav -->
+    <string name="home">Home</string>
+    <string name="map_nav">Map</string>
+    <string name="family">Family</string>
+    <string name="settings">Settings</string>
+    <string name="sos">SOS</string>
+
+    <!-- Dashboard -->
+    <string name="current_safe">Currently Safe</string>
+    <string name="ai_monitoring">AI monitoring active · No threats</string>
+    <string name="ai_monitoring_threat">AI monitoring active · Threat detected</string>
+    <string name="simulation_alert">Drill</string>
+    <string name="test_alert">Test Alert</string>
+    <string name="escape_route">Escape Route</string>
+    <string name="navigation">Navigate</string>
+    <string name="nearby_shelter">Shelters</string>
+    <string name="available">available</string>
+    <string name="ai_monitor">AI Monitor</string>
+    <string name="active">Active</string>
+    <string name="family_status">Family Status</string>
+    <string name="view_all">View All</string>
+
+    <!-- Announcements -->
+    <string name="announcements">Platform Announcements</string>
+    <string name="no_announcements">No announcements</string>
+    <string name="announcement_reward">Points Reward</string>
+    <string name="announcement_subscription">Subscription</string>
+    <string name="announcement_system">System Notice</string>
+
+    <!-- Announcement Pages -->
+    <string name="announcement_all">All</string>
+    <string name="announcement_detail">Announcement Detail</string>
+    <string name="announcement_content_label">Details</string>
+    <string name="announcement_type_label">Type</string>
+    <string name="announcement_published_at">Published</string>
+    <string name="announcement_source">Source</string>
+    <string name="announcement_official">Official</string>
+    <string name="announcement_just_now">Just now</string>
+    <string name="announcement_minutes_ago">min ago</string>
+    <string name="announcement_hours_ago">hours ago</string>
+    <string name="announcement_days_ago">days ago</string>
+
+    <!-- Demo Announcements -->
+    <string name="demo_announce_1_title">Congrats to 3 users for city alert points reward</string>
+    <string name="demo_announce_1_content">Users Alex, Maria, and John were among the first to confirm the Kyiv city alert, earning 100, 80, and 80 points respectively. Thank you for contributing to community safety!</string>
+    <string name="demo_announce_2_title">Pro Subscription Plan Upgraded</string>
+    <string name="demo_announce_2_content">Pro members now get multi-city alert push, priority shelter navigation, family group up to 10 members. 50% off for the first month!</string>
+    <string name="demo_announce_3_title">Platform Points Rules Updated</string>
+    <string name="demo_announce_3_content">City alert trigger points reward rules updated: top 10 triggering users earn points. 1st place: 100pts, 2nd-3rd: 80pts, 4th-5th: 60pts, 6th-10th: 50pts</string>
+
+    <string name="alerts">Alerts</string>
+    <string name="no_data">No data</string>
+    <string name="network_info">5G · 85%</string>
+
+    <!-- City Alert -->
+    <string name="city_alert">City Alert</string>
+    <string name="city_alert_desc">Real-time crowdsourced city alerts</string>
+    <string name="city_alert_detail">City Alert Detail</string>
+    <string name="city_alert_trigger">%d users confirmed in 5 min</string>
+    <string name="city_alert_active">Alert Active</string>
+    <string name="city_alert_pending">Awaiting more confirmations</string>
+    <string name="city_alert_resolved">Resolved</string>
+    <string name="city_alert_respond">I Confirm</string>
+    <string name="city_alert_responded">Confirmed</string>
+    <string name="city_alert_users">Responding Users</string>
+    <string name="city_alert_timeline">Event Timeline</string>
+    <string name="city_alert_source_ai">AI Monitor Triggered</string>
+    <string name="city_alert_source_user">City Users Triggered</string>
+    <string name="city_alert_parallel">AI Monitor + City Crowdsource parallel alerts</string>
+    <string name="city_alert_count">%d city alerts</string>
+    <string name="user_responded">%d responded</string>
+    <string name="within_5min">Within 5 min</string>
+    <string name="trigger_condition">Trigger: 3 city users confirm within 5 minutes</string>
+    <string name="city_alert_trigger_desc">Fast trigger mechanism parallel to AI monitoring</string>
+    <string name="city_alert_long_press">Hold 3 seconds to trigger alert</string>
+    <string name="city_alert_trigger_hint">Full alert &amp; rescue response activates when 3\u20135 nearby users trigger</string>
+    <string name="city_alert_nearby_count">%d users nearby have triggered</string>
+    <string name="city_alert_triggering">Triggering\u2026</string>
+    <string name="city_alert_triggered_success">Alert triggered! Nearby users notified</string>
+    <string name="city_alert_hold_to_trigger">Keep holding until complete</string>
+    <string name="city_alert_mechanism_title">City Alert Trigger Mechanism</string>
+    <string name="city_alert_mechanism_desc">City Alert is a fast trigger mechanism that runs parallel to AI monitoring. When 3\u20135 users in the same city trigger an alert, the system automatically activates the same response pipeline as AI alerts, with rescue logic triggered simultaneously.</string>
+    <string name="city_alert_advantage_title">Why is City Alert faster?</string>
+    <string name="city_alert_advantage">City Alert can respond faster than AI monitoring because AI monitoring needs to crawl and analyze government data, while City Alert is triggered directly by users.</string>
+    <string name="city_alert_no_active">No active triggers nearby</string>
+    <string name="city_alert_threshold_info">%1$d\u2013%2$d nearby users needed to activate full alert</string>
+    <string name="city_alert_nearby_status">Nearby Trigger Status</string>
+    <string name="city_alert_trigger_instruction">When you sense danger, hold the button below for 3 seconds to send a city alert</string>
+    <string name="city_alert_how_it_works">How It Works</string>
+    <string name="city_alert_step1">User senses danger and holds for 3 seconds to trigger city alert</string>
+    <string name="city_alert_step2">System collects city-wide trigger signals; threshold reached at 3\u20135 triggers</string>
+    <string name="city_alert_step3">Once threshold is met, full response pipeline identical to AI alerts activates</string>
+    <string name="city_alert_step4">Rescue logic triggers simultaneously, following the original response timeline</string>
+
+    <!-- Alert Types -->
+    <string name="air_strike">Air Strike</string>
+    <string name="artillery">Artillery</string>
+    <string name="conflict">Conflict</string>
+    <string name="curfew">Curfew</string>
+    <string name="chemical">Chemical</string>
+    <string name="other">Other</string>
+
+    <!-- Alert Severity -->
+    <string name="severity_red">Red</string>
+    <string name="severity_orange">Orange</string>
+    <string name="severity_yellow">Yellow</string>
+    <string name="severity_all">All</string>
+
+    <!-- Shelter -->
+    <string name="shelters">Shelters</string>
+    <string name="shelter_detail">Shelter Detail</string>
+    <string name="shelter_list">Shelter List</string>
+    <string name="capacity">Capacity</string>
+    <string name="capacity_label">Capacity: </string>
+    <string name="distance">Distance</string>
+    <string name="distance_label">Distance: </string>
+    <string name="status_open">Open</string>
+    <string name="status_full">Full</string>
+    <string name="status_closed">Closed</string>
+    <string name="navigate_to">Navigate</string>
+    <string name="navigate_to_shelter">Navigate to Shelter</string>
+    <string name="start_navigate">Start Navigation</string>
+    <string name="shelter_type">Shelter Type</string>
+    <string name="shelter_underground">Underground</string>
+    <string name="shelter_bunker">Bunker</string>
+    <string name="shelter_building">Building</string>
+    <string name="current_occupancy">Current Occupancy</string>
+    <string name="shelter_address">Address</string>
+    <string name="shelter_facilities">Facilities</string>
+    <string name="shelter_water">Drinking Water</string>
+    <string name="shelter_power">Emergency Power</string>
+    <string name="shelter_medical">Medical Kit</string>
+    <string name="shelter_ventilation">Ventilation</string>
+    <string name="shelter_communication">Communication</string>
+
+    <!-- Settings -->
+    <string name="account">Account</string>
+    <string name="profile">Profile</string>
+    <string name="profile_desc">Edit avatar, nickname and info</string>
+    <string name="security">Security</string>
+    <string name="security_desc">Password, phone and email</string>
+    <string name="subscription">Subscription</string>
+    <string name="subscription_desc">Manage your plan</string>
+    <string name="preferences">Preferences</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_desc">Push, sound, vibration</string>
+    <string name="alert_settings">Alert Settings</string>
+    <string name="alert_settings_desc">Range, alert types</string>
+    <string name="map_settings">Map Settings</string>
+    <string name="map_settings_desc">Map type, offline maps</string>
+    <string name="storage">Storage</string>
+    <string name="storage_desc">Clear cache, manage space</string>
+    <string name="features">Features</string>
+    <string name="emergency_profile">Emergency Medical</string>
+    <string name="emergency_profile_desc">Blood type, allergies, contacts</string>
+    <string name="family_group">Family Group</string>
+    <string name="family_group_desc">Manage members and permissions</string>
+    <string name="mutual_aid">1km Mutual Aid</string>
+    <string name="mutual_aid_desc">Subscribe to nearby SOS alerts</string>
+    <string name="about">About</string>
+    <string name="help">Help Center</string>
+    <string name="terms">Terms of Service</string>
+    <string name="about_app">About App</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="language">Language</string>
+    <string name="language_current">English</string>
+    <string name="change">Change</string>
+    <string name="logout">Logout</string>
+    <string name="confirm_logout">Confirm Logout</string>
+    <string name="logout_desc">You will need to log in again</string>
+    <string name="pro_member">Pro Member</string>
+    <string name="select_language">Select Language</string>
+
+    <!-- Profile -->
+    <string name="nickname">Nickname</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="city">City</string>
+    <string name="emergency_contact">Emergency Contact</string>
+    <string name="contact_name">Contact Name</string>
+    <string name="contact_phone">Contact Phone</string>
+    <string name="save_success">Saved successfully</string>
+
+    <!-- Emergency Profile -->
+    <string name="basic_info">Basic Info</string>
+    <string name="blood_type">Blood Type</string>
+    <string name="age">Age</string>
+    <string name="height_cm">Height (cm)</string>
+    <string name="weight_kg">Weight (kg)</string>
+    <string name="allergy_history">Allergy History</string>
+    <string name="drug_allergy">Drug Allergy</string>
+    <string name="food_allergy">Food Allergy</string>
+    <string name="chronic_disease">Chronic Disease</string>
+    <string name="medical_history">Medical History</string>
+    <string name="current_medication">Current Medication</string>
+    <string name="none">None</string>
+
+    <!-- Subscription -->
+    <string name="current_plan">Current Plan</string>
+    <string name="plan_free">Free</string>
+    <string name="plan_pro">Pro</string>
+    <string name="plan_family">Family</string>
+    <string name="plan_expire">Valid until %1$s · %2$d days left</string>
+    <string name="subscription_plans">Plans</string>
+    <string name="current">Current</string>
+    <string name="above_current">Your current plan</string>
+    <string name="upgrade">Upgrade</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="per_month">/month</string>
+
+    <!-- SOS -->
+    <string name="sos_emergency">SOS Emergency</string>
+    <string name="sos_long_press">Long press below to send emergency signal</string>
+    <string name="sos_hold_trigger">Hold 3s to trigger</string>
+    <string name="sos_activated">SOS Activated</string>
+    <string name="sos_sending">Sending emergency signal…</string>
+    <string name="sos_cancel">Cancel SOS</string>
+    <string name="sos_cancel_confirm">Cancel SOS emergency?</string>
+    <string name="sos_action_family">Notify All Family</string>
+    <string name="sos_action_family_desc">Push notification + SMS alert</string>
+    <string name="sos_action_location">Share Live Location</string>
+    <string name="sos_action_location_desc">Share GPS coordinates with family</string>
+    <string name="sos_action_rescue">Contact Nearby Rescue</string>
+    <string name="sos_action_rescue_desc">Send help request within 1km</string>
+    <string name="sos_action_record">Auto Record Evidence</string>
+    <string name="sos_action_record_desc">Record audio, save to cloud</string>
+    <string name="sos_sent">SOS Sent</string>
+    <string name="sos_notifying">Notifying family and nearby rescue teams…</string>
+    <string name="sos_send_time_default">Send time: --</string>
+    <string name="sos_actions_trigger">Help request will trigger the following actions</string>
+    <string name="sos_history">SOS History</string>
+    <string name="sos_history_detail">SOS Detail</string>
+    <string name="sos_total">Total</string>
+    <string name="sos_alert_trigger">Alert Triggered</string>
+    <string name="sos_manual_trigger">Manual Trigger</string>
+    <string name="sos_resolved">Resolved</string>
+
+    <!-- Simulation -->
+    <string name="simulation_drill">Alert Drill</string>
+    <string name="select_scenario">Select Scenario</string>
+    <string name="start_simulation">Start Drill</string>
+    <string name="air_strike_sim">Air Strike Drill</string>
+    <string name="air_strike_sim_desc">Simulate air strike alert and escape route</string>
+    <string name="artillery_sim">Artillery Drill</string>
+    <string name="artillery_sim_desc">Simulate artillery alert and shelter navigation</string>
+    <string name="chemical_sim">Chemical Leak Drill</string>
+    <string name="chemical_sim_desc">Simulate chemical leak alert</string>
+    <string name="curfew_sim">Curfew Drill</string>
+    <string name="curfew_sim_desc">Simulate curfew notification</string>
+    <string name="sim_starting">Starting drill…</string>
+    <string name="sim_complete">Drill Complete!</string>
+    <string name="sim_report">Drill Report</string>
+    <string name="sim_score">Overall Score</string>
+    <string name="sim_response_time">Response Time</string>
+    <string name="sim_steps_completed">Steps Completed</string>
+    <string name="sim_back_home">Back to Home</string>
+    <string name="sim_retry">Try Again</string>
+    <string name="sim_completion_rate">Completion</string>
+    <string name="sim_scenario_info">Scenario Info</string>
+    <string name="sim_steps_unit">steps</string>
+    <string name="sim_excellent">Excellent</string>
+    <string name="sim_family_notified">Family Notified</string>
+    <string name="sim_score_breakdown">Score Breakdown</string>
+    <string name="sim_detect_speed">Detection Speed</string>
+    <string name="sim_alert_accuracy">Alert Accuracy</string>
+    <string name="sim_notification_speed">Notification Speed</string>
+    <string name="sim_route_planning">Route Planning</string>
+    <string name="sim_family_coordination">Family Coordination</string>
+    <string name="sim_suggestions">Suggestions</string>
+    <string name="sim_suggestion_1">Familiarize with nearby shelters and routes</string>
+    <string name="sim_suggestion_2">Ensure all family members have WarRescue</string>
+    <string name="sim_suggestion_3">Run drills regularly to stay prepared</string>
+    <string name="sim_summary">The entire alert process takes only seconds\nWarRescue protects you at all times</string>
+    <string name="sim_step_progress">Step %1$d/%2$d: %3$s</string>
+
+    <!-- Simulation Steps -->
+    <string name="sim_step_ai_scan">AI Data Scan</string>
+    <string name="sim_step_threat_analysis">Threat Analysis</string>
+    <string name="sim_step_gen_red_alert">Generate Red Alert</string>
+    <string name="sim_step_gen_orange_alert">Generate Orange Alert</string>
+    <string name="sim_step_gen_yellow_notice">Generate Yellow Notice</string>
+    <string name="sim_step_push_notify">Push Alert</string>
+    <string name="sim_step_notify_family">Notify Family</string>
+    <string name="sim_step_plan_route">Plan Escape Route</string>
+    <string name="sim_step_nav_shelter">Navigate to Shelter</string>
+    <string name="sim_step_monitoring">Continuous Monitoring</string>
+    <string name="sim_step_mark_safe_zone">Mark Safe Zones</string>
+    <string name="sim_step_info_collect">Info Collection</string>
+    <string name="sim_step_verify">Verify Notice</string>
+    <string name="sim_step_set_reminder">Set Reminder</string>
+    <string name="sim_step_keep_update">Continuous Updates</string>
+    <string name="sim_step_air_scan_desc">Scanning satellite and radar data\u2026</string>
+    <string name="sim_step_air_threat_desc">AI detected aircraft from NE, 92% confidence</string>
+    <string name="sim_step_air_alert_desc">Air raid alert! Aerial threat detected in Kyiv</string>
+    <string name="sim_step_push_desc">Emergency push notification sent</string>
+    <string name="sim_step_family_desc">Notified 4 family members</string>
+    <string name="sim_step_route_desc">Nearest shelter route: Central Metro (0.8km)</string>
+    <string name="sim_step_monitor_desc">AI continuously monitoring threats</string>
+    <string name="sim_step_art_scan_desc">Analyzing acoustic and seismic data\u2026</string>
+    <string name="sim_step_art_threat_desc">Multiple artillery detected, 5km radius</string>
+    <string name="sim_step_art_alert_desc">Artillery alert! Shelling in Donetsk region</string>
+    <string name="sim_step_push_sms_desc">Emergency push and SMS sent</string>
+    <string name="sim_step_family_loc_desc">Notified 4 members with live location</string>
+    <string name="sim_step_shelter_desc">Navigating to City Hall Bunker (1.2km)</string>
+    <string name="sim_step_art_monitor_desc">Monitoring shelling, auto-clear when safe</string>
+    <string name="sim_step_chem_scan_desc">Analyzing air quality sensors\u2026</string>
+    <string name="sim_step_chem_threat_desc">Abnormal chemicals after industrial attack</string>
+    <string name="sim_step_chem_alert_desc">Chemical leak risk! Close doors and windows</string>
+    <string name="sim_step_chem_push_desc">Emergency notification with guide sent</string>
+    <string name="sim_step_chem_family_desc">Family notified: wear masks, close windows</string>
+    <string name="sim_step_chem_zone_desc">Safe evacuation zones marked on map</string>
+    <string name="sim_step_chem_monitor_desc">Air quality monitoring, awaiting all-clear</string>
+    <string name="sim_step_curfew_scan_desc">Fetching government announcements\u2026</string>
+    <string name="sim_step_curfew_verify_desc">Curfew confirmed: 22:00-06:00</string>
+    <string name="sim_step_curfew_notice_desc">Curfew notice! Government curfew issued</string>
+    <string name="sim_step_curfew_push_desc">Curfew notification sent</string>
+    <string name="sim_step_curfew_family_desc">All family members notified about curfew</string>
+    <string name="sim_step_curfew_reminder_desc">21:45 reminder set for safe return</string>
+    <string name="sim_step_curfew_update_desc">Monitoring curfew changes in real-time</string>
+
+    <!-- Route Plan -->
+    <string name="route_plan">Route Plan</string>
+    <string name="current_location">Current Location</string>
+    <string name="recommended_routes">Recommended Routes</string>
+    <string name="safety_high">Safety: High</string>
+    <string name="safety_medium">Safety: Medium</string>
+    <string name="safety_low">Safety: Low</string>
+    <string name="danger_zones">Danger Zones (Avoid)</string>
+    <string name="danger_extreme">Extreme Danger</string>
+    <string name="danger_no_pass">No Entry</string>
+
+    <!-- Route Plan details -->
+    <string name="route_detail_fmt">%1$.1fkm · ~%2$d min walk · %3$s · %4$d/%5$d</string>
+    <string name="navigating_to">Navigating to %s…</string>
+    <string name="danger_high">High Risk</string>
+    <string name="current_location_addr">Kyiv Center · Near Maidan</string>
+    <string name="danger_east_industry">East Industrial Zone</string>
+    <string name="danger_east_desc">Shelling detected, 5km impact radius</string>
+    <string name="danger_north_bridge">North Bridge (river crossing)</string>
+    <string name="danger_north_desc">Severe structural damage, no entry</string>
+    <string name="danger_airport">Airport Area</string>
+    <string name="danger_airport_desc">Repeated attacks, stay far away</string>
+
+    <!-- Mutual Aid details -->
+    <string name="aid_emergency_medical">Emergency Medical Aid</string>
+    <string name="aid_emergency_medical_meta">0.3km away · 5 min ago</string>
+    <string name="aid_emergency_medical_desc">User lightly injured in shelling, needs basic first aid</string>
+    <string name="aid_supply_share">Supply Sharing</string>
+    <string name="aid_supply_share_meta">0.6km away · 15 min ago</string>
+    <string name="aid_supply_share_desc">User sharing extra drinking water and food</string>
+    <string name="aid_translate">Translation Aid</string>
+    <string name="aid_translate_meta">0.8km away · 1 hour ago</string>
+    <string name="aid_translate_desc">Foreign aid workers need English-Ukrainian translation</string>
+    <string name="aid_receive_range_desc">1km (adjustable to 500m-3km)</string>
+    <string name="aid_response_method_desc">Push + Vibration + Sound</string>
+    <string name="aid_my_skills">My Skills</string>
+    <string name="aid_my_skills_desc">First aid, driving, translation (EN-CN)</string>
+    <string name="aid_auto_response">Auto Response</string>
+    <string name="aid_auto_response_desc">Auto share location on nearby SOS</string>
+    <string name="mutual_aid_1km">1km</string>
+
+    <!-- Mutual Aid -->
+    <string name="mutual_aid_title">1km Mutual Aid</string>
+    <string name="mutual_aid_enabled">Mutual Aid Enabled</string>
+    <string name="mutual_aid_disabled">Mutual Aid Disabled</string>
+    <string name="mutual_aid_coverage">Range: %1$s · %2$d nearby users online</string>
+    <string name="nearby_users">Nearby Users</string>
+    <string name="aid_count">Aid Count</string>
+    <string name="avg_response">Avg Response</string>
+    <string name="nearby_events">Nearby Events</string>
+    <string name="status_waiting">Waiting</string>
+    <string name="status_ongoing">Ongoing</string>
+    <string name="status_done">Done</string>
+    <string name="aid_settings">Aid Settings</string>
+    <string name="receive_range">Receive Range</string>
+    <string name="response_method">Response Method</string>
+
+    <!-- Family -->
+    <string name="family_members">Family Members</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="admin">Admin</string>
+    <string name="member">Member</string>
+    <string name="invite_member">Invite Member</string>
+    <string name="invite_copied">Invite link copied</string>
+    <string name="family_settings">Family Settings</string>
+    <string name="meeting_point">Meeting Point</string>
+    <string name="meeting_point_desc">Set emergency meeting point</string>
+    <string name="location_sharing">Location Sharing</string>
+    <string name="location_sharing_desc">Share live location with all members</string>
+    <string name="sos_link">SOS Link</string>
+    <string name="sos_link_desc">Any member SOS notifies all</string>
+    <string name="family_member_detail">Member Detail</string>
+    <string name="last_seen">Last seen: %s</string>
+    <string name="member_location">Member Location</string>
+    <string name="send_message">Send Message</string>
+    <string name="view_track">View Track</string>
+
+    <!-- Invite Friends -->
+    <string name="invite_friends">Invite Friends</string>
+    <string name="invite_code_label">Your Invite Code</string>
+    <string name="copy_code">Copy Code</string>
+    <string name="share_invite">Share with Friends</string>
+    <string name="invite_reward">Invite Reward</string>
+    <string name="invite_stats">Invite Stats</string>
+    <string name="invite_code_copied">Invite code copied to clipboard!</string>
+    <string name="invite_share_text">I\'m using WarRescue smart alert app, join me!\nInvite code: %1$s\nDownload: https://warrescue.app</string>
+    <string name="invite_share_chooser">Share Invite</string>
+    <string name="invite_per_friend">Invite 1 Friend</string>
+    <string name="invite_per_friend_desc">Both get 7-day free Pro trial</string>
+    <string name="invite_five_friends">Invite 5 Friends</string>
+    <string name="invite_five_friends_desc">Extra 1-month Pro membership</string>
+    <string name="invite_count">Invited: %d</string>
+    <string name="invite_count_desc">%1$d days free trial earned (%2$d days used)</string>
+    <string name="invite_pending">Pending: %d</string>
+    <string name="invite_pending_desc">Reward activates when friend registers</string>
+
+    <!-- Alert Settings -->
+    <string name="alert_type_settings">Alert Types</string>
+    <string name="alert_level_settings">Alert Levels</string>
+    <string name="monitor_range">Monitor Range</string>
+    <string name="monitor_radius">Radius: %dkm</string>
+    <string name="monitor_radius_desc">Detect alerts within %dkm</string>
+    <string name="alert_air_strike">Air Strike Alert</string>
+    <string name="alert_artillery">Artillery Alert</string>
+    <string name="alert_conflict">Armed Conflict</string>
+    <string name="alert_curfew">Curfew Notice</string>
+    <string name="alert_chemical">Chemical Leak</string>
+    <string name="level_red">Red (Critical)</string>
+    <string name="level_orange">Orange (Warning)</string>
+    <string name="level_yellow">Yellow (Caution)</string>
+    <string name="ai_monitor_history">Monitor History</string>
+    <string name="ai_monitor_detail">Monitor Detail</string>
+
+    <!-- Notification Settings -->
+    <string name="push_notifications">Push Notifications</string>
+    <string name="notif_alert_push">Alert Push</string>
+    <string name="notif_alert_push_desc">Notify on new alerts</string>
+    <string name="notif_family_status">Family Status Change</string>
+    <string name="notif_family_status_desc">Notify on family online/offline</string>
+    <string name="notif_sos">SOS Notification</string>
+    <string name="notif_sos_desc">Notify on SOS emergency</string>
+    <string name="sound_vibration">Sound &amp; Vibration</string>
+    <string name="notif_alert_sound">Alert Sound</string>
+    <string name="notif_alert_sound_desc">Play alert tone on new alerts</string>
+    <string name="notif_vibration">Vibration</string>
+    <string name="notif_vibration_desc">Vibrate on new alerts</string>
+    <string name="notif_dnd">Do Not Disturb</string>
+    <string name="notif_dnd_desc">Silent 22:00–07:00</string>
+    <string name="sms_notifications">SMS Notifications</string>
+    <string name="notif_twilio">Twilio SMS Gateway</string>
+    <string name="notif_twilio_desc">Receive alerts via SMS when offline</string>
+    <string name="notif_sms_level">Red/Orange Only</string>
+    <string name="notif_sms_level_desc">SMS only for critical alerts</string>
+
+    <!-- Profile Hints -->
+    <string name="hint_nickname">Enter nickname</string>
+    <string name="hint_phone">Enter phone number</string>
+    <string name="hint_email">Enter email</string>
+    <string name="hint_city">Select city</string>
+    <string name="hint_name">Enter name</string>
+    <string name="hint_phone_number">Enter phone</string>
+    <string name="profile_saved">Profile saved</string>
+    <string name="default_city">Kyiv</string>
+    <string name="default_contact_name">Li Ming</string>
+
+    <!-- Emergency Profile Hints -->
+    <string name="hint_blood_type">e.g. A+, B-, O+</string>
+    <string name="hint_age">Enter age</string>
+    <string name="hint_height">Enter height</string>
+    <string name="hint_weight">Enter weight</string>
+    <string name="hint_drug_allergy">e.g. Penicillin</string>
+    <string name="hint_food_allergy">e.g. Peanuts, seafood</string>
+    <string name="hint_chronic">e.g. Hypertension, diabetes</string>
+    <string name="hint_medication">Enter medication name</string>
+    <string name="contact_1_name">Contact 1 Name</string>
+    <string name="contact_1_phone">Contact 1 Phone</string>
+    <string name="emergency_saved">Medical info saved</string>
+    <string name="default_drug_allergy">Penicillin</string>
+    <string name="default_contact_1_name">Dad</string>
+
+    <!-- SOS History -->
+    <string name="sos_history_records">History</string>
+    <string name="sos_rec_air_title">Air Strike Alert Triggered</string>
+    <string name="sos_rec_air_desc">Aerial threat detected in Kyiv city</string>
+    <string name="sos_rec_air_timeline">14:32 Triggered → 14:33 Family notified → 14:45 Alert cleared</string>
+    <string name="sos_rec_manual_desc">User initiated emergency request</string>
+    <string name="sos_rec_manual_timeline_1">09:15 Triggered → 09:16 Family notified → 09:20 Cancelled</string>
+    <string name="sos_rec_art_title">Artillery Alert Triggered</string>
+    <string name="sos_rec_art_desc">Shelling detected in Donetsk region</string>
+    <string name="sos_rec_art_timeline">22:48 Triggered → 22:49 All notified → 23:30 Alert cleared</string>
+    <string name="sos_rec_drill_desc">User initiated emergency request (Drill)</string>
+    <string name="sos_rec_drill_timeline">06:30 Triggered → 06:31 Notification sent → 06:32 Cancelled</string>
+    <string name="sos_rec_chem_title">Chemical Leak Alert</string>
+    <string name="sos_rec_chem_desc">Chemical leak risk detected in industrial zone</string>
+    <string name="sos_rec_chem_timeline">18:20 Triggered → 18:21 All notified → 19:45 Alert cleared</string>
+
+    <!-- Subscription -->
+    <string name="subscription_manage">Subscription</string>
+    <string name="plan_pro_personal">Pro Personal</string>
+    <string name="plan_expire_demo">Valid until 2026-05-22 · 28 days left</string>
+    <string name="plan_free_features">Basic alert push\n5 queries/day\n1 family member</string>
+    <string name="plan_pro_price">¥39.99/mo</string>
+    <string name="plan_pro_features">24/7 AI real-time alerts\nUnlimited queries\n5 family members\nEscape route planning\nSOS emergency\nSMS (Twilio)</string>
+    <string name="plan_family_price">¥199.99/mo</string>
+    <string name="plan_family_features">All Pro features\nUp to 20 family members\nFamily group management\nPriority response\nDedicated support\nMulti-device sync</string>
+    <string name="payment_google_pay">Google Pay</string>
+    <string name="payment_google_desc">Fast and secure payment</string>
+    <string name="payment_card">Credit / Debit Card</string>
+    <string name="payment_card_desc">Visa / Mastercard / UnionPay</string>
+    <string name="payment_paypal">PayPal</string>
+    <string name="payment_paypal_desc">International payment</string>
+    <string name="payment_redirect">Redirecting to payment…</string>
+    <string name="time_ago_minutes">%d min ago</string>
+    <string name="time_ago_hours">%d hours ago</string>
+    <string name="time_ago_days">%d days ago</string>
+
+    <!-- Common -->
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="loading">Loading…</string>
+    <string name="save">Save</string>
+    <string name="search">Search</string>
+    <string name="filter">Filter</string>
+    <string name="reset">Reset</string>
+    <string name="back">Back</string>
+    <string name="view_details">Details</string>
+    <string name="confirm_sos">Send SOS?</string>
+    <string name="sos_warning">Will notify all family and nearby rescue</string>
+    <string name="alert_detail_title">Alert Detail</string>
+    <string name="detailed_description">Detailed Description</string>
+    <string name="legend_red_alert">Red Alert</string>
+    <string name="legend_orange_alert">Orange Alert</string>
+    <string name="legend_yellow_alert">Yellow Alert</string>
+    <string name="reliability">Reliability</string>
+    <string name="search_alerts">Search alerts…</string>
+    <string name="time_range">Time Range</string>
+    <string name="type">Type</string>
+    <string name="location">Location</string>
+    <string name="time">Time</string>
+    <string name="minutes_ago">min ago</string>
+    <string name="hours_ago">hours ago</string>
+    <string name="days_ago">days ago</string>
+    <string name="just_now">Just now</string>
+    <string name="demo_user">Demo User</string>
+    <string name="version">Version %s</string>
+    <string name="app_restart_hint">Restart app for language change to take effect</string>
+
+    <!-- Demo Data - Alerts -->
+    <string name="demo_alert_1_title">Air raid alert detected in Kyiv</string>
+    <string name="demo_alert_1_desc">AI system detected aerial threat signal from NE direction, go to nearest shelter immediately</string>
+    <string name="demo_alert_1_city">Kyiv</string>
+    <string name="demo_country_ukraine">Ukraine</string>
+    <string name="demo_alert_2_title">Artillery alert in Donetsk region</string>
+    <string name="demo_alert_2_desc">Multiple shelling activities detected, 5km impact radius, stay away from open areas</string>
+    <string name="demo_alert_2_city">Donetsk</string>
+    <string name="demo_alert_3_title">Conflict in southern Beirut</string>
+    <string name="demo_alert_3_desc">Armed conflict in southern suburbs, roads may be blocked, consider alternate routes</string>
+    <string name="demo_alert_3_city">Beirut</string>
+    <string name="demo_country_lebanon">Lebanon</string>
+    <string name="demo_alert_4_title">Baghdad curfew notice</string>
+    <string name="demo_alert_4_desc">Government issued curfew order, no outdoor activity from 22:00-06:00</string>
+    <string name="demo_alert_4_city">Baghdad</string>
+    <string name="demo_country_iraq">Iraq</string>
+    <string name="demo_alert_5_title">Tel Aviv air defense alert</string>
+    <string name="demo_alert_5_desc">Iron Dome activated, rocket threat detected from the south</string>
+    <string name="demo_alert_5_city">Tel Aviv</string>
+    <string name="demo_country_israel">Israel</string>
+    <string name="demo_alert_6_title">Kharkiv chemical leak risk</string>
+    <string name="demo_alert_6_desc">Possible hazardous chemical leak after attack on industrial zone</string>
+    <string name="demo_alert_6_city">Kharkiv</string>
+    <string name="demo_alert_7_title">Zaporizhzhia power plant area alert</string>
+    <string name="demo_alert_7_desc">Unusual activity detected near power plant, stay alert</string>
+    <string name="demo_alert_7_city">Zaporizhzhia</string>
+
+    <!-- Demo Data - Palestine/Gaza -->
+    <string name="demo_alert_8_title">Air strikes on Gaza City</string>
+    <string name="demo_alert_8_desc">Multiple rounds of air strikes detected in northern Gaza City, go to shelter immediately and stay away from buildings</string>
+    <string name="demo_alert_8_city">Gaza City</string>
+    <string name="demo_country_palestine">Palestine</string>
+    <string name="demo_alert_9_title">Artillery shelling near Rafah crossing</string>
+    <string name="demo_alert_9_desc">Continuous artillery shelling around Rafah crossing area, border passage may be closed</string>
+    <string name="demo_alert_9_city">Rafah</string>
+
+    <!-- Demo Data - Shelters -->
+    <string name="demo_shelter_1_name">Central Metro Station Shelter</string>
+    <string name="demo_shelter_1_addr">Kyiv Central Metro Station Level B2</string>
+    <string name="demo_shelter_2_name">City Hall Underground Bunker</string>
+    <string name="demo_shelter_2_addr">Maidan City Hall Underground Level 3</string>
+    <string name="demo_shelter_3_name">School Air Raid Shelter</string>
+    <string name="demo_shelter_3_addr">School No.42 Basement</string>
+    <string name="demo_shelter_4_name">Mall Parking Shelter Zone</string>
+    <string name="demo_shelter_4_addr">Ocean Plaza Mall Level B3 Parking</string>
+    <string name="demo_shelter_5_name">Residential Air Raid Shelter</string>
+    <string name="demo_shelter_5_addr">Obolon District Building 18 Underground</string>
+
+    <!-- Demo Data - Palestine Shelters -->
+    <string name="demo_shelter_6_name">UNRWA School Shelter</string>
+    <string name="demo_shelter_6_addr">UNRWA School, Central Gaza City</string>
+    <string name="demo_shelter_7_name">Al-Shifa Hospital Underground Shelter</string>
+    <string name="demo_shelter_7_addr">Al-Shifa Hospital Underground Level, Gaza City</string>
+    <string name="demo_shelter_8_name">Central Mosque Shelter</string>
+    <string name="demo_shelter_8_addr">Central Mosque, Gaza City</string>
+
+    <!-- Demo Data - Family -->
+    <string name="demo_family_dad">Dad</string>
+    <string name="demo_family_mom">Mom</string>
+    <string name="demo_family_child">Xiaoming</string>
+    <string name="demo_family_grandma">Grandma</string>
+    <string name="demo_family_last_seen">30 min ago</string>
+
+    <!-- Demo Data - City Alerts -->
+    <string name="demo_city_alert_1_desc">Multiple users confirmed hearing explosions and sirens from NE</string>
+    <string name="demo_city_alert_2_desc">Continuous shelling detected toward industrial zone</string>
+    <string name="demo_city_alert_3_desc">Armed personnel movement spotted in southern area</string>
+    <string name="demo_city_alert_4_desc">Armed conflict in city center, roads blocked</string>
+    <string name="demo_city_alert_5_desc">Users near industrial zone reported unusual odor</string>
+    <string name="demo_city_alert_6_desc">Multiple residents in Gaza City confirmed hearing continuous explosions and fighter jets overhead</string>
+
+    <!-- Auth - New -->
+    <string name="auth_enter_code">Enter 6-digit code</string>
+    <string name="auth_invite_code_optional">Invite code (optional)</string>
+    <string name="auth_trial_hint">Register for 7-day free trial of all features</string>
+    <string name="auth_phone_invalid">Please enter a valid phone number</string>
+    <string name="auth_code_invalid">Please enter a 6-digit code</string>
+    <string name="auth_code_not_sent">Please get verification code first</string>
+    <string name="auth_code_wrong">Wrong verification code, please try again</string>
+    <string name="auth_code_sent">Verification code sent: %1$s</string>
+    <string name="auth_resend_countdown">Resend in %1$ds</string>
+    <string name="auth_login_success">Login successful</string>
+    <string name="auth_register_success">Registration successful, 7-day trial activated</string>
+    <string name="auth_guest_welcome">Welcome! Guest mode valid for 7 days with limited features</string>
+    <string name="auth_email_invalid">Please enter a valid email address</string>
+    <string name="auth_password_invalid">Password must be at least 6 characters</string>
+    <string name="sub_plan_personal_name">Personal ¥39.99/mo</string>
+    <string name="sub_plan_family_name">Family ¥199.99/mo</string>
+    <string name="sub_trial_active">Free Trial Active</string>
+    <string name="sub_no_subscription">No Subscription</string>
+    <string name="sub_choose_plan_hint">Choose a plan that suits you</string>
+    <string name="sub_expiring_warn">Subscription expires in %1$d days, please renew</string>
+    <string name="sub_invite_discount_active">Invite Discount Active - Half Price This Month!</string>
+    <string name="sub_invite_discount_desc">Your invitee has registered, enjoy half-price this month</string>
+    <string name="sub_invite_count">Invited %1$d friends</string>
+    <string name="sub_price_discount">¥%1$s/mo (was ¥%2$s)</string>
+    <string name="sub_price_normal">¥%1$s/mo</string>
+    <string name="sub_personal_features">Real-time alerts\nEscape route planning\nSOS emergency\nOffline maps\nAuto rescue notification</string>
+    <string name="sub_family_features">All Personal features\nFamily location sharing\nAlert sync\nUp to 5 family members</string>
+    <string name="sub_subscribe">Subscribe Now</string>
+    <string name="sub_payment_lianlian">LianLian Pay</string>
+    <string name="sub_payment_lianlian_desc">Secure and convenient online payment</string>
+    <string name="sub_guest_cannot">Guests cannot subscribe, please register first</string>
+    <string name="sub_order_created">Order created: %1$s\nPlan: %2$s\nAmount: ¥%3$s</string>
+    <string name="sub_activated">%1$s activated for 30 days</string>
+    <string name="invite_reward_rule_title">Invite friends to register</string>
+    <string name="invite_reward_rule_desc">Get half-price subscription for the month when invitee registers</string>
+    <string name="invite_total_invited">Total invited: %1$d friends</string>
+    <string name="invite_discount_months">Earned %1$d monthly half-price discounts</string>
+
+    <!-- Alert Escalation -->
+    <string name="alert_flashlight_title">Emergency Alert</string>
+    <string name="alert_flashlight_desc">Security threat detected. Please confirm your safety status immediately</string>
+    <string name="alert_flashlight_active">Flashlight Alert Active</string>
+    <string name="alert_flashlight_stop">Turn Off Flashlight</string>
+    <string name="alert_flashlight_countdown">%1$d seconds until AI voice verification call</string>
+    <string name="alert_i_am_safe">I Am Safe</string>
+    <string name="alert_need_help">I Need Help</string>
+    <string name="alert_countdown_fmt">%1$d sec until AI phone verification</string>
+    <string name="alert_escalating">Escalating to AI phone verification...</string>
+    <string name="alert_escalation_hint">If no response, the system will automatically call to verify your safety</string>
+    <string name="alert_channel_name">Emergency Alert Notifications</string>
+    <string name="alert_channel_desc">Flashlight alerts and emergency notifications</string>
+    <string name="alert_ai_call_title">AI Safety Verification Call</string>
+    <string name="alert_ai_call_desc">Making AI voice call to verify your safety</string>
+    <string name="alert_calling_user">Calling your phone...</string>
+    <string name="alert_call_simulated">Simulating AI call (Twilio not configured)</string>
+    <string name="alert_waiting_answer">Waiting for answer... %1$d sec</string>
+    <string name="alert_ai_call_channel_name">AI Voice Verification</string>
+    <string name="alert_ai_call_channel_desc">AI voice call safety verification notifications</string>
+    <string name="rescue_triggered_title">Rescue Notification Triggered</string>
+    <string name="rescue_triggered_desc">Reason: %1$s</string>
+    <string name="rescue_triggered_detail">Alert: %1$s\nReason: %2$s\nEmergency contacts and rescue organizations have been notified</string>
+    <string name="rescue_processing_title">Processing Rescue Notification</string>
+    <string name="rescue_processing_desc">Notifying emergency contacts and rescue organizations...</string>
+    <string name="rescue_channel_name">Rescue Notifications</string>
+    <string name="rescue_channel_desc">Emergency rescue notifications and contact alerts</string>
+    <string name="rescue_sms_body">[WarRescue RESCUE] %1$s may be in danger! Alert: %2$s. Reason: %3$s. Please contact immediately.</string>
+    <string name="rescue_reason_no_answer">AI call not answered</string>
+    <string name="rescue_reason_call_failed">AI call failed</string>
+    <string name="rescue_reason_no_phone">No phone number configured</string>
+    <string name="rescue_reason_user_emergency">User requested emergency help</string>
+    <string name="rescue_reason_timeout">Alert response timeout</string>
+</resources>

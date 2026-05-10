@@ -1,0 +1,137 @@
+[
+  {
+    "txnId": "NOCARDMOF6FVY2",
+    "orderId": "ONOCARDMOF6FVY2",
+    "amount": "1.00",
+    "desc": "No card data",
+    "tag": "NOCARD",
+    "response": {
+      "return_code": "SUCCESS",
+      "return_message": "Success",
+      "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.165.17771721973708323",
+      "order": {
+        "ll_transaction_id": "2026042505315228",
+        "merchant_transaction_id": "NOCARDMOF6FVY2",
+        "payment_data": {
+          "payment_currency_code": "USD",
+          "payment_amount": "1.00",
+          "payment_status": "IN",
+          "settlement_currency_code": "CNY"
+        },
+        "payment_url": "https://gacashier.lianlianpay-inc.com/?key=1pilj3t8gss&paymentData=H4sIAAAAAAAAAH2QX0%2BDMBTFvwvxcRkF3MS9LczFJcoWcSbG%2BHApd4CUlpQytxi%2Fu60s7J%2FzCe45%0D%0Ap6e3vy8LqGqALWBbIlfjUjRcWSPL6RNi9Y7NoJESOd1qexlNLrnRtowF05krnYiBFveixAWkaI1W%0D%0AwGrsWRQ4RbaUJpQpVdUj2zbfOOd9IVM7RaWPUlFWwLfjJJFY1zq610IosRUSrKnMK5UL3grIIWYY%0D%0AwRoDkMmMr0R3bYFmc6fK2Yen%2FFR39qwSJc2Aq1miLZe4Q3Lt%2BIQQzx96hDgHiblMUIa6zQrnwfhp%0D%0A8jifDqcvr66OCGOZhrbAHZCB5wxc199ZEcp1TjHIQKbYESYt4epv8NUF5NU%2FsHdepEA1Btgs3It6%0D%0AfnvXkxRJQ83UkdevyznHDct50deAbX2ozsSn4fcsCuQPea06iMa5a6SocMog7WQFm9OHaels%2BwPt%0D%0AaHMlFLBTBL%2FiecWhelyi9J9zc3v7%2FQMobEWq1QIAAA%3D%3D%0D%0A",
+        "key": "1pilj3t8gss"
+      }
+    }
+  },
+  {
+    "txnId": "VISA4111MOF6FX8C",
+    "orderId": "OVISA4111MOF6FX8C",
+    "amount": "2.00",
+    "desc": "Visa 4111",
+    "tag": "VISA4111",
+    "response": {
+      "return_code": "SUCCESS",
+      "return_message": "Success",
+      "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.185.17771721986928317",
+      "order": {
+        "ll_transaction_id": "2026042505315229",
+        "merchant_transaction_id": "VISA4111MOF6FX8C",
+        "payment_data": {
+          "payment_currency_code": "USD",
+          "payment_amount": "2.00",
+          "payment_status": "IN",
+          "settlement_currency_code": "CNY",
+          "installments": "1"
+        },
+        "payment_url": "https://gacashier.lianlianpay-inc.com/?key=1pilj3t8gst&paymentData=H4sIAAAAAAAAAH2RX0%2BDMBTFvwvx0YwC24J7W9BFEt2W4IyJ8eFS7gApLSlljhi%2Fu61M9s%2F5RO85%0D%0Ap7f3%2Fvi0gKoG2BLaErmalqLhyppY7oAQ6%2FrYDBopkdNW26vo9pIbtWUsmM5c6UQMtLgXJS4hRWuy%0D%0ABlbjtUWBU2QraUKZUlU9sW3zjXM%2BEDK1U1T6KhVlBbydJonEutbRvTaHEjshwZrKvFK54J2AHGKG%0D%0AEWwwAJmEfC36Zws0kztVzt495ae1eaRESTPgKkzMzsQdk6HjE0I8f%2BwR4hwkFjJBOdfdrOcwmg4d%0D%0Ax3lczMazFz%2FQIWFM06Nr4Y7IyHNGrnuzsyKUm5xikIFMsWdMOsbV3%2BirC9Crf3DvvEiBagyycL4X%0D%0Adf36pispkoaaqmev98s5xy3LeTHQiG19qc7EhyH4JArkD7mG9YvROHeNFBXOGKS9rGB7upiWzqY%2F%0D%0A0I4mV0IBO0XwI563OFSPmyh9Mv%2Fv6xvmRVjQ1wIAAA%3D%3D%0D%0A",
+        "key": "1pilj3t8gst"
+      }
+    }
+  },
+  {
+    "txnId": "SDKCARDMOF6FY6W",
+    "orderId": "OSDKCARDMOF6FY6W",
+    "amount": "3.00",
+    "desc": "SDK card",
+    "tag": "SDKCARD",
+    "response": {
+      "return_code": "SUCCESS",
+      "return_message": "Success",
+      "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.115.17771721999358323",
+      "order": {
+        "ll_transaction_id": "2026042505315230",
+        "merchant_transaction_id": "SDKCARDMOF6FY6W",
+        "payment_data": {
+          "payment_currency_code": "USD",
+          "payment_amount": "3.00",
+          "payment_status": "IN",
+          "settlement_currency_code": "CNY",
+          "installments": "1"
+        },
+        "payment_url": "https://gacashier.lianlianpay-inc.com/?key=1pilj3t8gsu&paymentData=H4sIAAAAAAAAAH2RX0%2BDMBTFvwvxcRllOLLsbWEuLuq2iMYY48Ol3EGltKSUOWL87raysH%2FOJ7jn%0D%0AnB5uf3w5QHUNfAVNgUJPClkL7Ywdv0%2BI0zs2w1opFLQx9nM0veRGTRFLbjJXJhEDzW9lgStI0Rmv%0D%0AgVfYcygIivxZ2VCmdVmNXdc%2BYyb6UqVuitocpbIoQTSTJFFYVSa61xZQYCskWFHFSs2kaAUUEHOM%0D%0AYIMhqGQu1rL7bI52c69k%2FMPXo7SqTbxARTMQep4Ya0AGAbn2RoQQfxT4hHgHiaVKUC1MmxNN78LJ%0D%0A4%2FRhOQtmr8GLyUjr2Yq2YTAkQ98bDnyysyJUG0YxzECl2CEmLeLyb%2FLlBeblP7R3XqRB15bYfLEX%0D%0Azfz2biYlk5raqUNvrseEwC1nIu8bwq45VGXy0wJ8kjmKe1bpjqJ1bmolS5xxSDtZw%2Fb0YkY62%2F5A%0D%0AO9pcSw38FMGveF5xqB6XaPNmf9%2F3D%2FEzlb3WAgAA%0D%0A",
+        "key": "1pilj3t8gsu"
+      }
+    }
+  },
+  {
+    "txnId": "THREEDSFMOF6FZ53",
+    "orderId": "OTHREEDSFMOF6FZ53",
+    "amount": "4.00",
+    "desc": "3DS frictionless",
+    "tag": "THREEDSF",
+    "response": {
+      "return_code": "INVALID_PARAMETER",
+      "return_message": "[payment_data.card.card_no] is empty or incorrect",
+      "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.141.17771722011668319"
+    }
+  },
+  {
+    "txnId": "CNCNTRYMOF6FZZD",
+    "orderId": "OCNCNTRYMOF6FZZD",
+    "amount": "5.00",
+    "desc": "Country CN no card",
+    "tag": "CNCNTRY",
+    "response": {
+      "return_code": "SUCCESS",
+      "return_message": "Success",
+      "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.181.17771722022558319",
+      "order": {
+        "ll_transaction_id": "2026042505315231",
+        "merchant_transaction_id": "CNCNTRYMOF6FZZD",
+        "payment_data": {
+          "payment_currency_code": "USD",
+          "payment_amount": "5.00",
+          "payment_status": "IN",
+          "settlement_currency_code": "CNY"
+        },
+        "payment_url": "https://gacashier.lianlianpay-inc.com/?key=1pilj3t8gsv&paymentData=H4sIAAAAAAAAAH2QX0%2FCMBTFv8viI4GOOQTeyJRIooM4eBDjw113GXNd23QdQozf3daR8U982u45%0D%0Ap6e3vy8HqK6AzWBXINejQlRcO0PHbxPitE7NoFIKOd0ZexHdX3OjXRELZjI3JhEDzR9FgTNI0Rmu%0D%0AgJXYcihwimyhbGittSyHnY79xhlvC5V2UtTmKBWFBL4bJYnCsjTRgxZCgbWQYElVJnUmeC0gh5hh%0D%0ABBsMQCUTvhLNtTnazV2ZsQ9P99NyY%2BIFKroGrieJsbqk2yO3bp8Q4vV7HiHuUWKqElShaXOCMAjn%0D%0AL6%2FP03FvvFxaDsJ6tqJu6PrE91y%2F67l7K0K1ySgGa1ApNohJjVj%2BTV5eYS7%2Fob33Ig26ssQm4UE0%0D%0A89u7mZRIKmqnBr15XsY5blnG87Yh3DGHyrX4tADnIkf%2BlJW6oWidh0oJiWMGaSNr2J4%2FzEgX2x9p%0D%0AJ5troYGdI%2FgVLyuO1dMSbf7cu8Hg%2BwfxPP3S1gIAAA%3D%3D%0D%0A",
+        "key": "1pilj3t8gsv"
+      }
+    }
+  },
+  {
+    "txnId": "MCTESTMOF6G0XI",
+    "orderId": "OMCTESTMOF6G0XI",
+    "amount": "6.00",
+    "desc": "Mastercard test",
+    "tag": "MCTEST",
+    "response": {
+      "return_code": "SUCCESS",
+      "return_message": "Success",
+      "trace_id": "7635b22e06ae4e7eb76bb4d42e2fc2e6.105.17771722034868321",
+      "order": {
+        "ll_transaction_id": "2026042505315232",
+        "merchant_transaction_id": "MCTESTMOF6G0XI",
+        "payment_data": {
+          "payment_currency_code": "USD",
+          "payment_amount": "6.00",
+          "payment_status": "IN",
+          "settlement_currency_code": "CNY",
+          "installments": "1"
+        },
+        "payment_url": "https://gacashier.lianlianpay-inc.com/?key=1pilj3t8gt0&paymentData=H4sIAAAAAAAAAH2Qy27CMBBF%2FyXqEoGTlBTYIQptpPKQAlKlqovBGZIUx46cCQVV%2FffaBYVX6cqe%0D%0Ae6%2FHM%2BfLAU4ViBnscpTUz1Ulyek5QZMxp3FuDiqtUfKdsRfR4y032uVLJUzmziSWwNfPKscZJOj0%0D%0AViBKbDgcJEex0DaUEhVlr9Wy5zKTTaWTVoJknnKVFyB3%2FTjWWJYmetQmkONeiLHkOisoU3IvoISl%0D%0AwAg2OAAdh3Kl6m%2FXaCd3i0x8%2BNRJyO6Xo%2BYpSApjY3nMC9i922GM%2BZ3AZ8w9SUx1jHpiujnjwXwY%0D%0AzcfTUfDEXkMTUdayHfYNvDZr%2B27b872DFaHeZBwHKegEa8JsT7j4G3xxA3nxD%2ByDFxFQZYGFk6No%0D%0A6rd3U2kVV9xWNXmzXSYlbkUm100DuGUelan6tPzmao3yJSuphmidYaVVgSMBSS0TbC8XM9LV9Cfa%0D%0A2eSkCMQlgl%2FxusWpet6EzM196Ha%2FfwAYuuwU1QIAAA%3D%3D%0D%0A",
+        "key": "1pilj3t8gt0"
+      }
+    }
+  }
+]
