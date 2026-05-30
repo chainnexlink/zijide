@@ -71,17 +71,22 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                     return
                 }
 
-                // 可选：带促销优惠（推荐返券 50% off 续费）购买
+                // 可选：带促销优惠（推荐返券 50% off 续费）购买。
+                // StoreKit2 的促销优惠签名 API 需 iOS 17.4+；旧系统无券字段则按原价购买。
                 var options: Set<Product.PurchaseOption> = []
+                var offerApplied = false
                 if let offerId = call.getString("offerId"),
                    let keyId = call.getString("keyId"),
                    let nonceStr = call.getString("nonce"), let nonce = UUID(uuidString: nonceStr),
                    let sigB64 = call.getString("signature"), let sigData = Data(base64Encoded: sigB64) {
                     let timestamp = call.getInt("timestamp") ?? Int(call.getString("timestamp") ?? "") ?? 0
-                    let signature = Product.SubscriptionOffer.Signature(
-                        keyID: keyId, nonce: nonce, timestamp: timestamp, signature: sigData
-                    )
-                    options.insert(.promotionalOffer(offerID: offerId, signature: signature))
+                    if #available(iOS 17.4, *) {
+                        let signature = Product.SubscriptionOffer.Signature(
+                            keyID: keyId, nonce: nonce, timestamp: timestamp, signature: sigData
+                        )
+                        options.insert(.promotionalOffer(offerID: offerId, signature: signature))
+                        offerApplied = true
+                    }
                 }
                 if let tokenStr = call.getString("appAccountToken"), let token = UUID(uuidString: tokenStr) {
                     options.insert(.appAccountToken(token))
@@ -106,6 +111,7 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                         "receiptData": appReceipt,
                         "jwsTransaction": jwsRepresentation,
                         "originalTransactionId": String(transaction.originalID),
+                        "offerApplied": offerApplied,
                     ])
 
                 case .userCancelled:
