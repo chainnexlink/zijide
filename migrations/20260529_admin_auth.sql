@@ -41,6 +41,7 @@ CREATE POLICY "superadmin manage admin_users" ON public.admin_users
   FOR ALL USING (public.admin_role(auth.uid()) = 'superadmin')
   WITH CHECK (public.admin_role(auth.uid()) = 'superadmin');
 
+DROP TRIGGER IF EXISTS update_admin_users_updated_at ON public.admin_users;
 CREATE TRIGGER update_admin_users_updated_at
   BEFORE UPDATE ON public.admin_users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -62,9 +63,9 @@ DECLARE
 BEGIN
   FOREACH t IN ARRAY tbls LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=t) THEN
-      EXECUTE format('DROP POLICY IF EXISTS %L ON public.%I', 'admin full access '||t, t);
+      EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', 'admin full access '||t, t);
       EXECUTE format(
-        'CREATE POLICY %L ON public.%I FOR ALL USING (public.is_admin(auth.uid())) WITH CHECK (public.is_admin(auth.uid()))',
+        'CREATE POLICY %I ON public.%I FOR ALL USING (public.is_admin(auth.uid())) WITH CHECK (public.is_admin(auth.uid()))',
         'admin full access '||t, t
       );
     END IF;
