@@ -4,8 +4,16 @@ import { translations, Language, languages } from '../i18n';
 type Translations = typeof translations.zh;
 
 export function useI18n() {
-  const [language, setLanguageState] = useState<Language>('zh');
-  const [dir, setDir] = useState<'ltr' | 'rtl'>('ltr');
+  const getSavedLang = (): Language => {
+    try {
+      const saved = localStorage.getItem('warrescue-language') as Language;
+      if (saved && languages.find(l => l.code === saved)) return saved;
+    } catch (e) { /* localStorage 不可用时忽略 */ }
+    return 'zh';
+  };
+  // 初始就读取已保存语言，避免首屏先以 'zh' 渲染、导致"加载时翻译并缓存"的文案被定格成中文
+  const [language, setLanguageState] = useState<Language>(getSavedLang);
+  const [dir, setDir] = useState<'ltr' | 'rtl'>(() => languages.find(l => l.code === getSavedLang())?.dir || 'ltr');
 
   useEffect(() => {
     const saved = localStorage.getItem('warrescue-language') as Language;
