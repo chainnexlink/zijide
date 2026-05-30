@@ -1,5 +1,5 @@
 {
-  "appId": "com.warrescue.appname",
+  "appId": "com.warrescue.app",
   "appName": "WarRescue",
   "webDir": "dist",
   "server": {
