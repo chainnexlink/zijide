@@ -30,6 +30,7 @@ export interface ApplePurchaseResult {
   transactionId?: string;
   receiptData?: string;
   jwsTransaction?: string;
+  offerApplied?: boolean;
   error?: string;
 }
 
@@ -160,6 +161,7 @@ export async function purchaseProduct(productId: string, offer?: PromoOffer): Pr
         transactionId: result.transactionId || result.transaction?.transactionId,
         receiptData: result.receiptData,
         jwsTransaction: result.jwsTransaction,
+        offerApplied: result.offerApplied === true,
       };
     }
 

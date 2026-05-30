@@ -243,8 +243,8 @@ export default function Subscription() {
       if (error) throw error;
 
       if (data.success) {
-        // 带券购买成功 → 核销券
-        if (usedCoupon) {
+        // 带券购买成功 → 核销券（仅当券确实生效；iOS<17.4 不支持则不核销，券自动释放）
+        if (usedCoupon && result.offerApplied) {
           try {
             await supabase.functions.invoke('apple-iap', {
               body: { action: 'consume-coupon', transactionId: result.transactionId },
