@@ -158,3 +158,13 @@ ui_backup_*/
 
 # 连连支付 Java SDK：误提交的孤儿子模块(无 .gitmodules)，会破坏 CI 构建；改为本地忽略
 llgp-sdk-java/
+
+# 会话内生成的一次性脚本/校验工具，不入库
+en-shots.js
+check-len*.js
+crop-top.js
+fix-notch.js
+remove-banner.js
+patch-line.js
+resize-*.js
+parse-i18n.js
