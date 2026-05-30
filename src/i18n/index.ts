@@ -850,6 +850,18 @@ export const translations = {
     urgent: 'Urgent',
     alertLabel: 'Warning',
     notice: 'Notice',
+    // === Dashboard / map labels (English 补全) ===
+    map: 'Map',
+    currentSafe: 'Safe',
+    aiMonitoring: 'AI monitoring · No threats',
+    simulationAlert: 'Simulated Alert',
+    escapeRoute: 'Escape Route',
+    nearbyShelter: 'Nearby Shelters',
+    aiMonitor: 'AI Monitor',
+    testAlert: 'Test Alert',
+    navigation: 'Navigation',
+    available: 'Available',
+    active: 'Active',
     // === Alert History ===
     allSeverity: 'All',
     minutesAgo: 'min ago',
