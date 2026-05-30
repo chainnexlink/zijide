@@ -7,8 +7,8 @@
 
 // Apple 内购产品 ID，必须和 App Store Connect 中配置一致
 export const APPLE_PRODUCT_IDS = {
-  personal_monthly: 'com.warrescue.personal.monthly',
-  family_monthly: 'com.warrescue.family.monthly',
+  personal_monthly: 'com.warrescue.app.personal.monthly',
+  family_monthly: 'com.warrescue.app.family.monthly',
 } as const;
 
 export const PLAN_TO_PRODUCT: Record<string, string> = {

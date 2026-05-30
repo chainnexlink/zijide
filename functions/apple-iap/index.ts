@@ -17,8 +17,8 @@ const APPSTORE_API_SANDBOX = 'https://api.storekit-sandbox.itunes.apple.com';
 
 // Product IDs - must match App Store Connect configuration
 const PRODUCT_IDS = {
-  personal_monthly: 'com.warrescue.personal.monthly',
-  family_monthly: 'com.warrescue.family.monthly',
+  personal_monthly: 'com.warrescue.app.personal.monthly',
+  family_monthly: 'com.warrescue.app.family.monthly',
 };
 
 // Map Apple product IDs to internal plan IDs
