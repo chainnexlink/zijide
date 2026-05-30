@@ -100,6 +100,7 @@ export default function Subscription() {
   const [appleProducts, setAppleProducts] = useState<AppleProduct[]>([]);
   const [isIOS, setIsIOS] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [referral, setReferral] = useState<{ code: string; availableCoupons: number; referredCount: number } | null>(null);
 
   // Initialize Apple IAP on mount
   useEffect(() => {
@@ -118,6 +119,7 @@ export default function Subscription() {
 
       await fetchPlans();
       await fetchSubscriptionStatus();
+      await fetchReferral();
     };
     init();
   }, []);
@@ -159,6 +161,13 @@ export default function Subscription() {
     }
   };
 
+  const fetchReferral = async () => {
+    try {
+      const { data } = await supabase.functions.invoke('apple-iap', { body: { action: 'get-referral' } });
+      if (data?.code) setReferral({ code: data.code, availableCoupons: data.availableCoupons || 0, referredCount: data.referredCount || 0 });
+    } catch (e) { /* ignore */ }
+  };
+
   // Apple IAP purchase flow
   const handleSelectPlan = async (planId: string) => {
     if (purchasing) return;
@@ -184,8 +193,26 @@ export default function Subscription() {
     setPaymentMessage(null);
 
     try {
-      // Initiate Apple IAP purchase
-      const result = await purchaseProduct(productId);
+      // 若有可用券，先向后端签发促销优惠（50% off），带券购买；签券失败则按原价
+      let offer: any = undefined;
+      let usedCoupon = false;
+      if ((referral?.availableCoupons || 0) > 0) {
+        try {
+          const { data: sig } = await supabase.functions.invoke('apple-iap', {
+            body: { action: 'sign-promo-offer', productId },
+          });
+          if (sig?.eligible && sig?.signature) {
+            offer = {
+              offerId: sig.offerId, keyId: sig.keyId, nonce: sig.nonce,
+              timestamp: sig.timestamp, signature: sig.signature, appAccountToken: sig.username,
+            };
+            usedCoupon = true;
+          }
+        } catch (e) { /* 签券失败按原价 */ }
+      }
+
+      // Initiate Apple IAP purchase（带券或原价）
+      const result = await purchaseProduct(productId, offer);
 
       if (!result.success) {
         if (result.error === 'cancelled') {
@@ -216,6 +243,15 @@ export default function Subscription() {
       if (error) throw error;
 
       if (data.success) {
+        // 带券购买成功 → 核销券
+        if (usedCoupon) {
+          try {
+            await supabase.functions.invoke('apple-iap', {
+              body: { action: 'consume-coupon', transactionId: result.transactionId },
+            });
+          } catch (e) { /* ignore */ }
+          await fetchReferral();
+        }
         // Finish the transaction with StoreKit
         if (result.transactionId) {
           await finishTransaction(result.transactionId);
@@ -358,6 +394,53 @@ export default function Subscription() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {referral && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-red-500/15 to-orange-500/15 border border-red-500/30 rounded-2xl p-5 mb-6"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Gift className="w-5 h-5 text-red-400" />
+              <h3 className="font-semibold">
+                {language === 'zh' ? '邀请好友 · 得 50% 续费券' : 'Refer friends · Earn 50%-off coupons'}
+              </h3>
+            </div>
+            <p className="text-sm text-slate-400 mb-3">
+              {language === 'zh'
+                ? '好友用你的推荐码注册成功，你即得 1 张 50% off 续费券（3 个月内有效，每次用 1 张）。'
+                : 'When a friend signs up with your code you earn a 50%-off renewal coupon (valid 3 months, one per renewal).'}
+            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 bg-slate-800/70 rounded-lg px-3 py-2">
+                <span className="text-xs text-slate-400">{language === 'zh' ? '我的推荐码' : 'Your code'}</span>
+                <span className="font-mono font-bold tracking-widest text-red-300">{referral.code}</span>
+                <button
+                  onClick={() => {
+                    try { navigator.clipboard?.writeText(referral.code); } catch (e) { /* ignore */ }
+                    setPaymentMessage({ type: 'info', text: language === 'zh' ? '推荐码已复制' : 'Code copied' });
+                  }}
+                  className="text-xs text-red-400 hover:text-red-300"
+                >
+                  {language === 'zh' ? '复制' : 'Copy'}
+                </button>
+              </div>
+              <div className="text-sm text-slate-300">
+                {language === 'zh' ? '可用券' : 'Coupons'}: <span className="font-bold text-green-400">{referral.availableCoupons}</span>
+                {'  ·  '}
+                {language === 'zh' ? '已推荐' : 'Referred'}: <span className="font-bold">{referral.referredCount}</span>
+              </div>
+            </div>
+            {referral.availableCoupons > 0 && (
+              <p className="text-xs text-green-400 mt-2">
+                {language === 'zh'
+                  ? '✓ 你有可用半价券，下单时会自动以 50% off 续费。'
+                  : '✓ You have a coupon — checkout will automatically apply 50% off.'}
+              </p>
+            )}
+          </motion.div>
+        )}
+
         {currentSubscription?.hasSubscription && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

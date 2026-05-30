@@ -17,8 +17,8 @@ const APPSTORE_API_SANDBOX = 'https://api.storekit-sandbox.itunes.apple.com';
 
 // Product IDs - must match App Store Connect configuration
 const PRODUCT_IDS = {
-  personal_monthly: 'com.warrescue.personal.monthly',
-  family_monthly: 'com.warrescue.family.monthly',
+  personal_monthly: 'com.warrescue.app.personal.monthly',
+  family_monthly: 'com.warrescue.app.family.monthly',
 };
 
 // Map Apple product IDs to internal plan IDs
@@ -69,7 +69,7 @@ async function getAppStoreApiToken(): Promise<string | null> {
   const issuerId = Deno.env.get('APPSTORE_ISSUER_ID');
   const keyId = Deno.env.get('APPSTORE_KEY_ID');
   const p8 = Deno.env.get('APPSTORE_PRIVATE_KEY');
-  const bundleId = Deno.env.get('APPSTORE_BUNDLE_ID') || 'com.warrescue.appname';
+  const bundleId = Deno.env.get('APPSTORE_BUNDLE_ID') || 'com.warrescue.app';
   if (!issuerId || !keyId || !p8) return null;
 
   const nowSec = Math.floor(Date.now() / 1000);
@@ -114,6 +114,110 @@ async function fetchAppleTransaction(transactionId: string): Promise<any | null>
   return null;
 }
 
+// ===== 推荐返券：促销优惠签名 + 推荐逻辑 =====
+// 需在 ASC 每个订阅下创建一个 ID 为 referral50 的「促销优惠」(50% off 1个月)，
+// 并生成「App 内购买」签名密钥(.p8)，配为 Secrets：APPSTORE_OFFER_KEY_ID / APPSTORE_OFFER_KEY
+const PROMO_OFFER_ID = 'referral50';
+
+function stdB64FromBytes(bytes: Uint8Array): string {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+// Web Crypto 的 ECDSA 输出是 raw(r||s, 64字节)，而苹果促销优惠签名要 ASN.1 DER
+function rawSigToDer(raw: Uint8Array): Uint8Array {
+  const norm = (b: Uint8Array) => {
+    let i = 0; while (i < b.length - 1 && b[i] === 0) i++;
+    let t = b.slice(i);
+    if (t[0] & 0x80) { const n = new Uint8Array(t.length + 1); n.set(t, 1); t = n; }
+    return t;
+  };
+  const r = norm(raw.slice(0, 32));
+  const s = norm(raw.slice(32, 64));
+  const len = 2 + r.length + 2 + s.length;
+  const out = new Uint8Array(2 + len);
+  let o = 0;
+  out[o++] = 0x30; out[o++] = len;
+  out[o++] = 0x02; out[o++] = r.length; out.set(r, o); o += r.length;
+  out[o++] = 0x02; out[o++] = s.length; out.set(s, o); o += s.length;
+  return out;
+}
+// 生成苹果促销优惠签名（供 StoreKit2 Product.SubscriptionOffer.Signature 使用）
+async function signPromotionalOffer(productId: string, offerId: string, appUsername: string) {
+  const keyId = Deno.env.get('APPSTORE_OFFER_KEY_ID');
+  const p8 = Deno.env.get('APPSTORE_OFFER_KEY');
+  const bundleId = Deno.env.get('APPSTORE_BUNDLE_ID') || 'com.warrescue.app';
+  if (!keyId || !p8) return null;
+  const SEP = '⁣'; // INVISIBLE SEPARATOR
+  const nonce = crypto.randomUUID().toLowerCase();
+  const timestamp = Date.now();
+  const username = (appUsername || '').toLowerCase();
+  const payload = [bundleId, keyId, productId, offerId, username, nonce, String(timestamp)].join(SEP);
+  const key = await crypto.subtle.importKey('pkcs8', pemToDer(p8), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const rawSig = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(payload)));
+  const signature = stdB64FromBytes(rawSigToDer(rawSig));
+  return { offerId, keyId, nonce, timestamp, signature, username };
+}
+
+async function getReqUser(supabaseAdmin: any, req: Request) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return null;
+  const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+  return user || null;
+}
+function jsonResp(body: any, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: corsHeaders });
+}
+
+// 取自己的推荐码 + 可用券
+async function getReferral(supabaseAdmin: any, req: Request) {
+  const user = await getReqUser(supabaseAdmin, req);
+  if (!user) return jsonResp({ error: 'Unauthorized' }, 401);
+  const { data: code } = await supabaseAdmin.rpc('gen_referral_code', { uid: user.id });
+  await supabaseAdmin.rpc('expire_coupons');
+  const { data: coupons } = await supabaseAdmin
+    .from('referral_coupons').select('id,status,expires_at,earned_at')
+    .eq('user_id', user.id).eq('status', 'available').order('expires_at', { ascending: true });
+  const { count: referredCount } = await supabaseAdmin
+    .from('referrals').select('id', { count: 'exact', head: true }).eq('referrer_id', user.id);
+  return jsonResp({ code, availableCoupons: coupons?.length || 0, coupons: coupons || [], referredCount: referredCount || 0 });
+}
+
+// 新人填推荐码 → 登记 + 给推荐人发券
+async function applyReferralCode(supabaseAdmin: any, req: Request) {
+  const user = await getReqUser(supabaseAdmin, req);
+  if (!user) return jsonResp({ error: 'Unauthorized' }, 401);
+  const { code } = await req.json();
+  const { data, error } = await supabaseAdmin.rpc('apply_referral', { p_referee: user.id, p_code: code });
+  if (error) return jsonResp({ ok: false, reason: 'error', detail: error.message }, 400);
+  return jsonResp(data);
+}
+
+// 用券 → 预留一张券并签发促销优惠
+async function signOffer(supabaseAdmin: any, req: Request) {
+  const user = await getReqUser(supabaseAdmin, req);
+  if (!user) return jsonResp({ error: 'Unauthorized' }, 401);
+  const { productId } = await req.json();
+  if (!productId || !PRODUCT_TO_PLAN[productId]) return jsonResp({ eligible: false, reason: 'bad_product' }, 400);
+  const { data: couponId } = await supabaseAdmin.rpc('reserve_coupon', { p_user: user.id });
+  if (!couponId) return jsonResp({ eligible: false, reason: 'no_coupon' });
+  const sig = await signPromotionalOffer(productId, PROMO_OFFER_ID, user.id);
+  if (!sig) {
+    await supabaseAdmin.from('referral_coupons').update({ status: 'available', reserved_at: null }).eq('id', couponId);
+    return jsonResp({ eligible: false, reason: 'offer_key_not_configured' }, 500);
+  }
+  return jsonResp({ eligible: true, ...sig });
+}
+
+// 带券购买成功后核销
+async function consumeCoupon(supabaseAdmin: any, req: Request) {
+  const user = await getReqUser(supabaseAdmin, req);
+  if (!user) return jsonResp({ error: 'Unauthorized' }, 401);
+  const { transactionId } = await req.json();
+  await supabaseAdmin.rpc('consume_coupon', { p_user: user.id, p_txn: transactionId || null });
+  return jsonResp({ ok: true });
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -146,6 +250,14 @@ Deno.serve(async (req) => {
         return await getSubscriptionStatus(supabaseAdmin, req);
       case 'apple-server-notification':
         return await handleAppleNotification(supabaseAdmin, req);
+      case 'get-referral':
+        return await getReferral(supabaseAdmin, req);
+      case 'apply-referral-code':
+        return await applyReferralCode(supabaseAdmin, req);
+      case 'sign-promo-offer':
+        return await signOffer(supabaseAdmin, req);
+      case 'consume-coupon':
+        return await consumeCoupon(supabaseAdmin, req);
       default:
         return new Response(JSON.stringify({ error: 'Unknown action' }), {
           status: 400,
