@@ -1,6 +1,13 @@
--- WarRescue 数据库一键部署：Supabase SQL Editor 粘贴运行（幂等，可重复跑）
--- 含 4 个迁移：预警管线修复 / 设备token / 后台鉴权(admin_users) / 用户位置
--- 跑完后另见《上架傻瓜手册.md》第1步：引导超管 + 开启定时采集
+-- WarRescue 数据库一键部署 v2（修复版，幂等，可重复粘贴运行）
+-- 含 updated_at 触发器函数 + 4 个迁移；跑完见《上架傻瓜手册.md》引导超管
+
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ============================================================
 -- P1: 真实预警管线修复 + 定时采集
@@ -135,6 +142,7 @@ CREATE POLICY "用户管理自己的设备token" ON public.device_tokens
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 -- push-dispatch 云函数用 service_role 读取全部 token（service_role 默认绕过 RLS，无需额外策略）
 
+DROP TRIGGER IF EXISTS update_device_tokens_updated_at ON public.device_tokens;
 CREATE TRIGGER update_device_tokens_updated_at
   BEFORE UPDATE ON public.device_tokens
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -181,6 +189,7 @@ CREATE POLICY "superadmin manage admin_users" ON public.admin_users
   FOR ALL USING (public.admin_role(auth.uid()) = 'superadmin')
   WITH CHECK (public.admin_role(auth.uid()) = 'superadmin');
 
+DROP TRIGGER IF EXISTS update_admin_users_updated_at ON public.admin_users;
 CREATE TRIGGER update_admin_users_updated_at
   BEFORE UPDATE ON public.admin_users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -202,9 +211,9 @@ DECLARE
 BEGIN
   FOREACH t IN ARRAY tbls LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=t) THEN
-      EXECUTE format('DROP POLICY IF EXISTS %L ON public.%I', 'admin full access '||t, t);
+      EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', 'admin full access '||t, t);
       EXECUTE format(
-        'CREATE POLICY %L ON public.%I FOR ALL USING (public.is_admin(auth.uid())) WITH CHECK (public.is_admin(auth.uid()))',
+        'CREATE POLICY %I ON public.%I FOR ALL USING (public.is_admin(auth.uid())) WITH CHECK (public.is_admin(auth.uid()))',
         'admin full access '||t, t
       );
     END IF;

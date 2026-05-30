@@ -26,6 +26,7 @@ CREATE POLICY "用户管理自己的设备token" ON public.device_tokens
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 -- push-dispatch 云函数用 service_role 读取全部 token（service_role 默认绕过 RLS，无需额外策略）
 
+DROP TRIGGER IF EXISTS update_device_tokens_updated_at ON public.device_tokens;
 CREATE TRIGGER update_device_tokens_updated_at
   BEFORE UPDATE ON public.device_tokens
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
