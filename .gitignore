@@ -155,3 +155,6 @@ ui_backup_*/
 
 # Private keys (already covered by *.pem above)
 *.p8
+
+# 连连支付 Java SDK：误提交的孤儿子模块(无 .gitmodules)，会破坏 CI 构建；改为本地忽略
+llgp-sdk-java/
