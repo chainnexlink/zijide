@@ -138,13 +138,13 @@ platform :ios do
       }
     )
 
-    # Upload to App Store Connect
-    upload_to_app_store(
+    # 上传二进制到 App Store Connect（走 TestFlight / 构建列表通道）。
+    # 不用 upload_to_app_store：它会尝试“创建/校验 App Store 版本”，而当前 1.1 正在审核（版本被锁），
+    # 会报 “You cannot create a new version of the App in the current state / version number has been previously used”。
+    # upload_to_testflight(pilot) 只上传二进制、不碰版本号，规避该冲突；版本与提交改在 App Store Connect 网页手动操作。
+    upload_to_testflight(
       api_key: api_key,
-      skip_metadata: true,
-      skip_screenshots: true,
-      force: true,
-      precheck_include_in_app_purchases: false
+      skip_waiting_for_build_processing: true
     )
   end
 
