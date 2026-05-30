@@ -119,7 +119,16 @@ export async function fetchProducts(): Promise<AppleProduct[]> {
 /**
  * 发起购买
  */
-export async function purchaseProduct(productId: string): Promise<ApplePurchaseResult> {
+export interface PromoOffer {
+  offerId: string;
+  keyId: string;
+  nonce: string;
+  timestamp: number;
+  signature: string;
+  appAccountToken?: string;
+}
+
+export async function purchaseProduct(productId: string, offer?: PromoOffer): Promise<ApplePurchaseResult> {
   if (!isNativeIOS()) {
     return { success: false, error: 'Not running on iOS' };
   }
@@ -130,7 +139,16 @@ export async function purchaseProduct(productId: string): Promise<ApplePurchaseR
   }
 
   try {
-    const result = await plugin.purchaseProduct({ productId });
+    const args: any = { productId };
+    if (offer) {
+      args.offerId = offer.offerId;
+      args.keyId = offer.keyId;
+      args.nonce = offer.nonce;
+      args.timestamp = offer.timestamp;
+      args.signature = offer.signature;
+      if (offer.appAccountToken) args.appAccountToken = offer.appAccountToken;
+    }
+    const result = await plugin.purchaseProduct(args);
 
     if (result?.pending) {
       return { success: false, error: 'Purchase is pending approval' };

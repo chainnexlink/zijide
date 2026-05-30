@@ -71,7 +71,22 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
                     return
                 }
 
-                let result = try await product.purchase()
+                // 可选：带促销优惠（推荐返券 50% off 续费）购买
+                var options: Set<Product.PurchaseOption> = []
+                if let offerId = call.getString("offerId"),
+                   let keyId = call.getString("keyId"),
+                   let nonceStr = call.getString("nonce"), let nonce = UUID(uuidString: nonceStr),
+                   let sigB64 = call.getString("signature"), let sigData = Data(base64Encoded: sigB64) {
+                    let timestamp = call.getInt("timestamp") ?? Int(call.getString("timestamp") ?? "") ?? 0
+                    let signature = Product.SubscriptionOffer.Signature(
+                        keyID: keyId, nonce: nonce, timestamp: timestamp, signature: sigData
+                    )
+                    options.insert(.promotionalOffer(offerID: offerId, signature: signature))
+                }
+                if let tokenStr = call.getString("appAccountToken"), let token = UUID(uuidString: tokenStr) {
+                    options.insert(.appAccountToken(token))
+                }
+                let result = options.isEmpty ? try await product.purchase() : try await product.purchase(options: options)
 
                 switch result {
                 case .success(let verification):
