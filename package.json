@@ -13,6 +13,7 @@
     "@capacitor/cli": "^7.6.2",
     "@capacitor/core": "^8.3.1",
     "@capacitor/ios": "^8.3.1",
+    "@capacitor/push-notifications": "^8.1.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.0",
     "@fortawesome/free-solid-svg-icons": "^6.5.0",
     "@fortawesome/react-fontawesome": "^0.2.0",

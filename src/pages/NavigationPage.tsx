@@ -147,7 +147,7 @@ export default function NavigationPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50">
+      <nav className="fixed top-0 left-0 right-0 z-50 lg:static lg:z-auto bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -180,7 +180,7 @@ export default function NavigationPage() {
         </div>
       </nav>
 
-      <main className="pt-16">
+      <main className="pt-16 lg:pt-4">
         <div className="relative h-96 bg-slate-900 overflow-hidden">
           <WarMap
             center={location ? { lat: location.latitude, lng: location.longitude } : { lat: destination.lat, lng: destination.lng }}

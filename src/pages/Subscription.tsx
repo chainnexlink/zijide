@@ -515,7 +515,7 @@ export default function Subscription() {
             <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white underline">
               {language === 'zh' ? '使用条款' : 'Terms of Use'}
             </a>
-            <a href="/privacy" className="text-slate-400 hover:text-white underline">
+            <a href="#/privacy" className="text-slate-400 hover:text-white underline">
               {language === 'zh' ? '隐私政策' : 'Privacy Policy'}
             </a>
           </div>

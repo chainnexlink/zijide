@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAdmin, Btn, SearchBar, Modal, AdminAccount, getAdminAccounts, saveAdminAccounts, hashPwd, fmt, StatCard } from '../App';
+import { useAdmin, Btn, SearchBar, Modal, AdminAccount, fmt, StatCard } from '../App';
 
 // ==================== AI Collection Config (localStorage) ====================
 interface DataSource {
@@ -44,7 +44,7 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
   const triggerMonitor = async () => {
     setMonitorLoading(true);
     try {
-      const { error } = await (supabase as any).functions.invoke('monitor', { body: { action: 'collect' } });
+      const { error } = await (supabase as any).functions.invoke('ai-alert', { body: { action: 'collect' } });
       if (error) throw error;
       showToast('监控数据采集成功');
     } catch (e: any) { showToast('失败: ' + (e.message || '未知错误')); }
@@ -54,7 +54,7 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
   const triggerAI = async () => {
     setAiLoading(true);
     try {
-      const { error } = await (supabase as any).functions.invoke('ai-alert', { body: { action: 'check' } });
+      const { error } = await (supabase as any).functions.invoke('ai-alert', { body: { action: 'stats' } });
       if (error) throw error;
       showToast('AI检测已触发');
     } catch (e: any) { showToast('失败: ' + (e.message || '未知错误')); }
@@ -753,20 +753,31 @@ function AdminManagement() {
   const adminCtx = useAdmin();
   const showToast = adminCtx.showToast;
   const currentAdmin = adminCtx.currentAdmin;
+  const supabase = (adminCtx as any).supabase;
   const [accounts, setAccounts] = useState<AdminAccount[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editAccount, setEditAccount] = useState<AdminAccount | null>(null);
-  const [showPwdModal, setShowPwdModal] = useState<AdminAccount | null>(null);
 
   // Form state
-  const [formUser, setFormUser] = useState('');
-  const [formPwd, setFormPwd] = useState('');
+  const [formEmail, setFormEmail] = useState('');
   const [formName, setFormName] = useState('');
   const [formRole, setFormRole] = useState<'superadmin' | 'admin' | 'viewer'>('admin');
   const [busy, setBusy] = useState(false);
 
-  const reload = () => setAccounts(getAdminAccounts());
-  useEffect(() => { reload(); }, []);
+  const reload = useCallback(async () => {
+    const { data } = await supabase
+      .from('admin_users')
+      .select('user_id, email, display_name, role, created_at')
+      .order('created_at', { ascending: true });
+    setAccounts((data || []).map((r: any) => ({
+      id: r.user_id,
+      username: r.email || '(unknown)',
+      displayName: r.display_name || r.email || '管理员',
+      role: r.role,
+      createdAt: r.created_at,
+    })));
+  }, [supabase]);
+  useEffect(() => { void reload(); }, [reload]);
 
   const isSuperAdmin = currentAdmin?.role === 'superadmin';
   const roleName: Record<string, string> = { superadmin: '超级管理员', admin: '管理员', viewer: '只读' };
@@ -774,74 +785,64 @@ function AdminManagement() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true);
-    if (formUser.length < 2) { showToast('用户名至少2位'); setBusy(false); return; }
-    if (formPwd.length < 6) { showToast('密码至少6位'); setBusy(false); return; }
-    const all = getAdminAccounts();
-    if (all.find(a => a.username === formUser)) { showToast('用户名已存在'); setBusy(false); return; }
-    const hash = await hashPwd(formPwd);
-    const newAcc: AdminAccount = {
-      id: 'admin-' + Date.now(),
-      username: formUser,
-      passwordHash: hash,
-      displayName: formName || formUser,
-      role: formRole,
-      createdAt: new Date().toISOString(),
-    };
-    all.push(newAcc);
-    saveAdminAccounts(all.filter(a => a.id !== 'default-admin'));
-    showToast('账户已创建: ' + formUser);
-    setShowAddModal(false); setFormUser(''); setFormPwd(''); setFormName(''); setFormRole('admin');
-    reload(); setBusy(false);
+    if (!isSuperAdmin) { showToast('仅超级管理员可添加'); setBusy(false); return; }
+    const email = formEmail.trim().toLowerCase();
+    if (!email) { showToast('请输入邮箱'); setBusy(false); return; }
+    // 按邮箱在已注册用户(profiles)中查找，再写入 admin_users
+    const { data: prof } = await supabase.from('profiles').select('id, email').eq('email', email).maybeSingle();
+    if (!prof) { showToast('该邮箱用户尚未注册 App，请先让其在 App 注册/登录一次'); setBusy(false); return; }
+    const { error } = await supabase.from('admin_users').upsert(
+      { user_id: prof.id, email, display_name: formName || email, role: formRole },
+      { onConflict: 'user_id' },
+    );
+    if (error) { showToast('授予失败: ' + error.message); setBusy(false); return; }
+    showToast('已授予管理员: ' + email);
+    setShowAddModal(false); setFormEmail(''); setFormName(''); setFormRole('admin');
+    await reload(); setBusy(false);
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true);
     if (!editAccount) { setBusy(false); return; }
-    const all = getAdminAccounts();
-    const idx = all.findIndex(a => a.id === editAccount.id);
-    if (idx < 0) { showToast('账户不存在'); setBusy(false); return; }
-    all[idx] = { ...all[idx], displayName: formName || all[idx].displayName, role: formRole };
-    saveAdminAccounts(all.filter(a => a.id !== 'default-admin'));
-    showToast('已更新: ' + all[idx].username);
-    setEditAccount(null); reload(); setBusy(false);
+    if (!isSuperAdmin) { showToast('仅超级管理员可修改'); setBusy(false); return; }
+    const { error } = await supabase.from('admin_users')
+      .update({ display_name: formName || editAccount.displayName, role: formRole })
+      .eq('user_id', editAccount.id);
+    if (error) { showToast('更新失败: ' + error.message); setBusy(false); return; }
+    showToast('已更新: ' + editAccount.username);
+    setEditAccount(null); await reload(); setBusy(false);
   };
 
-  const handleChangePwd = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true);
-    if (!showPwdModal) { setBusy(false); return; }
-    if (formPwd.length < 6) { showToast('密码至少6位'); setBusy(false); return; }
-    const all = getAdminAccounts();
-    const idx = all.findIndex(a => a.id === showPwdModal.id);
-    if (idx < 0) { showToast('账户不存在'); setBusy(false); return; }
-    all[idx].passwordHash = await hashPwd(formPwd);
-    saveAdminAccounts(all.filter(a => a.id !== 'default-admin'));
-    showToast('密码已更新');
-    setShowPwdModal(null); setFormPwd(''); reload(); setBusy(false);
-  };
+  // 密码由管理员本人通过 App 的“找回密码”自助重置（后台不再保存/管理密码）。
 
-  const handleDelete = (acc: AdminAccount) => {
-    if (accounts.length <= 1) { showToast('至少保留一个管理员账户'); return; }
-    if (acc.id === currentAdmin?.id) { showToast('不能删除当前登录账户'); return; }
-    if (!confirm(`确认删除账户 "${acc.username}" ?`)) return;
-    const all = getAdminAccounts().filter(a => a.id !== acc.id);
-    saveAdminAccounts(all.filter(a => a.id !== 'default-admin'));
-    showToast('已删除: ' + acc.username);
-    reload();
+  const handleDelete = async (acc: AdminAccount) => {
+    if (!isSuperAdmin) { showToast('仅超级管理员可移除'); return; }
+    if (accounts.length <= 1) { showToast('至少保留一个管理员'); return; }
+    if (acc.id === currentAdmin?.id) { showToast('不能移除当前登录账户'); return; }
+    if (!confirm(`确认移除 "${acc.username}" 的后台权限？（不会删除其 App 账号）`)) return;
+    const { error } = await supabase.from('admin_users').delete().eq('user_id', acc.id);
+    if (error) { showToast('移除失败: ' + error.message); return; }
+    showToast('已移除: ' + acc.username);
+    await reload();
   };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-white">管理员管理</h2>
-        <Btn onClick={() => { setFormUser(''); setFormPwd(''); setFormName(''); setFormRole('admin'); setShowAddModal(true); }}>
+        <Btn onClick={() => { setFormEmail(''); setFormName(''); setFormRole('admin'); setShowAddModal(true); }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          新建账户
+          授予管理员
         </Btn>
+      </div>
+
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4 text-blue-300 text-xs">
+        管理员通过 Supabase Auth（邮箱+密码）登录。新增管理员：先让对方用邮箱在 App 注册/登录一次，再在此按邮箱授予角色；密码由本人通过 App「找回密码」自助管理。
       </div>
 
       {!isSuperAdmin && (
         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-6 text-yellow-400 text-xs">
-          提示：当前角色为「{roleName[currentAdmin?.role || 'admin']}」，部分操作需要「超级管理员」权限。
+          提示：当前角色为「{roleName[currentAdmin?.role || 'admin']}」，新增/修改/移除需要「超级管理员」权限。
         </div>
       )}
 
@@ -849,7 +850,7 @@ function AdminManagement() {
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <table className="w-full">
           <thead><tr className="border-b border-slate-700">
-            <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">用户名</th>
+            <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">邮箱</th>
             <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">显示名</th>
             <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">角色</th>
             <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">创建时间</th>
@@ -874,10 +875,8 @@ function AdminManagement() {
                   <div className="flex items-center justify-end gap-2">
                     <button onClick={() => { setEditAccount(acc); setFormName(acc.displayName); setFormRole(acc.role); }}
                       className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded text-xs transition-colors">编辑</button>
-                    <button onClick={() => { setShowPwdModal(acc); setFormPwd(''); }}
-                      className="px-2.5 py-1 bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-400 rounded text-xs transition-colors">改密</button>
                     <button onClick={() => handleDelete(acc)}
-                      className="px-2.5 py-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded text-xs transition-colors">删除</button>
+                      className="px-2.5 py-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded text-xs transition-colors">移除</button>
                   </div>
                 </td>
               </tr>
@@ -888,18 +887,13 @@ function AdminManagement() {
 
       {/* Add modal */}
       {showAddModal && (
-        <Modal title="新建管理员账户" onClose={() => setShowAddModal(false)}>
+        <Modal title="授予管理员权限" onClose={() => setShowAddModal(false)}>
           <form onSubmit={handleAdd}>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-1">用户名</label>
-                <input type="text" value={formUser} onChange={e => setFormUser(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500" placeholder="登录用户名" required />
-              </div>
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">密码</label>
-                <input type="password" value={formPwd} onChange={e => setFormPwd(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500" placeholder="至少6位" required />
+                <label className="block text-sm text-slate-400 mb-1">邮箱（须为已注册 App 的用户）</label>
+                <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500" placeholder="user@example.com" required />
               </div>
               <div>
                 <label className="block text-sm text-slate-400 mb-1">显示名称</label>
@@ -919,7 +913,7 @@ function AdminManagement() {
             <div className="flex gap-3 mt-6">
               <Btn onClick={() => setShowAddModal(false)} variant="secondary">取消</Btn>
               <button type="submit" disabled={busy} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors disabled:opacity-50">
-                {busy ? '创建中...' : '创建账户'}
+                {busy ? '授予中...' : '授予权限'}
               </button>
             </div>
           </form>
@@ -954,24 +948,7 @@ function AdminManagement() {
         </Modal>
       )}
 
-      {/* Change password modal */}
-      {showPwdModal && (
-        <Modal title={`修改密码: ${showPwdModal.username}`} onClose={() => setShowPwdModal(null)}>
-          <form onSubmit={handleChangePwd}>
-            <div className="mb-4">
-              <label className="block text-sm text-slate-400 mb-1">新密码</label>
-              <input type="password" value={formPwd} onChange={e => setFormPwd(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500" placeholder="至少6位" required />
-            </div>
-            <div className="flex gap-3">
-              <Btn onClick={() => setShowPwdModal(null)} variant="secondary">取消</Btn>
-              <button type="submit" disabled={busy} className="flex-1 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm transition-colors disabled:opacity-50">
-                {busy ? '更新中...' : '确认修改'}
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
+      {/* 密码修改已移除：管理员通过 App「找回密码」自助重置 */}
     </div>
   );
 }

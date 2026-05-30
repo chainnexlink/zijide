@@ -197,7 +197,7 @@ export default function AdminDashboard() {
     const { count: activeAlertsCount } = await supabase
       .from('alerts')
       .select('*', { count: 'exact', head: true })
-      .eq('is_active', true);
+      .is('end_time', null);
 
     const { count: activeSOSCount } = await supabase
       .from('sos_records')
@@ -516,7 +516,7 @@ export default function AdminDashboard() {
 
   const triggerMonitor = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('monitor', {
+      const { data, error } = await supabase.functions.invoke('ai-alert', {
         body: { action: 'collect' }
       });
       if (!error) {
@@ -538,9 +538,10 @@ export default function AdminDashboard() {
   };
 
   const updateAlertStatus = async (alertId: string, isActive: boolean) => {
+    // 活跃 = end_time 为空；停用则写入当前时间，重新激活则清空
     await supabase
       .from('alerts')
-      .update({ is_active: isActive })
+      .update({ end_time: isActive ? null : new Date().toISOString() })
       .eq('id', alertId);
     fetchRecentAlerts();
     fetchStats();

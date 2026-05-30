@@ -1,53 +1,33 @@
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { supabase } from './supabase';
 
-// ==================== Account System ====================
+// ==================== Account System (Supabase Auth + admin_users) ====================
 export interface AdminAccount {
-  id: string;
-  username: string;
-  passwordHash: string;
+  id: string;          // = Supabase auth user id
+  username: string;    // = email
   displayName: string;
   role: 'superadmin' | 'admin' | 'viewer';
   createdAt: string;
 }
 
-const ACCOUNTS_KEY = 'wa_admin_accounts';
-const SESSION_KEY = 'wa_admin_session';
-
-// Default: admin / admin123
-const DEFAULT_ACCOUNTS: AdminAccount[] = [{
-  id: 'default-admin',
-  username: 'admin',
-  passwordHash: 'admin123',
-  displayName: '测试管理员',
-  role: 'admin',
-  createdAt: '2024-01-01T00:00:00Z',
-}];
-
-export async function hashPwd(pwd: string): Promise<string> {
-  return pwd;
-}
-
-export function getAdminAccounts(): AdminAccount[] {
-  try {
-    const stored: AdminAccount[] = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]');
-    const defaultIds = new Set(DEFAULT_ACCOUNTS.map(a => a.id));
-    const customOnly = stored.filter(a => !defaultIds.has(a.id));
-    return [...DEFAULT_ACCOUNTS, ...customOnly];
-  } catch { return [...DEFAULT_ACCOUNTS]; }
-}
-
-export function saveAdminAccounts(accounts: AdminAccount[]) {
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-}
-
-function getSession(): AdminAccount | null {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
-}
-
-function setSession(account: AdminAccount | null) {
-  if (account) localStorage.setItem(SESSION_KEY, JSON.stringify(account));
-  else localStorage.removeItem(SESSION_KEY);
+// 依据当前 Supabase Auth 会话 + admin_users 角色表判定管理员身份。
+// 校验通过返回 AdminAccount；未登录或已登录但不在 admin_users 中 → 返回 null（调用方应登出）。
+export async function loadAdminForSession(): Promise<AdminAccount | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: row } = await supabase
+    .from('admin_users')
+    .select('role, display_name, created_at')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (!row) return null;
+  return {
+    id: user.id,
+    username: user.email || '',
+    displayName: (row as any).display_name || user.email || '管理员',
+    role: (row as any).role,
+    createdAt: (row as any).created_at || new Date().toISOString(),
+  };
 }
 
 // ==================== Context ====================
@@ -187,17 +167,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const session = getSession();
-    if (session) {
-      const accounts = getAdminAccounts();
-      const found = accounts.find(a => a.id === session.id);
-      if (found) setCurrentAdmin(found);
-    }
-    setLoading(false);
+    let active = true;
+    const sync = async () => {
+      const admin = await loadAdminForSession();
+      if (active) { setCurrentAdmin(admin); setLoading(false); }
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => { void sync(); });
+    void sync();
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
-  const handleLogout = () => { setSession(null); setCurrentAdmin(null); };
-  const handleLogin = (account: AdminAccount) => { setSession(account); setCurrentAdmin(account); };
+  const handleLogout = async () => { await supabase.auth.signOut(); setCurrentAdmin(null); };
+  const handleLogin = (account: AdminAccount) => { setCurrentAdmin(account); };
 
   if (loading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
   if (!currentAdmin) return <LoginPage onLogin={handleLogin} />;
@@ -288,17 +269,23 @@ export default function App() {
 }
 
 function LoginPage({ onLogin }: { onLogin: (account: AdminAccount) => void }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setError('');
-    const accounts = getAdminAccounts();
-    const match = accounts.find(a => a.username === username && a.passwordHash === password);
-    if (match) { onLogin(match); }
-    else { setError('用户名或密码错误'); }
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (signInErr) { setError('邮箱或密码错误'); setBusy(false); return; }
+    const admin = await loadAdminForSession();
+    if (!admin) {
+      await supabase.auth.signOut();
+      setError('该账号没有后台管理权限');
+      setBusy(false);
+      return;
+    }
+    onLogin(admin);
     setBusy(false);
   };
 
@@ -315,9 +302,9 @@ function LoginPage({ onLogin }: { onLogin: (account: AdminAccount) => void }) {
         <form onSubmit={handleSubmit} className="bg-slate-800 rounded-xl p-6 border border-slate-700">
           {error && <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4 text-red-400 text-sm">{error}</div>}
           <div className="mb-4">
-            <label className="block text-sm text-slate-400 mb-1">用户名</label>
-            <input type="text" value={username} onChange={e => setUsername(e.target.value)} autoComplete="username"
-              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="输入用户名" required />
+            <label className="block text-sm text-slate-400 mb-1">邮箱</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="username"
+              className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="输入管理员邮箱" required />
           </div>
           <div className="mb-6">
             <label className="block text-sm text-slate-400 mb-1">密码</label>

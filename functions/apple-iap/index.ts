@@ -32,6 +32,88 @@ const PLANS: Record<string, { price: number; duration: number }> = {
   family: { price: 99.99, duration: 30 },
 };
 
+// ===== App Store Server API（方案B：向苹果权威核验交易，防伪造 JWS）=====
+// 需要的 Secrets：APPSTORE_ISSUER_ID, APPSTORE_KEY_ID, APPSTORE_PRIVATE_KEY(.p8 全文), APPSTORE_BUNDLE_ID
+let ascTokenCache: { token: string; exp: number } | null = null;
+
+function b64urlFromBytes(bytes: Uint8Array): string {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64url(s: string): string {
+  return b64urlFromBytes(new TextEncoder().encode(s));
+}
+function pemToDer(pem: string): ArrayBuffer {
+  const body = pem.replace(/-----BEGIN [^-]+-----/g, '').replace(/-----END [^-]+-----/g, '').replace(/\s+/g, '');
+  const bin = atob(body);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes.buffer;
+}
+// 仅解码 JWS payload（不验签）——只用于取出 transactionId，绝不作为信任依据
+function decodeJwsPayload(jws: string): any | null {
+  try {
+    const parts = jws.split('.');
+    if (parts.length !== 3) return null;
+    let s = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    return JSON.parse(atob(s));
+  } catch {
+    return null;
+  }
+}
+
+// 用 App Store Connect API 密钥(.p8) 签发 ES256 JWT
+async function getAppStoreApiToken(): Promise<string | null> {
+  const issuerId = Deno.env.get('APPSTORE_ISSUER_ID');
+  const keyId = Deno.env.get('APPSTORE_KEY_ID');
+  const p8 = Deno.env.get('APPSTORE_PRIVATE_KEY');
+  const bundleId = Deno.env.get('APPSTORE_BUNDLE_ID') || 'com.warrescue.appname';
+  if (!issuerId || !keyId || !p8) return null;
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (ascTokenCache && ascTokenCache.exp - nowSec > 60) return ascTokenCache.token;
+
+  const exp = nowSec + 1800; // ≤ 60 分钟
+  const header = b64url(JSON.stringify({ alg: 'ES256', kid: keyId, typ: 'JWT' }));
+  const claims = b64url(JSON.stringify({ iss: issuerId, iat: nowSec, exp, aud: 'appstoreconnect-v1', bid: bundleId }));
+  const signingInput = `${header}.${claims}`;
+  const key = await crypto.subtle.importKey('pkcs8', pemToDer(p8), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(signingInput));
+  const token = `${signingInput}.${b64urlFromBytes(new Uint8Array(sig))}`;
+  ascTokenCache = { token, exp };
+  return token;
+}
+
+// 向 Apple 拉取权威交易信息（生产找不到则回退沙盒）。
+// 返回已解码的交易 payload；未配置或核验失败返回 null —— 失败即拒绝，绝不放行。
+async function fetchAppleTransaction(transactionId: string): Promise<any | null> {
+  const token = await getAppStoreApiToken();
+  if (!token) {
+    console.error('App Store Server API 未配置（APPSTORE_ISSUER_ID/KEY_ID/PRIVATE_KEY），拒绝放行 JWS 交易');
+    return null;
+  }
+  for (const base of [APPSTORE_API_PRODUCTION, APPSTORE_API_SANDBOX]) {
+    try {
+      const res = await fetch(`${base}/inApps/v1/transactions/${transactionId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const j = await res.json();
+        if (j?.signedTransactionInfo) {
+          // 该数据由 Apple 鉴权端点经 TLS 返回，可信
+          const decoded = decodeJwsPayload(j.signedTransactionInfo);
+          if (decoded) return decoded;
+        }
+      }
+    } catch (e) {
+      console.error('App Store Server API 调用失败:', e);
+    }
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -412,12 +494,12 @@ async function handleAppleNotification(supabaseAdmin: any, req: Request) {
 
     console.log(`Apple notification: ${notificationType} / ${subtype}`);
 
-    // Decode signed transaction info if present
+    // 解码通知里的交易信息（不信任），取出 transactionId 后向 Apple 权威核验，防伪造通知
     let transactionInfo: any = null;
     if (data?.signedTransactionInfo) {
-      const txParts = data.signedTransactionInfo.split('.');
-      if (txParts.length === 3) {
-        transactionInfo = JSON.parse(atob(txParts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      const claimedTx = decodeJwsPayload(data.signedTransactionInfo);
+      if (claimedTx?.transactionId) {
+        transactionInfo = await fetchAppleTransaction(String(claimedTx.transactionId));
       }
     }
 
@@ -606,19 +688,25 @@ async function verifyJWSTransaction(
   expectedProductId?: string,
 ) {
   try {
-    // Decode JWS payload (header.payload.signature)
-    const parts = jwsTransaction.split('.');
-    if (parts.length !== 3) {
+    // 1) 解码客户端 JWS（不信任），仅取出 transactionId
+    const claimed = decodeJwsPayload(jwsTransaction);
+    if (!claimed?.transactionId) {
       return new Response(JSON.stringify({ error: 'Invalid JWS format' }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
-    // Decode base64url payload
-    const payloadB64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const transactionInfo = JSON.parse(atob(payloadB64));
+    // 2) 向 Apple App Store Server API 权威核验该交易（防伪造白嫖）
+    const transactionInfo = await fetchAppleTransaction(String(claimed.transactionId));
+    if (!transactionInfo) {
+      return new Response(JSON.stringify({ error: 'Transaction could not be verified with Apple' }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
 
+    // 以下一律使用 Apple 返回的权威字段，而非客户端声称的值
     const appleProductId = transactionInfo.productId;
     const transactionId = String(transactionInfo.transactionId);
     const originalTransactionId = String(transactionInfo.originalTransactionId);

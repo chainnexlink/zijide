@@ -35,6 +35,7 @@ import Points from './pages/Points';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import CustomerServiceWidget from './components/CustomerServiceWidget';
+import { usePushRegistration } from './hooks/usePushRegistration';
 
 export const DemoContext = createContext<{ isDemo: boolean; exitDemo: () => void }>({ isDemo: false, exitDemo: () => {} });
 export const useDemo = () => useContext(DemoContext);
@@ -78,6 +79,9 @@ function App() {
   }, []);
 
   const isAuthenticated = !!user || isDemo;
+
+  // 原生平台：登录后注册推送（APNs/FCM），让关屏/退后台也能收到预警
+  usePushRegistration(isAuthenticated);
 
   const Wrap = ({ children }: { children: React.ReactNode }) => <WebLayout>{children}</WebLayout>;
 
