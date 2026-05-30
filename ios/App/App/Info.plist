@@ -53,5 +53,12 @@
 	<string>WarRescue needs your location to provide real-time disaster alerts, escape route navigation, and emergency rescue services in your area.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>WarRescue needs continuous location access to monitor nearby threats and send emergency alerts even when the app is in the background.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<!-- 仅使用标准 HTTPS/系统加密，属出口合规豁免；声明后上传不再每次询问 -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

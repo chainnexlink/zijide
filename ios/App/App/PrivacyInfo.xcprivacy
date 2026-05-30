@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 不做跨 App/网站追踪、无广告 SDK -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- 收集的数据类型：均与账户关联(Linked)、不用于追踪(Tracking=false)、用途为 App 功能 -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypePreciseLocation</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeCoarseLocation</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeEmailAddress</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypePhoneNumber</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeName</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeOtherUserContactInfo</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<!-- 紧急医疗资料：血型/过敏史/病史等敏感健康信息 -->
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeHealth</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypePurchaseHistory</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<!-- 推送所需的设备 token -->
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeDeviceID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<!-- 互助/求助聊天等用户内容 -->
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeOtherUserContent</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+		<dict>
+			<!-- 客服会话 -->
+			<key>NSPrivacyCollectedDataType</key><string>NSPrivacyCollectedDataTypeCustomerSupport</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key><true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key><false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+		</dict>
+	</array>
+
+	<!-- 必备理由 API：本地存储(localStorage/Capacitor Preferences) -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key><string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array><string>CA92.1</string></array>
+		</dict>
+	</array>
+</dict>
+</plist>

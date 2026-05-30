@@ -1,0 +1,69 @@
+name: Deploy Supabase (Edge Functions + Secrets)
+
+# 在 GitHub「Actions」里手动点 Run 即可部署所有云函数，并把已配置的密钥写入 Supabase。
+# 需要的 GitHub Secret（必填）：SUPABASE_ACCESS_TOKEN（supabase.com → Account → Access Tokens 生成）
+# 其余密钥（选填，填了才会下发对应功能；没填则该功能安全跳过）见下方 set_secret 列表。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: aurowjqmjofpitsmlhmg
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Prepare functions (CLI 期望放在 supabase/functions/)
+        run: |
+          mkdir -p supabase/functions
+          cp -r functions/* supabase/functions/
+          ls -1 supabase/functions
+
+      - name: Deploy all edge functions
+        run: |
+          for d in supabase/functions/*/; do
+            name=$(basename "$d")
+            [ "$name" = "_shared" ] && continue
+            echo "===== deploy $name ====="
+            supabase functions deploy "$name" --project-ref "$PROJECT_REF" || echo "WARN: deploy $name failed (继续)"
+          done
+
+      - name: Set function secrets (只设置已填写的)
+        run: |
+          set_secret() {
+            if [ -n "$2" ]; then
+              supabase secrets set "$1=$2" --project-ref "$PROJECT_REF" >/dev/null 2>&1 && echo "✓ set $1" || echo "✗ set $1 失败"
+            else
+              echo "- 跳过 $1（未填）"
+            fi
+          }
+          # 预警 AI / 定时
+          set_secret MEOO_PROJECT_API_KEY "${{ secrets.MEOO_PROJECT_API_KEY }}"
+          set_secret CRON_SECRET "${{ secrets.CRON_SECRET }}"
+          # iOS 推送 APNs
+          set_secret APNS_KEY_ID "${{ secrets.APNS_KEY_ID }}"
+          set_secret APNS_TEAM_ID "${{ secrets.APNS_TEAM_ID }}"
+          set_secret APNS_BUNDLE_ID "${{ secrets.APNS_BUNDLE_ID }}"
+          set_secret APNS_AUTH_KEY "${{ secrets.APNS_AUTH_KEY }}"
+          # 安卓推送 FCM
+          set_secret FCM_SERVICE_ACCOUNT "${{ secrets.FCM_SERVICE_ACCOUNT }}"
+          # SOS 短信/语音 Twilio
+          set_secret TWILIO_ACCOUNT_SID "${{ secrets.TWILIO_ACCOUNT_SID }}"
+          set_secret TWILIO_FROM_NUMBER "${{ secrets.TWILIO_FROM_NUMBER }}"
+          set_secret TWILIO_KEY_SID "${{ secrets.TWILIO_KEY_SID }}"
+          set_secret TWILIO_KEY_SECRET "${{ secrets.TWILIO_KEY_SECRET }}"
+          # 苹果内购权威验签 App Store Server API
+          set_secret APPSTORE_ISSUER_ID "${{ secrets.APPSTORE_ISSUER_ID }}"
+          set_secret APPSTORE_KEY_ID "${{ secrets.APPSTORE_KEY_ID }}"
+          set_secret APPSTORE_BUNDLE_ID "${{ secrets.APPSTORE_BUNDLE_ID }}"
+          set_secret APPSTORE_PRIVATE_KEY "${{ secrets.APPSTORE_PRIVATE_KEY }}"
+          echo "完成。未填的密钥对应功能会安全跳过，填好后重跑本流程即可生效。"

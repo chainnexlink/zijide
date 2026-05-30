@@ -144,6 +144,8 @@ visit_*.js
 try_*.js
 status_report.js
 verification_data.js
+*_shots.js
+verify_fixes.js
 
 # Temp files
 temp_docx/

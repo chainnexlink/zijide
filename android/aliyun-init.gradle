@@ -1,0 +1,32 @@
+// 国内编译初始化脚本：
+//  1) 把 Maven 仓库镜像到阿里云（覆盖 node_modules 里 Capacitor 子模块自带的 google()/mavenCentral()）
+//  2) 把所有子模块的 Java 源/目标版本强制为 17（Capacitor 8 插件默认要 JDK21，本机只有 JDK17）
+// 用法：gradlew --init-script android/aliyun-init.gradle ...
+allprojects {
+    buildscript {
+        repositories {
+            maven { url 'https://maven.aliyun.com/repository/google' }
+            maven { url 'https://maven.aliyun.com/repository/public' }
+            maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        }
+    }
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    }
+
+    afterEvaluate { project ->
+        def android = project.extensions.findByName('android')
+        if (android != null) {
+            android.compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+        project.tasks.withType(JavaCompile).configureEach {
+            sourceCompatibility = '17'
+            targetCompatibility = '17'
+        }
+    }
+}

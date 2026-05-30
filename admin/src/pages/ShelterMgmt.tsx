@@ -16,6 +16,14 @@ export default function ShelterMgmtPage({ sub }: { sub: string }) {
 
   const del = async (id: string) => { if (!confirm('确定删除?')) return; await supabase.from('shelters').delete().eq('id', id); showToast('已删除'); load(); };
 
+  // 把内置避难所导入数据库（确定性 UUID，幂等 upsert；之后后台正常增删改）
+  const seedBuiltinShelters = async () => {
+    const rows = STATIC_SHELTERS.map(s => ({ id: s.id, name: s.name, address: s.address, latitude: s.latitude, longitude: s.longitude, city: s.city, country: s.country, capacity: s.capacity, current_occupancy: s.current_occupancy, status: s.status, has_water: s.has_water, has_electricity: s.has_electricity, has_medical: s.has_medical, has_toilet: s.has_toilet, has_rest_area: s.has_rest_area, phone: s.phone, opening_hours: s.opening_hours }));
+    const { error } = await supabase.from('shelters').upsert(rows, { onConflict: 'id' });
+    if (error) { showToast('导入失败: ' + error.message); return; }
+    showToast(`已导入/更新 ${rows.length} 个内置避难所`); load();
+  };
+
   if (detail) {
     const d = detail;
     return (
@@ -107,7 +115,7 @@ export default function ShelterMgmtPage({ sub }: { sub: string }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-white">避难所列表 ({shelters.length})</h2>
-        <div className="flex gap-3"><Btn onClick={() => { setEditData(null); setShowForm(true); }}>+ 新建避难所</Btn><Btn variant="secondary" onClick={load}>刷新</Btn></div>
+        <div className="flex gap-3"><Btn onClick={() => { setEditData(null); setShowForm(true); }}>+ 新建避难所</Btn><Btn variant="secondary" onClick={seedBuiltinShelters}>导入内置数据</Btn><Btn variant="secondary" onClick={load}>刷新</Btn></div>
       </div>
       <div className="flex gap-3 mb-4"><SearchBar value={search} onChange={setSearch} placeholder="搜索避难所..." /></div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

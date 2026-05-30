@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      device_tokens: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          last_seen_at: string | null
+          platform: string
+          token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_seen_at?: string | null
+          platform: string
+          token: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_seen_at?: string | null
+          platform?: string
+          token?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       alerts: {
         Row: {
           affected_radius_km: number | null
@@ -1012,6 +1053,9 @@ export type Database = {
           dnd_start_time: string | null
           flash_enabled: boolean | null
           id: string
+          last_latitude: number | null
+          last_longitude: number | null
+          location_updated_at: string | null
           monitor_radius_km: number | null
           push_enabled: boolean | null
           sound_enabled: boolean | null
@@ -1030,6 +1074,9 @@ export type Database = {
           dnd_start_time?: string | null
           flash_enabled?: boolean | null
           id?: string
+          last_latitude?: number | null
+          last_longitude?: number | null
+          location_updated_at?: string | null
           monitor_radius_km?: number | null
           push_enabled?: boolean | null
           sound_enabled?: boolean | null
@@ -1048,6 +1095,9 @@ export type Database = {
           dnd_start_time?: string | null
           flash_enabled?: boolean | null
           id?: string
+          last_latitude?: number | null
+          last_longitude?: number | null
+          location_updated_at?: string | null
           monitor_radius_km?: number | null
           push_enabled?: boolean | null
           sound_enabled?: boolean | null

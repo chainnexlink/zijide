@@ -58,6 +58,23 @@ export default function RescueOrgMgmtPage({ sub }: { sub: string }) {
     load();
   };
 
+  // 把内置的救援组织导入数据库（按 name_en 去重；让 DB 生成 uuid 与时间戳），之后即可在后台正常增删改
+  const seedBuiltinOrgs = async () => {
+    const { data: existing } = await supabase.from('rescue_organizations').select('name_en');
+    const have = new Set((existing || []).map((r: any) => r.name_en));
+    const toInsert = STATIC_RESCUE_ORGS.filter(o => !have.has(o.name_en)).map(o => ({
+      name: o.name, name_en: o.name_en, type: o.type, country: o.country, city: o.city,
+      phone: o.phone, email: o.email, website: o.website, services: o.services,
+      operating_hours: o.operating_hours, is_active: o.is_active, last_verified: o.last_verified,
+      description: o.description,
+    }));
+    if (toInsert.length === 0) { showToast('内置组织已全部入库'); return; }
+    const { error } = await supabase.from('rescue_organizations').insert(toInsert);
+    if (error) { showToast('导入失败: ' + error.message); return; }
+    showToast(`已导入 ${toInsert.length} 个内置救援组织`);
+    load();
+  };
+
   const triggerCollect = async (country?: string) => {
     const key = country || 'all';
     setCollecting(prev => ({ ...prev, [key]: true }));
@@ -276,6 +293,7 @@ export default function RescueOrgMgmtPage({ sub }: { sub: string }) {
         <h2 className="text-xl font-bold text-white">救援组织列表 ({orgs.length})</h2>
         <div className="flex gap-3">
           <Btn onClick={() => { setEditData(null); setShowForm(true); }}>+ 新增组织</Btn>
+          <Btn variant="secondary" onClick={seedBuiltinOrgs}>导入内置数据</Btn>
           <Btn variant="secondary" onClick={load}>刷新</Btn>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendPushToUsers } from '../_shared/push.ts';
 
 interface AlertSource {
   id: string;
@@ -109,74 +110,124 @@ Deno.serve(async (req) => {
 });
 
 async function collectAlerts(supabaseAdmin: any) {
-  const sources: AlertSource[] = [
-    { id: 'ua_alerts', name: 'Ukraine Alerts', url: 'https://alerts.com.ua/', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Ukraine', reliability: 0.95 },
-    { id: 'il_alerts', name: 'Israel Alerts', url: 'https://www.oref.org.il/', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Israel', reliability: 0.95 },
-    { id: 'sy_alerts', name: 'Syria Alerts', url: 'https://syria.liveuamap.com/', type: 'rss', lastChecked: new Date(0).toISOString(), country: 'Syria', reliability: 0.85 },
-    { id: 'tr_alerts', name: 'Turkey Alerts', url: 'https://deprem.afad.gov.tr/', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Turkey', reliability: 0.9 },
-    { id: 'ps_alerts', name: 'Palestine Alerts', url: 'https://gaza.liveuamap.com/', type: 'rss', lastChecked: new Date(0).toISOString(), country: 'Palestine', reliability: 0.85 },
-    { id: 'ai_analyzer', name: 'AI Analyzer', url: 'internal', type: 'ai', lastChecked: new Date(0).toISOString(), country: 'Global', reliability: 0.8 },
-  ];
-
-  const collectedAlerts: AlertData[] = [];
   const now = new Date();
+  const demoMode = (Deno.env.get('ALERT_DEMO_MODE') || '').toLowerCase() === 'true';
 
-  for (const source of sources) {
+  let collected = 0;
+  let inserted = 0;
+  const perSource: any[] = [];
+
+  if (demoMode) {
+    // ⚠️ 仅用于本地测试 / 应用商店审核演示：生成合成预警。
+    // 生产环境请勿设置 ALERT_DEMO_MODE=true —— 真实预警来自下方真实数据源。
+    const demoSources: AlertSource[] = [
+      { id: 'demo_ua', name: 'Ukraine Alerts (DEMO)', url: 'https://alerts.com.ua', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Ukraine', reliability: 0.95 },
+      { id: 'demo_il', name: 'Israel Alerts (DEMO)', url: 'https://www.oref.org.il', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Israel', reliability: 0.95 },
+    ];
+    for (const source of demoSources) {
+      for (const a of generateMockAlerts(source, now)) {
+        collected++;
+        if (await insertAlertIfNew(supabaseAdmin, mapAlertDataToRow(a, now), now)) inserted++;
+      }
+    }
+    return new Response(JSON.stringify({ success: true, demoMode: true, collected, new: inserted, timestamp: now.toISOString() }), { headers: corsHeaders });
+  }
+
+  // 生产：从真实上游数据源增量采集（自上次抓取时间起）
+  const { data: crawlStates } = await supabaseAdmin.from('alert_crawl_state').select('*');
+  const stateMap: Record<string, any> = {};
+  if (crawlStates) for (const s of crawlStates) stateMap[s.source_name] = s;
+
+  for (const source of REALTIME_SOURCES) {
+    const lastState = stateMap[source.name];
+    const since = lastState?.last_crawl_at ? new Date(lastState.last_crawl_at) : new Date(now.getTime() - 3600000);
     try {
-      if (source.type === 'ai') {
-        const aiAlerts = await generateAIAnalyzedAlerts(supabaseAdmin, now);
-        collectedAlerts.push(...aiAlerts);
-      } else {
-        const mockAlerts = generateMockAlerts(source, now);
-        collectedAlerts.push(...mockAlerts);
-      }
-    } catch (error) {
-      console.error(`Error collecting from ${source.name}:`, error);
+      const result = await crawlSource(source, since, supabaseAdmin);
+      collected += result.newItems;
+      inserted += result.inserted;
+      perSource.push({ source: source.name, fetched: result.newItems, inserted: result.inserted, avgDelaySeconds: result.avgDelaySeconds });
+      await supabaseAdmin.from('alert_crawl_state').upsert({
+        source_name: source.name, last_crawl_at: now.toISOString(),
+        items_found: result.newItems, avg_delay_seconds: result.avgDelaySeconds, error: null,
+      }, { onConflict: 'source_name' });
+    } catch (e: any) {
+      perSource.push({ source: source.name, error: e.message });
+      await supabaseAdmin.from('alert_crawl_state').upsert({
+        source_name: source.name, last_crawl_at: now.toISOString(), items_found: 0, error: e.message,
+      }, { onConflict: 'source_name' });
     }
   }
 
-  const newAlerts = [];
-  for (const alert of collectedAlerts) {
-    const { data: existing } = await supabaseAdmin
-      .from('alerts')
-      .select('id')
-      .eq('source_url', alert.sourceUrl)
-      .maybeSingle();
-
-    if (!existing) {
-      const { data, error } = await supabaseAdmin
-        .from('alerts')
-        .insert({
-          title: alert.title,
-          description: alert.description,
-          alert_type: alert.type,
-          severity: alert.severity,
-          latitude: alert.latitude,
-          longitude: alert.longitude,
-          country: alert.country,
-          city: alert.city,
-          source: alert.source,
-          source_url: alert.sourceUrl,
-          expires_at: alert.expiresAt,
-          is_active: true,
-          confidence: alert.confidence,
-        })
-        .select()
-        .single();
-
-      if (!error && data) {
-        newAlerts.push(data);
-        await notifySubscribers(supabaseAdmin, data);
+  // AI 分析器（仅在配置了 MEOO_PROJECT_API_KEY 时运行）
+  if (MEOO_PROJECT_SERVICE_AK) {
+    try {
+      for (const a of await generateAIAnalyzedAlerts(supabaseAdmin, now)) {
+        collected++;
+        if (await insertAlertIfNew(supabaseAdmin, mapAlertDataToRow(a, now), now)) inserted++;
       }
+    } catch (e) {
+      console.error('AI analyzer failed:', e);
     }
   }
 
-  return new Response(JSON.stringify({
-    success: true,
-    collected: collectedAlerts.length,
-    new: newAlerts.length,
-    timestamp: now.toISOString(),
-  }), { headers: corsHeaders });
+  return new Response(JSON.stringify({ success: true, demoMode: false, collected, new: inserted, sources: perSource, timestamp: now.toISOString() }), { headers: corsHeaders });
+}
+
+// 允许的预警类型（与 alerts 表 CHECK 约束一致）
+const ALLOWED_ALERT_TYPES = ['air_strike', 'artillery', 'conflict', 'curfew', 'chemical', 'other'];
+
+// 将采集到的 AlertData 映射为 alerts 表的真实列。
+// 关键：活跃预警 = end_time IS NULL（与前端 Dashboard 的 .is('end_time', null) 查询一致），
+// 不再使用历史代码里那些根本不存在的 is_active / expires_at 列。
+function mapAlertDataToRow(a: AlertData, now: Date) {
+  return {
+    alert_type: ALLOWED_ALERT_TYPES.includes(a.type) ? a.type : 'other',
+    severity: ['red', 'orange', 'yellow'].includes(a.severity) ? a.severity : 'yellow',
+    title: a.title,
+    description: a.description,
+    latitude: a.latitude,
+    longitude: a.longitude,
+    city: a.city,
+    country: a.country,
+    source: a.source,
+    source_id: a.id,
+    source_url: a.sourceUrl,
+    source_published_at: a.createdAt,
+    detected_at: now.toISOString(),
+    detection_delay_seconds: 0,
+    confidence: a.confidence ?? 0.7,
+    start_time: a.createdAt,
+    // end_time 留空 = 活跃
+  };
+}
+
+// 去重后插入；新插入成功后写入站内通知。返回插入的行或 null。
+async function insertAlertIfNew(supabaseAdmin: any, row: any, _now: Date) {
+  if (!ALLOWED_ALERT_TYPES.includes(row.alert_type)) row.alert_type = 'other';
+
+  let existing: any = null;
+  if (row.source_id) {
+    const r = await supabaseAdmin.from('alerts').select('id').eq('source_id', row.source_id).maybeSingle();
+    existing = r.data;
+  }
+  if (!existing && row.source_url) {
+    const r = await supabaseAdmin.from('alerts').select('id').eq('source_url', row.source_url).maybeSingle();
+    existing = r.data;
+  }
+  if (existing) return null;
+
+  const { data, error } = await supabaseAdmin.from('alerts').insert(row).select().single();
+  if (error) {
+    // 唯一索引冲突（并发重复）等视为非致命，记录后跳过
+    console.error('alert insert failed:', error.message, row.source_id);
+    return null;
+  }
+  try {
+    await notifySubscribers(supabaseAdmin, data);
+  } catch (e) {
+    console.error('notifySubscribers failed:', e);
+  }
+  return data;
 }
 
 async function generateAIAnalyzedAlerts(supabaseAdmin: any, now: Date): Promise<AlertData[]> {
@@ -394,44 +445,78 @@ function generateMockAlerts(source: AlertSource, now: Date): AlertData[] {
 async function notifySubscribers(supabaseAdmin: any, alert: any) {
   const { data: subscribers } = await supabaseAdmin
     .from('user_alert_settings')
-    .select('user_id')
+    .select('user_id, monitor_radius_km, last_latitude, last_longitude, profiles(country)')
     .eq('push_enabled', true);
 
-  if (subscribers && subscribers.length > 0) {
-    const notifications = subscribers.map((sub: any) => ({
-      user_id: sub.user_id,
-      title: `🚨 ${alert.title}`,
-      body: alert.description,
-      type: 'alert',
-      data: { alert_id: alert.id },
-    }));
+  // 地理过滤：只推给"在预警附近"的用户（有坐标→距离≤监测半径；无坐标→退回国家匹配）
+  const targets = (subscribers || []).filter((u: any) => isAlertRelevantToUser(u, alert));
+  if (targets.length === 0) return;
 
-    await supabaseAdmin.from('notifications').insert(notifications);
+  const targetIds = targets.map((u: any) => u.user_id);
+  const notifications = targetIds.map((uid: string) => ({
+    user_id: uid,
+    title: `🚨 ${alert.title}`,
+    body: alert.description,
+    type: 'alert',
+    data: { alert_id: alert.id },
+  }));
+  await supabaseAdmin.from('notifications').insert(notifications);
+
+  // 真正下发原生推送（关屏/退后台也能收到）；未配置 APNs/FCM 密钥时安全跳过
+  try {
+    await sendPushToUsers(supabaseAdmin, targetIds, {
+      title: `🚨 ${alert.title}`,
+      body: alert.description || '',
+      data: { alert_id: alert.id, type: 'alert', severity: alert.severity },
+      severity: alert.severity,
+    });
+  } catch (e) {
+    console.error('push dispatch failed:', e);
   }
 }
 
+// 判断某预警是否与某用户相关（地理过滤）
+function isAlertRelevantToUser(u: any, alert: any): boolean {
+  const aLat = alert.latitude, aLng = alert.longitude;
+  if (u.last_latitude != null && u.last_longitude != null && aLat != null && aLng != null) {
+    return haversineKm(u.last_latitude, u.last_longitude, aLat, aLng) <= (u.monitor_radius_km || 30);
+  }
+  // 无用户坐标或预警无坐标 → 退回国家匹配
+  const country = u.profiles?.country;
+  return !!(country && alert.country && country === alert.country);
+}
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 async function processPendingAlerts(supabaseAdmin: any) {
-  const { data: pendingAlerts, error } = await supabaseAdmin
-    .from('alerts')
-    .select('*')
-    .eq('is_active', true)
-    .lt('expires_at', new Date(Date.now() + 300000).toISOString());
-
-  if (error) throw error;
-
+  // 活跃预警 = end_time IS NULL。按严重级别 TTL 过期：red 2h / orange 4h / yellow 8h。
+  const ttlHours: Record<string, number> = { red: 2, orange: 4, yellow: 8 };
+  const nowISO = new Date().toISOString();
   let processed = 0;
-  for (const alert of pendingAlerts || []) {
-    await supabaseAdmin
+
+  for (const sev of Object.keys(ttlHours)) {
+    const cutoff = new Date(Date.now() - ttlHours[sev] * 3600000).toISOString();
+    const { data, error } = await supabaseAdmin
       .from('alerts')
-      .update({ is_active: false })
-      .eq('id', alert.id);
-    processed++;
+      .update({ end_time: nowISO })
+      .is('end_time', null)
+      .eq('severity', sev)
+      .lt('created_at', cutoff)
+      .select('id');
+    if (error) throw error;
+    processed += data?.length || 0;
   }
 
   return new Response(JSON.stringify({
     success: true,
     processed,
-    timestamp: new Date().toISOString(),
+    timestamp: nowISO,
   }), { headers: corsHeaders });
 }
 
@@ -441,7 +526,7 @@ async function cleanupExpiredAlerts(supabaseAdmin: any) {
   const { data, error } = await supabaseAdmin
     .from('alerts')
     .delete()
-    .eq('is_active', false)
+    .not('end_time', 'is', null)
     .lt('created_at', cutoff)
     .select('id');
 
@@ -458,7 +543,7 @@ async function getMonitoringStats(supabaseAdmin: any) {
   const { data: activeAlerts } = await supabaseAdmin
     .from('alerts')
     .select('severity')
-    .eq('is_active', true);
+    .is('end_time', null);
 
   const { data: todayAlerts } = await supabaseAdmin
     .from('alerts')
@@ -672,9 +757,10 @@ async function crawlSource(
   source: CrawlSource,
   since: Date,
   supabaseAdmin: any
-): Promise<{ newItems: number; avgDelaySeconds: number }> {
+): Promise<{ newItems: number; inserted: number; avgDelaySeconds: number }> {
   const sinceISO = since.toISOString();
   let newItems = 0;
+  let inserted = 0;
   let totalDelay = 0;
   const now = new Date();
 
@@ -708,20 +794,13 @@ async function crawlSource(
       totalDelay += Math.max(0, delaySeconds);
       newItems++;
 
-      // Check if this alert already exists to avoid duplicates
-      const { data: existing } = await supabaseAdmin
-        .from('alerts')
-        .select('id')
-        .eq('source_id', item.externalId)
-        .maybeSingle();
-
-      if (!existing && item.isRelevant) {
-        // Insert as new alert with time tracking metadata
-        await supabaseAdmin.from('alerts').insert({
+      if (item.isRelevant) {
+        // 通过去重助手插入；列名对齐真实表（alert_type / start_time / 无 is_active）
+        const ok = await insertAlertIfNew(supabaseAdmin, {
+          alert_type: item.alertType || 'other',
+          severity: item.severity || 'yellow',
           title: item.title,
           description: item.description,
-          type: item.alertType || 'other',
-          severity: item.severity || 'yellow',
           country: item.country,
           city: item.city || 'Unknown',
           latitude: item.latitude || 0,
@@ -733,8 +812,9 @@ async function crawlSource(
           detected_at: ourDetectionTime.toISOString(),
           detection_delay_seconds: Math.round(delaySeconds),
           confidence: item.confidence || 0.7,
-          is_active: true,
-        });
+          start_time: platformTime.toISOString(),
+        }, now);
+        if (ok) inserted++;
       }
     }
   } catch (e: any) {
@@ -744,6 +824,7 @@ async function crawlSource(
 
   return {
     newItems,
+    inserted,
     avgDelaySeconds: newItems > 0 ? Math.round(totalDelay / newItems) : 0,
   };
 }

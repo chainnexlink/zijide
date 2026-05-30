@@ -45,8 +45,8 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Copy web assets to iOS
-        run: npx cap copy ios
+      - name: Sync web assets + native plugins to iOS
+        run: npx cap sync ios
 
       - name: Generate App Icons
         run: |

@@ -80,6 +80,7 @@ module.exports = (env, argv) => {
       }),
       new webpack.DefinePlugin({
         'process.env.GOOGLE_MAPS_KEY': JSON.stringify(process.env.GOOGLE_MAPS_KEY || ''),
+        'process.env.MAP_TILE_URL': JSON.stringify(process.env.MAP_TILE_URL || ''),
         'process.env.APP_VERSION': JSON.stringify(require('./package.json').version),
       })
     ]

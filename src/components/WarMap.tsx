@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 
-const GOOGLE_MAPS_KEY = process.env.GOOGLE_MAPS_KEY || 'AIzaSyChR3WiKnfzpehE22tW0VTU40fpZWRv--U';
+// 从构建期环境变量注入（webpack DefinePlugin 读取 .env / CI 的 GOOGLE_MAPS_KEY）。
+// 不再硬编码：浏览器端 Maps key 无法保密，安全性靠 GCP 后台的 HTTP referrer + API 限制。
+const GOOGLE_MAPS_KEY = process.env.GOOGLE_MAPS_KEY || '';
 
 // ============ Load Google Maps Script ============
 let gmapsPromise: Promise<void> | null = null;

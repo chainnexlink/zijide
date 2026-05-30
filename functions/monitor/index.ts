@@ -80,65 +80,57 @@ Deno.serve(async (req) => {
 });
 
 async function collectAlerts(supabaseAdmin: any) {
-  const sources: AlertSource[] = [
-    { id: 'ua_alerts', name: 'Ukraine Alerts', url: 'https://alerts.com.ua/', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Ukraine' },
-    { id: 'il_alerts', name: 'Israel Alerts', url: 'https://www.oref.org.il/', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Israel' },
-    { id: 'sy_alerts', name: 'Syria Alerts', url: 'https://syria.liveuamap.com/', type: 'rss', lastChecked: new Date(0).toISOString(), country: 'Syria' },
-    { id: 'tr_alerts', name: 'Turkey Alerts', url: 'https://deprem.afad.gov.tr/', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Turkey' },
-    { id: 'ps_alerts', name: 'Palestine Alerts', url: 'https://gaza.liveuamap.com/', type: 'rss', lastChecked: new Date(0).toISOString(), country: 'Palestine' },
-  ];
-
-  const collectedAlerts: AlertData[] = [];
   const now = new Date();
+  const demoMode = (Deno.env.get('ALERT_DEMO_MODE') || '').toLowerCase() === 'true';
 
-  for (const source of sources) {
-    try {
-      const mockAlerts = generateMockAlerts(source, now);
-      collectedAlerts.push(...mockAlerts);
-    } catch (error) {
-      console.error(`Error collecting from ${source.name}:`, error);
-    }
+  // monitor 已被 ai-alert 取代为生产采集器。这里仅在 DEMO 模式下生成合成数据用于测试，
+  // 生产模式直接返回空，避免写入假/坏数据。
+  if (!demoMode) {
+    return new Response(JSON.stringify({
+      success: true,
+      collected: 0,
+      new: 0,
+      note: 'monitor 仅用于演示；生产采集请调用 ai-alert（action=collect / realtime_monitor）',
+      timestamp: now.toISOString(),
+    }), { headers: corsHeaders });
   }
 
-  const newAlerts = [];
-  for (const alert of collectedAlerts) {
-    const { data: existing } = await supabaseAdmin
-      .from('alerts')
-      .select('id')
-      .eq('source_url', alert.sourceUrl)
-      .maybeSingle();
+  const sources: AlertSource[] = [
+    { id: 'demo_ua', name: 'Ukraine Alerts (DEMO)', url: 'https://alerts.com.ua', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Ukraine' },
+    { id: 'demo_il', name: 'Israel Alerts (DEMO)', url: 'https://www.oref.org.il', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Israel' },
+  ];
 
-    if (!existing) {
-      const { data, error } = await supabaseAdmin
-        .from('alerts')
-        .insert({
-          title: alert.title,
-          description: alert.description,
-          type: alert.type,
-          severity: alert.severity,
-          latitude: alert.latitude,
-          longitude: alert.longitude,
-          country: alert.country,
-          city: alert.city,
-          source: alert.source,
-          source_url: alert.sourceUrl,
-          expires_at: alert.expiresAt,
-          is_active: true,
-        })
-        .select()
-        .single();
-
-      if (!error && data) {
-        newAlerts.push(data);
-        await notifySubscribers(supabaseAdmin, data);
-      }
+  let collected = 0;
+  let inserted = 0;
+  for (const source of sources) {
+    for (const alert of generateMockAlerts(source, now)) {
+      collected++;
+      const { data: existing } = await supabaseAdmin
+        .from('alerts').select('id').eq('source_url', alert.sourceUrl).maybeSingle();
+      if (existing) continue;
+      // 列名对齐真实表：alert_type / start_time；活跃 = end_time 留空；不使用 is_active/expires_at
+      const { data, error } = await supabaseAdmin.from('alerts').insert({
+        alert_type: alert.type,
+        severity: alert.severity,
+        title: alert.title,
+        description: alert.description,
+        latitude: alert.latitude,
+        longitude: alert.longitude,
+        city: alert.city,
+        country: alert.country,
+        source: alert.source,
+        source_url: alert.sourceUrl,
+        start_time: alert.createdAt,
+      }).select().single();
+      if (!error && data) { inserted++; await notifySubscribers(supabaseAdmin, data); }
     }
   }
 
   return new Response(JSON.stringify({
     success: true,
-    collected: collectedAlerts.length,
-    new: newAlerts.length,
+    demoMode: true,
+    collected,
+    new: inserted,
     timestamp: now.toISOString(),
   }), { headers: corsHeaders });
 }
@@ -296,27 +288,28 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
 }
 
 async function processPendingAlerts(supabaseAdmin: any) {
-  const { data: pendingAlerts, error } = await supabaseAdmin
-    .from('alerts')
-    .select('*')
-    .eq('is_active', true)
-    .lt('expires_at', new Date(Date.now() + 300000).toISOString());
-
-  if (error) throw error;
-
+  // 活跃预警 = end_time IS NULL；按严重级别 TTL 过期（red 2h / orange 4h / yellow 8h）
+  const ttlHours: Record<string, number> = { red: 2, orange: 4, yellow: 8 };
+  const nowISO = new Date().toISOString();
   let processed = 0;
-  for (const alert of pendingAlerts || []) {
-    await supabaseAdmin
+
+  for (const sev of Object.keys(ttlHours)) {
+    const cutoff = new Date(Date.now() - ttlHours[sev] * 3600000).toISOString();
+    const { data, error } = await supabaseAdmin
       .from('alerts')
-      .update({ is_active: false })
-      .eq('id', alert.id);
-    processed++;
+      .update({ end_time: nowISO })
+      .is('end_time', null)
+      .eq('severity', sev)
+      .lt('created_at', cutoff)
+      .select('id');
+    if (error) throw error;
+    processed += data?.length || 0;
   }
 
   return new Response(JSON.stringify({
     success: true,
     processed,
-    timestamp: new Date().toISOString(),
+    timestamp: nowISO,
   }), { headers: corsHeaders });
 }
 
@@ -326,7 +319,7 @@ async function cleanupExpiredAlerts(supabaseAdmin: any) {
   const { data, error } = await supabaseAdmin
     .from('alerts')
     .delete()
-    .eq('is_active', false)
+    .not('end_time', 'is', null)
     .lt('created_at', cutoff)
     .select('id');
 
@@ -343,7 +336,7 @@ async function getMonitoringStats(supabaseAdmin: any) {
   const { data: activeAlerts } = await supabaseAdmin
     .from('alerts')
     .select('severity')
-    .eq('is_active', true);
+    .is('end_time', null);
 
   const { data: todayAlerts } = await supabaseAdmin
     .from('alerts')

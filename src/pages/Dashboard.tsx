@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -40,6 +40,14 @@ import { useSubscription } from '../hooks/useSubscription';
 import { STATIC_SHELTERS } from '../data/shelters';
 import type { Tables } from '../supabase/types';
 
+// 轻量本地缓存：断网/首屏时回退到上次成功的数据
+function loadCache<T>(key: string, fallback: T): T {
+  try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; }
+}
+function saveCache(key: string, value: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* quota exceeded, ignore */ }
+}
+
 type Alert = Tables<'alerts'>;
 type Shelter = Tables<'shelters'>;
 type Profile = Tables<'profiles'>;
@@ -64,14 +72,16 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { t, language, setLanguage, languages, dir } = useI18n();
   const { location, error: locationError, startWatching, stopWatching } = useGeolocation();
-  const { pushNotification, requestPermission } = useNotification();
+  const { pushNotification, requestPermission, permission } = useNotification();
   const { canAccessFeature } = useSubscription();
   const [user, setUser] = useState<Profile | null>(null);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [shelters, setShelters] = useState<Shelter[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>(() => loadCache<Alert[]>('wa_cache_alerts', []));
+  const [shelters, setShelters] = useState<Shelter[]>(() => loadCache<Shelter[]>('wa_cache_shelters', []));
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSOSModal, setShowSOSModal] = useState(false);
+  const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const lastLocUpload = useRef<{ lat: number; lng: number; ts: number } | null>(null);
 
   const [stats, setStats] = useState<DashboardStats>({
     activeAlerts: 0,
@@ -124,6 +134,35 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
+  }, []);
+
+  // 上报最近位置（节流：移动 >~300m 或间隔 >2 分钟），供服务端按距离过滤预警/SOS 推送
+  useEffect(() => {
+    if (!location) return;
+    const prev = lastLocUpload.current;
+    const ts = Date.now();
+    const moved = !prev || Math.abs(prev.lat - location.latitude) > 0.003 || Math.abs(prev.lng - location.longitude) > 0.003;
+    const aged = !prev || ts - prev.ts > 120000;
+    if (!moved && !aged) return;
+    lastLocUpload.current = { lat: location.latitude, lng: location.longitude, ts };
+    (async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+      await supabase.from('user_alert_settings').upsert({
+        user_id: authUser.id,
+        last_latitude: location.latitude,
+        last_longitude: location.longitude,
+        location_updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    })();
+  }, [location]);
+
+  useEffect(() => {
     calculateStats();
   }, [alerts, shelters, familyMembers]);
 
@@ -168,8 +207,12 @@ export default function Dashboard() {
       query = query.in('alert_type', enabledTypes);
     }
 
-    const { data } = await query.limit(10);
-    setAlerts(data || []);
+    const { data, error } = await query.limit(10);
+    if (!error && data) {
+      setAlerts(data);
+      saveCache('wa_cache_alerts', data);
+    }
+    // 出错（如断网）时保留已缓存数据，不清空
   };
 
   const fetchShelters = async () => {
@@ -178,7 +221,13 @@ export default function Dashboard() {
       .select('*')
       .eq('status', 'open')
       .limit(5);
-    setShelters((data && data.length > 0) ? data : STATIC_SHELTERS.filter(s => s.status === 'open').slice(0, 5).map(s => ({ ...s, description: s.description ?? null, is_verified: s.is_verified ?? null, manager_name: s.manager_name ?? null } as Shelter)));
+    if (data && data.length > 0) {
+      setShelters(data);
+      saveCache('wa_cache_shelters', data);
+      return;
+    }
+    const cached = loadCache<Shelter[]>('wa_cache_shelters', []);
+    setShelters(cached.length > 0 ? cached : STATIC_SHELTERS.filter(s => s.status === 'open').slice(0, 5).map(s => ({ ...s, description: s.description ?? null, is_verified: s.is_verified ?? null, manager_name: s.manager_name ?? null } as Shelter)));
   };
 
   const fetchFamilyMembers = async () => {
@@ -643,16 +692,16 @@ export default function Dashboard() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-green-400 text-xs">{t('dataCollectionActive') || 'Data Collection Active'}</span>
+                <div className={`w-2 h-2 rounded-full ${online ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                <span className={`text-xs ${online ? 'text-green-400' : 'text-red-400'}`}>{online ? (t('online') || '网络已连接') : (t('offline') || '离线 · 显示缓存数据')}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <div className={`w-2 h-2 rounded-full ${permission === 'granted' ? 'bg-green-400' : 'bg-amber-400'}`} />
+                <span className={`text-xs ${permission === 'granted' ? 'text-green-400' : 'text-amber-400'}`}>{permission === 'granted' ? (t('pushNotificationsReady') || '推送已开启') : (language === 'zh' ? '推送未授权' : 'Notifications off')}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                <span className="text-blue-400 text-xs">{t('autoCleanupEnabled') || 'Auto-cleanup Enabled'}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-amber-400 rounded-full" />
-                <span className="text-amber-400 text-xs">{t('pushNotificationsReady') || 'Push Notifications Ready'}</span>
+                <span className="text-blue-400 text-xs">{stats.activeAlerts} {language === 'zh' ? '条活跃预警' : 'active alerts'}</span>
               </div>
             </div>
           </motion.div>
@@ -752,7 +801,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50">
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-around py-2">
             <Link to="/dashboard" className="flex flex-col items-center gap-1 p-2 text-red-400">

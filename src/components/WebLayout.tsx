@@ -193,7 +193,7 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-950 text-white flex">
       {/* Desktop/iPad Sidebar */}
       <aside
-        className={`hidden xl:flex flex-col bg-slate-900/50 border-r border-slate-800/50 transition-all duration-300 flex-shrink-0 ${
+        className={`hidden lg:flex flex-col bg-slate-900/50 border-r border-slate-800/50 transition-all duration-300 flex-shrink-0 ${
           collapsed ? 'w-[72px]' : 'w-[240px]'
         }`}
         style={{ position: 'sticky', top: 0, height: '100vh' }}

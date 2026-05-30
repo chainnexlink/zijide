@@ -275,7 +275,7 @@ export default function InviteFriends() {
         </motion.div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/80 backdrop-blur-md border-t border-slate-800">
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-slate-900/80 backdrop-blur-md border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-around py-2">
             <Link to="/dashboard" className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white">

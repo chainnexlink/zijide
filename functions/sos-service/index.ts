@@ -1,4 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendPushToUsers } from '../_shared/push.ts';
+import { sendSms, makeCallSay } from '../_shared/twilio.ts';
 
 interface SOSRecord {
   id: string;
@@ -130,6 +132,7 @@ async function triggerSOS(supabaseAdmin: any, req: Request) {
 
     await notifyFamilyInternal(supabaseAdmin, userId, sos.id);
     await notifyRescuersInternal(supabaseAdmin, sos.id, latitude, longitude);
+    await notifyEmergencyContact(supabaseAdmin, userId, sos, latitude, longitude, address);
 
     // 先查询用户所属的家庭组
     const { data: memberData } = await supabaseAdmin
@@ -306,8 +309,8 @@ async function escalateSOS(supabaseAdmin: any, req: Request) {
       .eq('id', sosId);
 
     const stageMessages: Record<number, string> = {
-      2: 'SOS escalated to Stage 2: Emergency services notified',
-      3: 'SOS escalated to Stage 3: All available resources mobilized',
+      2: 'SOS escalated to Stage 2: emergency contact called & nearby responders alerted',
+      3: 'SOS escalated to Stage 3: emergency contact and all nearby responders alerted',
     };
 
     await supabaseAdmin
@@ -319,6 +322,27 @@ async function escalateSOS(supabaseAdmin: any, req: Request) {
         type: 'sos_escalated',
         data: { sos_id: sosId, stage: newStage },
       });
+
+    // 阶段升级时真正触达紧急联系人：短信 + 语音外呼
+    if (newStage >= 2) {
+      try {
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('nickname, emergency_contact_phone')
+          .eq('id', sos.user_id)
+          .maybeSingle();
+        if (profile?.emergency_contact_phone) {
+          const loc = (sos.latitude && sos.longitude)
+            ? `https://maps.google.com/?q=${sos.latitude},${sos.longitude}`
+            : (sos.address || 'unknown location');
+          const name = profile.nickname || 'A WarRescue user';
+          await sendSms(profile.emergency_contact_phone, `[WarRescue SOS - Stage ${newStage}] ${name} still needs help. Location: ${loc}`);
+          await makeCallSay(profile.emergency_contact_phone, `Emergency alert from War Rescue. ${name} has triggered an S O S and needs immediate help. Please check your text messages for the location.`);
+        }
+      } catch (e) {
+        console.error('escalate notify failed:', e);
+      }
+    }
 
     return new Response(JSON.stringify({
       success: true,
@@ -395,6 +419,16 @@ async function notifyFamilyInternal(supabaseAdmin: any, userId: string, sosId: s
       }));
 
       await supabaseAdmin.from('notifications').insert(notifications);
+
+      // 真正下发推送（关屏也能收到）
+      try {
+        await sendPushToUsers(supabaseAdmin, familyMembers.map((m: any) => m.user_id), {
+          title: '🚨 家人触发求救 / Family SOS',
+          body: `${user?.nickname || 'Family member'} has triggered an SOS!`,
+          data: { sos_id: sosId, type: 'family_sos' },
+          severity: 'red',
+        });
+      } catch (e) { console.error('family push failed:', e); }
     }
 
     return new Response(JSON.stringify({
@@ -417,9 +451,24 @@ async function notifyRescuersInternal(supabaseAdmin: any, sosId: string, latitud
       .select('user_id')
       .eq('is_active', true);
 
-    if (subscribers && subscribers.length > 0) {
-      const notifications = subscribers.map((sub: any) => ({
-        user_id: sub.user_id,
+    let targetIds: string[] = (subscribers || []).map((s: any) => s.user_id);
+
+    // 地理过滤：仅通知距事发地 ≤5km 的互助者（无 SOS 坐标时退回通知全部活跃订阅者）
+    if (latitude != null && longitude != null && targetIds.length > 0) {
+      const { data: locs } = await supabaseAdmin
+        .from('user_alert_settings')
+        .select('user_id, last_latitude, last_longitude')
+        .in('user_id', targetIds);
+      const RESCUE_RADIUS_KM = 5;
+      targetIds = (locs || [])
+        .filter((l: any) => l.last_latitude != null && l.last_longitude != null &&
+          calculateDistance(latitude, longitude, l.last_latitude, l.last_longitude) <= RESCUE_RADIUS_KM)
+        .map((l: any) => l.user_id);
+    }
+
+    if (targetIds.length > 0) {
+      const notifications = targetIds.map((uid: string) => ({
+        user_id: uid,
         title: '🆘 Nearby SOS Alert',
         body: 'Someone nearby needs help. Can you respond?',
         type: 'mutual_aid_sos',
@@ -427,17 +476,67 @@ async function notifyRescuersInternal(supabaseAdmin: any, sosId: string, latitud
       }));
 
       await supabaseAdmin.from('notifications').insert(notifications);
+
+      // 真正下发推送给附近互助者
+      try {
+        await sendPushToUsers(supabaseAdmin, targetIds, {
+          title: '🆘 附近有人求救 / Nearby SOS',
+          body: 'Someone nearby needs help. Can you respond?',
+          data: { sos_id: sosId, type: 'mutual_aid_sos', latitude, longitude },
+          severity: 'red',
+        });
+      } catch (e) { console.error('rescuer push failed:', e); }
     }
 
     return new Response(JSON.stringify({
       success: true,
-      notified: subscribers?.length || 0,
+      notified: targetIds.length,
     }), { headers: corsHeaders });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: corsHeaders,
     });
+  }
+}
+
+// SOS 触发时给紧急联系人发短信（含地图定位链接），并记录发送结果
+async function notifyEmergencyContact(
+  supabaseAdmin: any,
+  userId: string,
+  sos: any,
+  latitude?: number,
+  longitude?: number,
+  address?: string,
+) {
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('nickname, emergency_contact_name, emergency_contact_phone')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!profile?.emergency_contact_phone) return;
+
+    const loc = (latitude && longitude)
+      ? `https://maps.google.com/?q=${latitude},${longitude}`
+      : (address || 'unknown location');
+    const name = profile.nickname || 'A WarRescue user';
+    const body = `[WarRescue SOS] ${name} triggered an emergency SOS. Location: ${loc}. Please help or call local emergency services. / ${name} 触发紧急求救，位置: ${loc}，请立即施救或报警。`;
+
+    const r = await sendSms(profile.emergency_contact_phone, body);
+
+    await supabaseAdmin.from('notifications').insert({
+      user_id: userId,
+      title: 'Emergency contact notified',
+      body: r.ok
+        ? `SMS sent to ${profile.emergency_contact_name || 'emergency contact'}`
+        : `SMS not delivered (${r.skipped ? 'Twilio not configured' : (r.error || 'failed')})`,
+      type: 'sos_sms',
+      data: { sos_id: sos.id, sms_ok: r.ok, skipped: !!r.skipped },
+    });
+  } catch (e) {
+    console.error('notifyEmergencyContact failed:', e);
   }
 }
 
