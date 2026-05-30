@@ -36,6 +36,31 @@ platform :ios do
     end
   end
 
+  # Enable the Push Notifications capability on the App ID via the App Store Connect API,
+  # so the auto-generated provisioning profile carries aps-environment (required since native push was added).
+  private_lane :ensure_push_capability do
+    require 'spaceship'
+
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      filepath: ENV["API_KEY_PATH"]
+    )
+    Spaceship::ConnectAPI.token = token
+
+    bundle_id = "com.warrescue.appname"
+    bid = Spaceship::ConnectAPI::BundleId.all(filter: { identifier: bundle_id }).find { |b| b.identifier == bundle_id }
+    UI.user_error!("在 Apple Developer 找不到 App ID #{bundle_id}，请先在 Identifiers 里注册该 Bundle ID") if bid.nil?
+
+    begin
+      bid.create_capability("PUSH_NOTIFICATIONS")
+      UI.success("✅ 已为 #{bundle_id} 启用 Push Notifications 能力")
+    rescue => e
+      # 若该能力已启用，Apple 会返回 409/duplicate，可安全忽略；其它错误打印出来便于排查
+      UI.important("启用 Push 能力返回：#{e.message}（若提示已存在/duplicate 可忽略）")
+    end
+  end
+
   desc "Build and upload to App Store Connect"
   lane :release do
     keychain_path = ENV["KEYCHAIN_PATH"]
@@ -51,6 +76,9 @@ platform :ios do
 
     # Revoke orphaned certificates from previous CI runs (private keys were lost)
     revoke_orphaned_certs(api_key: api_key)
+
+    # Ensure the App ID has Push Notifications capability (app entitlements require aps-environment)
+    ensure_push_capability
 
     # Auto-create/download distribution certificate
     get_certificates(
@@ -135,6 +163,9 @@ platform :ios do
 
     # Revoke orphaned certificates from previous CI runs
     revoke_orphaned_certs(api_key: api_key)
+
+    # Ensure the App ID has Push Notifications capability (app entitlements require aps-environment)
+    ensure_push_capability
 
     # Auto-create/download distribution certificate
     get_certificates(

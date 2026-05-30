@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- 标准 APNs 推送。打包上架(Archive)时 Xcode 会按描述文件自动切换为 production。 -->
+	<!-- 标准 APNs 推送。App Store / TestFlight 构建走 production APNs（与 App Store 描述文件匹配）；本地真机调试推送请用 Xcode 自动签名的 development 构建。 -->
 	<key>aps-environment</key>
-	<string>development</string>
+	<string>production</string>
 	<!--
 	  Critical Alerts（穿透静音/勿扰，空袭预警刚需）需先向 Apple 申请专项授权，
 	  获批后再取消下面两行注释（否则会导致代码签名失败）：
