@@ -19,7 +19,12 @@ export default function SOSRescuePage({ sub }: { sub: string }) {
   };
 
   const resolveSOS = async (id: string) => {
-    await supabase.from('sos_records').update({ status: 'rescued', confirmed_at: new Date().toISOString() }).eq('id', id);
+    // 走 sos-service 的 resolve：标记解救 + 关闭关联互助响应 + 通知求救者（直接改表会漏掉后两者）
+    const { error } = await supabase.functions.invoke('sos-service', { body: { action: 'resolve', sosId: id } });
+    if (error) {
+      // 边缘函数不可用时兜底：至少把状态置为已解救
+      await supabase.from('sos_records').update({ status: 'rescued', confirmed_at: new Date().toISOString() }).eq('id', id);
+    }
     showToast('已标记解救'); loadData();
   };
 

@@ -246,10 +246,10 @@ async function generateAIAnalyzedAlerts(supabaseAdmin: any, now: Date): Promise<
           model: 'qwen3-vl-plus',
           messages: [{
             role: 'user',
-            content: `Analyze current conflict zones and generate realistic alert data for Ukraine, Israel, Syria, Turkey, and Palestine. 
-            Return JSON array with: title, description, type (air_strike/artillery/conflict/curfew/chemical/other), 
-            severity (red/orange/yellow), country, city, latitude, longitude, confidence (0-1). 
-            Generate 2-3 alerts for high-risk areas.`
+            content: `Analyze current armed-conflict and security situations worldwide, PRIORITIZING active war zones (the Middle East — Israel, Palestine, Lebanon, Syria, Jordan, Iraq, Iran, Yemen, Egypt, Turkey, the Gulf states — plus Ukraine and Sudan), and also covering other global conflict/security hotspots (the Sahel and rest of Africa, South/Southeast Asia, etc.). Focus on conflict/security events (air strikes, shelling, armed clashes, attacks, curfews), NOT natural disasters.
+            Return JSON array with: title, description, type (air_strike/artillery/conflict/curfew/chemical/other),
+            severity (red/orange/yellow), country, city, latitude, longitude, confidence (0-1).
+            Generate 3-5 alerts, with war zones listed first, across a spread of countries.`
           }],
           stream: false,
         }),
@@ -475,13 +475,24 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
   }
 }
 
+// 坐标是否“有效”：必须是有限数，且不是 (0,0)。
+// (0,0) 在几内亚湾，绝不会是真实预警点；历史上无经纬度的源被写成 0,0，
+// 会让距离判断误以为“有坐标”，从而绕过国家兜底、导致谁都收不到推送。
+function hasValidCoord(lat: any, lng: any): boolean {
+  return typeof lat === 'number' && typeof lng === 'number'
+    && Number.isFinite(lat) && Number.isFinite(lng)
+    && !(lat === 0 && lng === 0);
+}
+
 // 判断某预警是否与某用户相关（地理过滤）
 function isAlertRelevantToUser(u: any, alert: any): boolean {
   const aLat = alert.latitude, aLng = alert.longitude;
-  if (u.last_latitude != null && u.last_longitude != null && aLat != null && aLng != null) {
+  const userHasCoord = u.last_latitude != null && u.last_longitude != null;
+  // 仅当“用户有坐标”且“预警有有效坐标”时才按距离过滤
+  if (userHasCoord && hasValidCoord(aLat, aLng)) {
     return haversineKm(u.last_latitude, u.last_longitude, aLat, aLng) <= (u.monitor_radius_km || 30);
   }
-  // 无用户坐标或预警无坐标 → 退回国家匹配
+  // 用户无坐标 / 预警无有效坐标（如 ReliefWeb、以色列 Oref 不带经纬度）→ 退回国家匹配，避免漏推
   const country = u.profiles?.country;
   return !!(country && alert.country && country === alert.country);
 }
@@ -620,8 +631,9 @@ async function verifyAlert(supabaseAdmin: any, req: Request) {
         const verification = JSON.parse(result);
         await supabaseAdmin
           .from('alerts')
-          .update({ 
-            verified: verification.verified,
+          .update({
+            is_verified: verification.verified, // 修复：alerts 表列名是 is_verified（原写 verified 不存在）
+            verified_at: verification.verified ? new Date().toISOString() : null,
             verification_confidence: verification.confidence,
             verification_notes: verification.notes
           })
@@ -659,16 +671,22 @@ interface CrawlSource {
   name: string;
   country: string;
   url: string;
-  type: 'reliefweb' | 'liveuamap' | 'gdacs' | 'acled' | 'oref' | 'telegram';
+  type: 'reliefweb' | 'liveuamap' | 'gdacs' | 'acled' | 'oref' | 'orefLive' | 'ukrainealarm' | 'telegram';
   checkIntervalMinutes: number;
+  priority?: boolean; // true = 战区实时源：每周期最先抓取+先入库，保证战区预警时效性（付费用户核心），绝不被全球聚合源拖慢
 }
 
 const REALTIME_SOURCES: CrawlSource[] = [
+  // —— 战区实时源（秒级空袭警报，priority；每周期最先处理，时效性优先于全球覆盖）——
+  // Ukraine Alarm 官方 API：需 UKRAINEALARM_TOKEN（免费申请）；未配置则静默跳过。
+  { name: 'Ukraine Alarm (official)', country: 'Ukraine', url: 'https://api.ukrainealarm.com/api/v3/alerts', type: 'ukrainealarm', checkIntervalMinutes: 1, priority: true },
+  // 以色列 Pikud HaOref 实时端点：无 token，但需特定请求头；无警报时返回空（已做防御）。
+  { name: 'Israel Oref Live', country: 'Israel', url: 'https://www.oref.org.il/WarningMessages/alert/alerts.json', type: 'orefLive', checkIntervalMinutes: 1, priority: true },
+  { name: 'Ukraine Live Map', country: 'Ukraine', url: 'https://liveuamap.com/ajax/ukraine-latest', type: 'liveuamap', checkIntervalMinutes: 2, priority: true },
+  // —— 全球聚合源（冲突/安全事件，覆盖广但时效较慢；仅在战区实时源之后处理）——
   { name: 'ReliefWeb API', country: 'Global', url: 'https://api.reliefweb.int/v1/reports?appname=warrescue&filter[field]=date.created&filter[value][from]=', type: 'reliefweb', checkIntervalMinutes: 5 },
   { name: 'GDACS Events', country: 'Global', url: 'https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?fromDate=', type: 'gdacs', checkIntervalMinutes: 10 },
   { name: 'ACLED Conflict Data', country: 'Global', url: 'https://api.acleddata.com/acled/read?event_date=', type: 'acled', checkIntervalMinutes: 30 },
-  { name: 'Israel Oref Alerts', country: 'Israel', url: 'https://www.oref.org.il/WarningMessages/History/AlertsHistory.json', type: 'oref', checkIntervalMinutes: 1 },
-  { name: 'Ukraine Live Map', country: 'Ukraine', url: 'https://liveuamap.com/ajax/ukraine-latest', type: 'liveuamap', checkIntervalMinutes: 2 },
 ];
 
 async function realtimeMonitor(supabaseAdmin: any) {
@@ -685,9 +703,14 @@ async function realtimeMonitor(supabaseAdmin: any) {
     for (const s of crawlState) stateMap[s.source_name] = s;
   }
 
-  for (const source of REALTIME_SOURCES) {
+  // 战区优先：priority 源（乌克兰/以色列实时空袭）每周期最先抓取+入库，
+  // 保证付费用户战区预警时效性，绝不被全球聚合源拖慢。
+  const orderedSources = [...REALTIME_SOURCES].sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+
+  for (const source of orderedSources) {
     const lastState = stateMap[source.name];
-    const lastCrawl = lastState?.last_crawl_at ? new Date(lastState.last_crawl_at) : new Date(0);
+    // 首次（无 last_crawl_at）只回看 1 小时，避免从 1970 拉全量历史；与 collect/incrementalCrawl 一致
+    const lastCrawl = lastState?.last_crawl_at ? new Date(lastState.last_crawl_at) : new Date(now.getTime() - 3600000);
     const minutesSinceLastCrawl = (now.getTime() - lastCrawl.getTime()) / 60000;
 
     // Skip if not enough time has passed
@@ -766,16 +789,28 @@ async function crawlSource(
 
   try {
     let fetchUrl = source.url;
+    const headers: Record<string, string> = { 'Accept': 'application/json', 'User-Agent': 'WarRescue/1.0' };
     if (source.type === 'reliefweb') {
-      fetchUrl += encodeURIComponent(sinceISO) + '&limit=50&sort[]=date.created:desc';
+      fetchUrl += encodeURIComponent(sinceISO) + '&limit=100&sort[]=date.created:desc'; // 全球后调高，减少高峰漏报
     } else if (source.type === 'gdacs') {
       fetchUrl += sinceISO.split('T')[0] + '&toDate=' + now.toISOString().split('T')[0];
     } else if (source.type === 'acled') {
-      fetchUrl += since.toISOString().split('T')[0] + '&event_date_where=%3E&limit=100';
+      fetchUrl += since.toISOString().split('T')[0] + '&event_date_where=%3E&limit=200'; // 全球后调高，减少高峰漏报
+    } else if (source.type === 'ukrainealarm') {
+      const token = Deno.env.get('UKRAINEALARM_TOKEN') || '';
+      if (!token) {
+        // 未配置 token：静默跳过该源（不报错、不影响其它源）
+        return { newItems: 0, inserted: 0, avgDelaySeconds: 0 };
+      }
+      headers['Authorization'] = token;
+    } else if (source.type === 'orefLive') {
+      // Oref 实时端点需要这些头，否则可能被拒或返回空
+      headers['Referer'] = 'https://www.oref.org.il/';
+      headers['X-Requested-With'] = 'XMLHttpRequest';
     }
 
     const response = await fetch(fetchUrl, {
-      headers: { 'Accept': 'application/json', 'User-Agent': 'WarRescue/1.0' },
+      headers,
       signal: AbortSignal.timeout(15000),
     });
 
@@ -783,7 +818,17 @@ async function crawlSource(
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const data = await response.json();
+    // Oref 实时端点无警报时返回空串/空对象，直接 json() 会抛错 → 用文本防御解析
+    let data: any;
+    if (source.type === 'orefLive') {
+      const txt = (await response.text()).trim();
+      if (!txt || txt === '{}' || txt === '[]') {
+        return { newItems: 0, inserted: 0, avgDelaySeconds: 0 };
+      }
+      try { data = JSON.parse(txt); } catch { return { newItems: 0, inserted: 0, avgDelaySeconds: 0 }; }
+    } else {
+      data = await response.json();
+    }
     const items = extractItems(data, source.type);
 
     for (const item of items) {
@@ -803,8 +848,8 @@ async function crawlSource(
           description: item.description,
           country: item.country,
           city: item.city || 'Unknown',
-          latitude: item.latitude || 0,
-          longitude: item.longitude || 0,
+          latitude: hasValidCoord(item.latitude, item.longitude) ? item.latitude : null,
+          longitude: hasValidCoord(item.latitude, item.longitude) ? item.longitude : null,
           source: source.name,
           source_id: item.externalId,
           source_url: item.sourceUrl || source.url,
@@ -829,6 +874,21 @@ async function crawlSource(
   };
 }
 
+// 预警覆盖范围：全球，但只收“冲突/安全”事件（排除纯自然灾害），保持“空袭/战区预警”信号纯度。
+// 用于过滤 ReliefWeb 等聚合源：标题/正文命中冲突关键词才纳入。
+// （ACLED 本身即全球冲突数据；GDACS 为自然灾害源，相对降权、不扩量。）
+const CONFLICT_KEYWORDS = [
+  'air strike', 'airstrike', 'air raid', 'shelling', 'artillery', 'rocket', 'missile', 'drone',
+  'bombing', 'bombard', 'explosion', 'blast', 'attack', 'assault', 'clash', 'armed', 'militant',
+  'gunfire', 'gunmen', 'insurgent', 'terror', 'war', 'conflict', 'offensive', 'siege', 'ambush',
+  'violence', 'killed', 'casualt', 'evacuat', 'curfew', 'ceasefire', 'hostilit', 'combat', 'unrest',
+  '空袭', '炮击', '导弹', '火箭', '袭击', '冲突', '交火', '爆炸', '武装', '戒严', '撤离', '枪',
+];
+function isSecurityEvent(title: string, body: string): boolean {
+  const text = ((title || '') + ' ' + (body || '')).toLowerCase();
+  return CONFLICT_KEYWORDS.some((k) => text.includes(k));
+}
+
 // Extract relevant items from various API response formats
 function extractItems(data: any, type: string): any[] {
   const items: any[] = [];
@@ -839,9 +899,8 @@ function extractItems(data: any, type: string): any[] {
       for (const r of reports) {
         const fields = r.fields || {};
         const country = fields.country?.[0]?.name || 'Unknown';
-        const isConflictZone = ['Ukraine', 'Syria', 'Palestine', 'Israel', 'Iraq', 'Yemen', 'Sudan', 'Lebanon'].some(
-          c => country.includes(c)
-        );
+        // 全球覆盖，但只收“冲突/安全”事件（按标题/正文关键词判定，排除纯自然灾害），保持战区预警信号纯度
+        const isConflictZone = isSecurityEvent(fields.title || '', fields.body || '');
         items.push({
           externalId: `rw_${r.id}`,
           title: fields.title || 'Report',
@@ -915,6 +974,55 @@ function extractItems(data: any, type: string): any[] {
           alertType: 'air_strike',
           severity: 'red',
           confidence: 0.95,
+          sourceUrl: 'https://www.oref.org.il/',
+        });
+      }
+      break;
+    }
+    case 'ukrainealarm': {
+      // 官方 v3：返回各区域 + activeAlerts[]；区域级无经纬度 → 退回国家匹配（已修复 0,0 漏推）
+      const regions = Array.isArray(data) ? data : [];
+      for (const reg of regions) {
+        const active = reg.activeAlerts || reg.alerts || [];
+        for (const al of active) {
+          const at = String(al.type || '').toUpperCase();
+          const alertType = at === 'AIR' ? 'air_strike'
+            : at.includes('ARTILLER') ? 'artillery'
+            : (at === 'CHEMICAL' || at === 'NUCLEAR') ? 'chemical'
+            : at === 'URBAN_FIGHTS' ? 'conflict' : 'other';
+          items.push({
+            externalId: `uaalarm_${reg.regionId}_${al.type}_${al.lastUpdate || reg.lastUpdate || ''}`,
+            title: `${alertType === 'air_strike' ? 'Air Raid Alert' : (al.type || 'Alert')} - ${reg.regionEngName || reg.regionName || 'Ukraine'}`,
+            description: `${al.type || 'Alert'} active in ${reg.regionName || ''}${reg.regionEngName ? ' (' + reg.regionEngName + ')' : ''}`,
+            publishedAt: al.lastUpdate || reg.lastUpdate || new Date().toISOString(),
+            country: 'Ukraine',
+            city: reg.regionEngName || reg.regionName || '',
+            isRelevant: true,
+            alertType,
+            severity: 'red',
+            confidence: 0.97,
+            sourceUrl: 'https://api.ukrainealarm.com/',
+          });
+        }
+      }
+      break;
+    }
+    case 'orefLive': {
+      // 实时端点：有警报时返回 { id, cat, title, data:[区域...], desc }；无经纬度 → 退回国家匹配
+      const obj = (data && !Array.isArray(data)) ? data : null;
+      const areas = obj && Array.isArray(obj.data) ? obj.data : [];
+      for (const area of areas) {
+        items.push({
+          externalId: `oreflive_${obj.id || ''}_${area}`,
+          title: `${obj.title || 'Red Alert'} - ${area}`,
+          description: obj.desc || obj.title || '',
+          publishedAt: new Date().toISOString(),
+          country: 'Israel',
+          city: String(area),
+          isRelevant: true,
+          alertType: 'air_strike',
+          severity: 'red',
+          confidence: 0.97,
           sourceUrl: 'https://www.oref.org.il/',
         });
       }

@@ -222,9 +222,10 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
       if (inviter) {
         await supabaseAdmin.from('invites').insert({
           inviter_id: inviter.id,
-          invitee_id: newUser.user.id,
+          invited_phone: fullPhone,
           invite_code: inviteCode,
-          status: 'valid',
+          status: 'registered',
+          registered_at: new Date().toISOString(),
           reward_amount: 0.5
         });
       }

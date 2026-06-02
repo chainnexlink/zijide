@@ -68,6 +68,31 @@ interface DashboardAnnouncement {
   created_at: string;
 }
 
+// 前台实时预警相关性判断：避免把他国预警当弹窗刷屏。
+// 有坐标 → 按距离(≤50km)；都有国家 → 按国家匹配；信息不足 → 照常弹(宁可多弹不漏)。
+function haversineKmLocal(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function isAlertRelevantToMe(
+  alert: any,
+  loc: { latitude: number; longitude: number } | null,
+  profile: any,
+): boolean {
+  const aLat = alert?.latitude, aLng = alert?.longitude;
+  const validA = typeof aLat === 'number' && typeof aLng === 'number'
+    && Number.isFinite(aLat) && Number.isFinite(aLng) && !(aLat === 0 && aLng === 0);
+  if (loc && validA) {
+    return haversineKmLocal(loc.latitude, loc.longitude, aLat, aLng) <= 50;
+  }
+  const country = profile?.country;
+  if (country && alert?.country) return country === alert.country;
+  return true; // 信息不足，不误杀
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { t, language, setLanguage, languages, dir } = useI18n();
@@ -120,6 +145,8 @@ export default function Dashboard() {
       if (prev.some(a => a.id === newAlert.id)) return prev;
       return [newAlert, ...prev].slice(0, 20);
     });
+    // 仅对“与我相关”的预警弹前台提醒（按距离/国家）；其余仍进列表，但不弹窗打扰
+    if (!isAlertRelevantToMe(newAlert, location, user)) return;
     const sevLabel = newAlert.severity === 'red' ? (t('urgent') || 'Urgent') : newAlert.severity === 'orange' ? (t('alertLabel') || 'Warning') : (t('notice') || 'Notice');
     // Free users: in-app popup only (all severity levels)
     pushNotification({

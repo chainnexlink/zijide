@@ -39,6 +39,39 @@ const corsHeaders = {
 const MEOO_AI_BASE_URL = 'https://api.meoo.host';
 const MEOO_PROJECT_SERVICE_AK = Deno.env.get('MEOO_PROJECT_API_KEY') || '';
 
+// ===== 鉴权:一律从 Authorization 令牌取真实身份,绝不信任 body 里传来的 userId/sosId =====
+// 返回 { kind:'service' }（service_role 内部调用）| { kind:'user', userId, admin } | null（未授权）
+async function authPrincipal(
+  supabaseAdmin: any,
+  req: Request,
+): Promise<{ kind: 'service' } | { kind: 'user'; userId: string; admin: boolean } | null> {
+  const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  if (!token) return null;
+  if (token === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '___no_service_key___')) return { kind: 'service' };
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  if (!user) return null;
+  let admin = false;
+  try {
+    const { data: row } = await supabaseAdmin
+      .from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle();
+    admin = !!row;
+  } catch { admin = false; }
+  return { kind: 'user', userId: user.id, admin };
+}
+function unauthorized(msg = 'Unauthorized') {
+  return new Response(JSON.stringify({ error: msg }), { status: 401, headers: corsHeaders });
+}
+function forbidden(msg = 'Forbidden') {
+  return new Response(JSON.stringify({ error: msg }), { status: 403, headers: corsHeaders });
+}
+// 仅 service_role / 管理员 / SOS 本人 可操作该 SOS
+function canActOnSos(principal: any, sos: any): boolean {
+  if (!principal || !sos) return false;
+  if (principal.kind === 'service') return true;
+  if (principal.admin) return true;
+  return sos.user_id === principal.userId;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -63,23 +96,27 @@ Deno.serve(async (req) => {
     }
     if (!action) action = 'trigger';
 
+    // 鉴权:所有接口都要求有效登录令牌（或 service_role 内部调用），否则一律 401
+    const principal = await authPrincipal(supabaseAdmin, req);
+    if (!principal) return unauthorized();
+
     switch (action) {
       case 'trigger':
-        return await triggerSOS(supabaseAdmin, req);
+        return await triggerSOS(supabaseAdmin, req, principal);
       case 'cancel':
-        return await cancelSOS(supabaseAdmin, req);
+        return await cancelSOS(supabaseAdmin, req, principal);
       case 'resolve':
-        return await resolveSOS(supabaseAdmin, req);
+        return await resolveSOS(supabaseAdmin, req, principal);
       case 'escalate':
-        return await escalateSOS(supabaseAdmin, req);
+        return await escalateSOS(supabaseAdmin, req, principal);
       case 'notify-family':
-        return await notifyFamilyEndpoint(supabaseAdmin, req);
+        return await notifyFamilyEndpoint(supabaseAdmin, req, principal);
       case 'notify-rescuers':
-        return await notifyRescuersEndpoint(supabaseAdmin, req);
+        return await notifyRescuersEndpoint(supabaseAdmin, req, principal);
       case 'get-nearby':
-        return await getNearbySOS(supabaseAdmin, req);
+        return await getNearbySOS(supabaseAdmin, req, principal);
       case 'analyze-situation':
-        return await analyzeSituation(supabaseAdmin, req);
+        return await analyzeSituation(supabaseAdmin, req, principal);
       default:
         return new Response(JSON.stringify({ error: 'Unknown action' }), {
           status: 400,
@@ -94,10 +131,13 @@ Deno.serve(async (req) => {
   }
 });
 
-async function triggerSOS(supabaseAdmin: any, req: Request) {
+async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
-    const { userId, triggerMethod, latitude, longitude, address } = body;
+    const { triggerMethod, latitude, longitude, address } = body;
+    // 用真实身份触发自己的 SOS；service_role 内部调用可指定 body.userId
+    const userId = principal.kind === 'service' ? body.userId : principal.userId;
+    if (!userId) return unauthorized('no user');
 
     const { data: existingSOS } = await supabaseAdmin
       .from('sos_records')
@@ -170,16 +210,15 @@ async function triggerSOS(supabaseAdmin: any, req: Request) {
   }
 }
 
-async function cancelSOS(supabaseAdmin: any, req: Request) {
+async function cancelSOS(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
-    const { sosId, userId } = body;
+    const { sosId } = body;
 
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
       .select('*')
       .eq('id', sosId)
-      .eq('user_id', userId)
       .maybeSingle();
 
     if (!sos) {
@@ -188,6 +227,8 @@ async function cancelSOS(supabaseAdmin: any, req: Request) {
         headers: corsHeaders,
       });
     }
+
+    if (!canActOnSos(principal, sos)) return forbidden();
 
     if (sos.status !== 'active') {
       return new Response(JSON.stringify({ error: 'SOS is not active, cannot cancel' }), {
@@ -204,7 +245,7 @@ async function cancelSOS(supabaseAdmin: any, req: Request) {
     await supabaseAdmin
       .from('notifications')
       .insert({
-        user_id: userId,
+        user_id: sos.user_id,
         title: 'SOS Cancelled',
         body: 'Your SOS alert has been cancelled.',
         type: 'sos_cancelled',
@@ -223,10 +264,10 @@ async function cancelSOS(supabaseAdmin: any, req: Request) {
   }
 }
 
-async function resolveSOS(supabaseAdmin: any, req: Request) {
+async function resolveSOS(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
-    const { sosId, resolverId } = body;
+    const { sosId } = body;
 
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
@@ -241,11 +282,14 @@ async function resolveSOS(supabaseAdmin: any, req: Request) {
       });
     }
 
+    // 解救一般由后台管理员操作；也允许 SOS 本人标记自己安全
+    if (!canActOnSos(principal, sos)) return forbidden();
+
     await supabaseAdmin
       .from('sos_records')
       .update({
         status: 'rescued',
-        resolved_at: new Date().toISOString(),
+        confirmed_at: new Date().toISOString(), // 修复：sos_records 表列名是 confirmed_at（原写 resolved_at 不存在）
       })
       .eq('id', sosId);
 
@@ -276,7 +320,7 @@ async function resolveSOS(supabaseAdmin: any, req: Request) {
   }
 }
 
-async function escalateSOS(supabaseAdmin: any, req: Request) {
+async function escalateSOS(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
     const { sosId } = body;
@@ -293,6 +337,9 @@ async function escalateSOS(supabaseAdmin: any, req: Request) {
         headers: corsHeaders,
       });
     }
+
+    // 升级会触发真实短信/语音外呼，必须是本人/管理员/服务角色
+    if (!canActOnSos(principal, sos)) return forbidden();
 
     if (sos.status !== 'active') {
       return new Response(JSON.stringify({ error: 'SOS is not active, cannot escalate' }), {
@@ -357,10 +404,13 @@ async function escalateSOS(supabaseAdmin: any, req: Request) {
   }
 }
 
-async function notifyFamilyEndpoint(supabaseAdmin: any, req: Request) {
+async function notifyFamilyEndpoint(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
-    const { userId, sosId } = body;
+    const { sosId } = body;
+    // 只能通知"自己的"家庭组；service_role 可指定 body.userId
+    const userId = principal.kind === 'service' ? body.userId : principal.userId;
+    if (!userId) return unauthorized('no user');
     return await notifyFamilyInternal(supabaseAdmin, userId, sosId);
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -370,10 +420,17 @@ async function notifyFamilyEndpoint(supabaseAdmin: any, req: Request) {
   }
 }
 
-async function notifyRescuersEndpoint(supabaseAdmin: any, req: Request) {
+async function notifyRescuersEndpoint(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
     const { sosId, latitude, longitude } = body;
+    // 普通用户只能为"自己的" SOS 通知附近救援者；管理员/服务角色不限
+    if (principal.kind === 'user') {
+      const { data: sosOwn } = await supabaseAdmin
+        .from('sos_records').select('user_id').eq('id', sosId).maybeSingle();
+      if (!sosOwn) return new Response(JSON.stringify({ error: 'SOS not found' }), { status: 404, headers: corsHeaders });
+      if (!canActOnSos(principal, sosOwn)) return forbidden();
+    }
     return await notifyRescuersInternal(supabaseAdmin, sosId, latitude, longitude);
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -448,21 +505,23 @@ async function notifyRescuersInternal(supabaseAdmin: any, sosId: string, latitud
 
     const { data: subscribers } = await supabaseAdmin
       .from('mutual_aid_subscriptions')
-      .select('user_id')
+      .select('user_id, radius_km')
       .eq('is_active', true);
 
     let targetIds: string[] = (subscribers || []).map((s: any) => s.user_id);
 
-    // 地理过滤：仅通知距事发地 ≤5km 的互助者（无 SOS 坐标时退回通知全部活跃订阅者）
+    // 地理过滤：按每个互助者“自己设置的半径”通知（与 getNearbySOS 的可见范围一致，
+    // 避免“推送了却在列表里看不到”的死推送）；无 SOS 坐标时退回通知全部活跃订阅者。
     if (latitude != null && longitude != null && targetIds.length > 0) {
+      const radiusMap: Record<string, number> = {};
+      for (const s of (subscribers || [])) radiusMap[s.user_id] = s.radius_km || 5;
       const { data: locs } = await supabaseAdmin
         .from('user_alert_settings')
         .select('user_id, last_latitude, last_longitude')
         .in('user_id', targetIds);
-      const RESCUE_RADIUS_KM = 5;
       targetIds = (locs || [])
         .filter((l: any) => l.last_latitude != null && l.last_longitude != null &&
-          calculateDistance(latitude, longitude, l.last_latitude, l.last_longitude) <= RESCUE_RADIUS_KM)
+          calculateDistance(latitude, longitude, l.last_latitude, l.last_longitude) <= (radiusMap[l.user_id] || 5))
         .map((l: any) => l.user_id);
     }
 
@@ -540,7 +599,8 @@ async function notifyEmergencyContact(
   }
 }
 
-async function getNearbySOS(supabaseAdmin: any, req: Request) {
+async function getNearbySOS(supabaseAdmin: any, req: Request, _principal: any) {
+  // 鉴权已在路由层完成（必须登录）——堵住"任何人拉取所有活跃 SOS 位置/昵称"的隐私泄露
   try {
     const url = new URL(req.url);
     const latitude = parseFloat(url.searchParams.get('lat') || '0');
@@ -578,7 +638,7 @@ async function getNearbySOS(supabaseAdmin: any, req: Request) {
   }
 }
 
-async function analyzeSituation(supabaseAdmin: any, req: Request) {
+async function analyzeSituation(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
     const { sosId } = body;
@@ -596,10 +656,12 @@ async function analyzeSituation(supabaseAdmin: any, req: Request) {
       });
     }
 
+    if (!canActOnSos(principal, sos)) return forbidden();
+
     const { data: nearbyAlerts } = await supabaseAdmin
       .from('alerts')
       .select('*')
-      .eq('is_active', true)
+      .is('end_time', null) // 活跃预警 = end_time IS NULL（修复：is_active 列不存在，与预警管线一致）
       .order('created_at', { ascending: false })
       .limit(5);
 

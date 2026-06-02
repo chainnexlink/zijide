@@ -68,6 +68,7 @@ export default function MutualAid() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'responding'>('all');
   const [showSOSDetail, setShowSOSDetail] = useState<NearbySOS | null>(null);
   const [userStats, setUserStats] = useState({ responses: 0, helped: 0, points: 0 });
+  const [myResponses, setMyResponses] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchSubscription();
@@ -114,6 +115,9 @@ export default function MutualAid() {
         helped: responses.filter(r => r.status === 'completed').length,
         points: responses.length * 10
       });
+      const map: Record<string, string> = {};
+      for (const r of responses) { if (r.sos_id) map[r.sos_id] = r.status as string; }
+      setMyResponses(map);
     }
   };
 
@@ -208,12 +212,44 @@ export default function MutualAid() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase.from('mutual_aid_responses').insert({
-      sos_id: sosId,
-      responder_id: user.id,
-      status: 'responding'
+    // 走边缘函数：校验 SOS 仍有效 + 防刷状态机 + 真正发放互助积分（直连表 insert 不会发分）
+    const { data, error } = await supabase.functions.invoke('mutual-aid', {
+      body: { action: 'respond', sosId },
     });
+    if (error || (data && (data as any).error)) {
+      alert('响应失败，请稍后重试 / Failed to respond, please try again');
+      return;
+    }
 
+    fetchNearbySOS();
+    fetchUserStats();
+  };
+
+  const handleArrive = async (sosId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    if (!location) { alert('需要定位才能标记到达 / Location needed to mark arrival'); return; }
+    const { data, error } = await supabase.functions.invoke('mutual-aid', {
+      body: { action: 'arrive', sosId, latitude: location.latitude, longitude: location.longitude },
+    });
+    if (error || (data && (data as any).error)) {
+      alert('标记到达失败（需在求助点 300 米内）/ Failed to mark arrival (must be within 300m)');
+      return;
+    }
+    fetchNearbySOS();
+    fetchUserStats();
+  };
+
+  const handleComplete = async (sosId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase.functions.invoke('mutual-aid', {
+      body: { action: 'complete', sosId },
+    });
+    if (error || (data && (data as any).error)) {
+      alert('标记完成失败 / Failed to mark complete');
+      return;
+    }
     fetchNearbySOS();
     fetchUserStats();
   };
@@ -670,16 +706,48 @@ export default function MutualAid() {
                   <Navigation className="w-5 h-5" />
                   {t('navigate') || '导航'}
                 </button>
-                <button
-                  onClick={() => {
-                    handleRespond(showSOSDetail.id);
-                    setShowSOSDetail(null);
-                  }}
-                  className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
-                >
-                  <HeartHandshake className="w-5 h-5" />
-                  {t('respond') || '响应'}
-                </button>
+                {(() => {
+                  const st = myResponses[showSOSDetail.id];
+                  if (st === 'completed') {
+                    return (
+                      <button disabled className="flex-1 h-12 bg-green-500/20 text-green-400 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
+                        <CheckCircle2 className="w-5 h-5" />
+                        {t('completed') || '已完成'}
+                      </button>
+                    );
+                  }
+                  if (st === 'arrived') {
+                    return (
+                      <button
+                        onClick={() => { handleComplete(showSOSDetail.id); setShowSOSDetail(null); }}
+                        className="flex-1 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle2 className="w-5 h-5" />
+                        {t('markComplete') || '完成救助'}
+                      </button>
+                    );
+                  }
+                  if (st === 'responding') {
+                    return (
+                      <button
+                        onClick={() => { handleArrive(showSOSDetail.id); setShowSOSDetail(null); }}
+                        className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
+                      >
+                        <MapPin className="w-5 h-5" />
+                        {t('markArrived') || '我已到达'}
+                      </button>
+                    );
+                  }
+                  return (
+                    <button
+                      onClick={() => { handleRespond(showSOSDetail.id); setShowSOSDetail(null); }}
+                      className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
+                    >
+                      <HeartHandshake className="w-5 h-5" />
+                      {t('respond') || '响应'}
+                    </button>
+                  );
+                })()}
               </div>
             </motion.div>
           </motion.div>

@@ -115,9 +115,18 @@ async function fetchAppleTransaction(transactionId: string): Promise<any | null>
 }
 
 // ===== 推荐返券：促销优惠签名 + 推荐逻辑 =====
-// 需在 ASC 每个订阅下创建一个 ID 为 referral50 的「促销优惠」(50% off 1个月)，
+// 注意：同一订阅群组内，促销优惠标识符必须唯一 → 每个订阅各用各自的 referral 优惠 ID。
+//   com.warrescue.app.personal.monthly → referral50
+//   com.warrescue.app.family.monthly   → referral50family
+// 需在 ASC 对应订阅下各建一个「促销优惠」(50% off 1个月)，标识符与下表完全一致；
 // 并生成「App 内购买」签名密钥(.p8)，配为 Secrets：APPSTORE_OFFER_KEY_ID / APPSTORE_OFFER_KEY
-const PROMO_OFFER_ID = 'referral50';
+const PROMO_OFFER_IDS: Record<string, string> = {
+  'com.warrescue.app.personal.monthly': 'referral50',
+  'com.warrescue.app.family.monthly': 'referral50family',
+};
+function promoOfferIdFor(productId: string): string {
+  return PROMO_OFFER_IDS[productId] || 'referral50';
+}
 
 function stdB64FromBytes(bytes: Uint8Array): string {
   let bin = '';
@@ -201,7 +210,7 @@ async function signOffer(supabaseAdmin: any, req: Request) {
   if (!productId || !PRODUCT_TO_PLAN[productId]) return jsonResp({ eligible: false, reason: 'bad_product' }, 400);
   const { data: couponId } = await supabaseAdmin.rpc('reserve_coupon', { p_user: user.id });
   if (!couponId) return jsonResp({ eligible: false, reason: 'no_coupon' });
-  const sig = await signPromotionalOffer(productId, PROMO_OFFER_ID, user.id);
+  const sig = await signPromotionalOffer(productId, promoOfferIdFor(productId), user.id);
   if (!sig) {
     await supabaseAdmin.from('referral_coupons').update({ status: 'available', reserved_at: null }).eq('id', couponId);
     return jsonResp({ eligible: false, reason: 'offer_key_not_configured' }, 500);
