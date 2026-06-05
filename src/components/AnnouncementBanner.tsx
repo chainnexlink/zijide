@@ -5,6 +5,7 @@ import { faBullhorn, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase/client';
 import { useI18n } from '../hooks/useI18n';
+import { safeStorage } from '../utils/safeStorage';
 
 interface Announcement {
   id: string;
@@ -29,10 +30,10 @@ export default function AnnouncementBanner() {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem('dismissedAnnouncements');
-    if (saved) {
-      setDismissed(JSON.parse(saved));
-    }
+    try {
+      const saved = safeStorage.getItem('dismissedAnnouncements');
+      if (saved) setDismissed(JSON.parse(saved));
+    } catch { /* 忽略损坏/不可用的本地存储 */ }
   }, []);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export default function AnnouncementBanner() {
   function handleDismiss(id: string) {
     const newDismissed = [...dismissed, id];
     setDismissed(newDismissed);
-    localStorage.setItem('dismissedAnnouncements', JSON.stringify(newDismissed));
+    safeStorage.setItem('dismissedAnnouncements', JSON.stringify(newDismissed));
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
     if (currentIndex >= announcements.length - 1) {
       setCurrentIndex(0);

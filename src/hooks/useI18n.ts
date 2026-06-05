@@ -16,7 +16,7 @@ export function useI18n() {
   const [dir, setDir] = useState<'ltr' | 'rtl'>(() => languages.find(l => l.code === getSavedLang())?.dir || 'ltr');
 
   useEffect(() => {
-    const saved = localStorage.getItem('warrescue-language') as Language;
+    const saved = getSavedLang();
     if (saved && languages.find(l => l.code === saved)) {
       setLanguageState(saved);
       const langInfo = languages.find(l => l.code === saved);

@@ -1,10 +1,11 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { safeStorage } from '../utils/safeStorage';
 
 const TermsOfUse: React.FC = () => {
   const navigate = useNavigate();
-  const lang = localStorage.getItem('language') || 'en';
+  const lang = safeStorage.getItem('language') || 'en';
   const isZh = lang === 'zh';
 
   return (

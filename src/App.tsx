@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from './supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
+import { safeStorage } from './utils/safeStorage';
 
 import AnnouncementBanner from './components/AnnouncementBanner';
 import WebLayout from './components/WebLayout';
@@ -45,20 +46,24 @@ function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(() => {
-    const demoMode = localStorage.getItem('demo_mode') === 'true';
-    if (demoMode) {
-      const expires = Number(localStorage.getItem('demo_expires') || 0);
-      if (expires && Date.now() > expires) {
-        localStorage.removeItem('demo_mode');
-        localStorage.removeItem('demo_expires');
-        return false;
+    try {
+      const demoMode = safeStorage.getItem('demo_mode') === 'true';
+      if (demoMode) {
+        const expires = Number(safeStorage.getItem('demo_expires') || 0);
+        if (expires && Date.now() > expires) {
+          safeStorage.removeItem('demo_mode');
+          safeStorage.removeItem('demo_expires');
+          return false;
+        }
       }
+      return demoMode;
+    } catch {
+      return false;
     }
-    return demoMode;
   });
 
   const exitDemo = () => {
-    localStorage.removeItem('demo_mode');
+    safeStorage.removeItem('demo_mode');
     setIsDemo(false);
   };
 
@@ -69,13 +74,24 @@ function App() {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      })
+      .catch(() => {
+        // 取会话失败（存储异常 / 网络问题）也必须让首屏出来，绝不卡在加载态
+        setLoading(false);
+      });
 
-    return () => subscription.unsubscribe();
+    // 兜底：万一 getSession 既不 resolve 也不 reject（异常环境下挂起），8 秒后强制结束加载
+    const t = setTimeout(() => setLoading(false), 8000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(t);
+    };
   }, []);
 
   const isAuthenticated = !!user || isDemo;
