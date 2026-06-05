@@ -89,7 +89,10 @@ jobs:
           bundler-cache: true
 
       - name: Install Fastlane
-        run: gem install fastlane
+        # 显式加上 multi_json:fastlane 间接依赖 representable -> multi_json，
+        # 但 macOS runner 镜像近期更新把预装的 multi_json 移除了，导致 `fastlane release`
+        # 启动时 Gem::MissingSpecError 立即崩溃（见 Run #54 日志）。固定写死避免漂移。
+        run: gem install fastlane multi_json
 
       - name: Setup API Key file
         env:
