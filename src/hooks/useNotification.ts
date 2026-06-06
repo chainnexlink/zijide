@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { safeStorage } from '../utils/safeStorage';
 
 export interface AppNotification {
   id: string;
@@ -27,7 +28,7 @@ function loadStored(): AppNotification[] {
 }
 
 function saveStored(list: AppNotification[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, MAX_STORED)));
+  safeStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, MAX_STORED)));
 }
 
 // Sound for alerts

@@ -805,7 +805,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Link
-                  to="/subscribe"
+                  to="/subscription"
                   className={`w-full py-3 rounded-xl font-medium text-center block transition-all ${
                     index === 0
                       ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg hover:shadow-blue-500/30'

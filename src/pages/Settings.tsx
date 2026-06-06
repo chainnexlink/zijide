@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { safeStorage } from '../utils/safeStorage';
 import {
   User,
   Lock,
@@ -57,7 +58,7 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('wa_dark_mode');
+    const saved = safeStorage.getItem('wa_dark_mode');
     return saved !== null ? saved === 'true' : true;
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -227,7 +228,7 @@ export default function Settings() {
           icon: HelpCircle,
           label: t('help') || '帮助中心',
           description: t('helpDesc') || '常见问题、使用指南',
-          path: '/help',
+          path: '/about',
           color: 'text-teal-400',
           bgColor: 'bg-teal-500/20'
         },
@@ -343,7 +344,7 @@ export default function Settings() {
                 onClick={() => {
                   const next = !isDarkMode;
                   setIsDarkMode(next);
-                  localStorage.setItem('wa_dark_mode', String(next));
+                  safeStorage.setItem('wa_dark_mode', String(next));
                 }}
                 className={`relative w-14 h-8 rounded-full transition-colors ${
                   isDarkMode ? 'bg-indigo-500' : 'bg-slate-700'

@@ -35,6 +35,7 @@ import Announcements from './pages/Announcements';
 import Points from './pages/Points';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
+import AboutApp from './pages/AboutApp';
 import CustomerServiceWidget from './components/CustomerServiceWidget';
 import { usePushRegistration } from './hooks/usePushRegistration';
 
@@ -148,6 +149,9 @@ function App() {
             <Route path="/simulation" element={isAuthenticated ? <Wrap><SimulationTrial /></Wrap> : <Navigate to="/auth" />} />
             <Route path="/announcements" element={isAuthenticated ? <Wrap><Announcements /></Wrap> : <Navigate to="/auth" />} />
             <Route path="/points" element={isAuthenticated ? <Wrap><Points /></Wrap> : <Navigate to="/auth" />} />
+            <Route path="/about" element={<AboutApp />} />
+            {/* 兜底：任何未匹配的路由都重定向，绝不渲染空白页（Apple 2.1 应用完整性） */}
+            <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />} />
           </Routes>
         </AnimatePresence>
       </HashRouter>

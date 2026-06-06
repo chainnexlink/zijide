@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabase/client';
+import { safeStorage } from '../utils/safeStorage';
 
 interface Message {
   id: string;
@@ -20,8 +21,8 @@ export default function CustomerServiceWidget() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    const sid = localStorage.getItem('cs_session_id') || `cs_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    localStorage.setItem('cs_session_id', sid);
+    const sid = safeStorage.getItem('cs_session_id') || `cs_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    safeStorage.setItem('cs_session_id', sid);
     setSessionId(sid);
     initSession(sid);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };

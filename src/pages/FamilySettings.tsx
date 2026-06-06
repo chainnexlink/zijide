@@ -23,7 +23,6 @@ import {
   Mail,
   AlertCircle,
   Clock,
-  Navigation,
   MessageSquare,
   Share2,
   QrCode,
@@ -678,12 +677,6 @@ export default function FamilySettings() {
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => navigate(`/family-settings/member/${member.id}`)}
-                      className="p-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800/50"
-                    >
-                      <Navigation className="w-5 h-5" />
-                    </button>
                     {isAdmin && member.user_id !== currentUser?.id && (
                       <div className="relative">
                         <button
