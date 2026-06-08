@@ -5,8 +5,12 @@ import Capacitor
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Force-load InAppPurchasePlugin to prevent dead code stripping in Release builds.
+        // Force-reference classes that are otherwise only referenced by NAME (storyboard /
+        // Info.plist). Without this the linker strips them, causing
+        // "Unknown class _TtC3App14ViewController in Interface Builder file" at runtime ->
+        // the storyboard substitutes a plain black UIViewController (no WKWebView) -> black screen.
         _ = InAppPurchasePlugin.self
+        _ = ViewController.self
         return true
     }
 
@@ -46,12 +50,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: windowScene)
-        // Instantiate the Capacitor bridge view controller DIRECTLY in code rather than via
-        // the storyboard. On iOS 26 the storyboard lookup failed with
-        // "Unknown class _TtC3App14ViewController in Interface Builder file", leaving a plain
-        // black UIViewController as root (no WKWebView) => the App Store black-screen rejection.
-        // A direct reference also prevents the linker from stripping the class.
-        window.rootViewController = ViewController()
+        // Load Main.storyboard's initial VC (ViewController: CAPBridgeViewController) on its
+        // standard init path. ViewController is force-referenced in AppDelegate so the linker
+        // keeps it and the by-name lookup resolves (previously stripped => "Unknown class
+        // ...ViewController" => plain black UIViewController). Programmatic ViewController()
+        // crashed at launch, so we use the storyboard path here.
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        window.rootViewController = storyboard.instantiateInitialViewController()
         self.window = window
         window.makeKeyAndVisible()
 

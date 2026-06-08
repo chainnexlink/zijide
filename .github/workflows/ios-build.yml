@@ -71,10 +71,12 @@ jobs:
           echo "Bundle id: $BID"
           xcrun simctl install "$UDID" "$APP"
           set +e
-          LAUNCH_OUT=$(xcrun simctl launch --terminate-running-process "$UDID" "$BID" 2>&1)
+          LAUNCH_OUT=$(xcrun simctl launch --terminate-running-process --stdout=app_out.log --stderr=app_err.log "$UDID" "$BID" 2>&1)
           set -e
           echo "launch -> $LAUNCH_OUT"
           sleep 14
+          echo '=== app stdout (Capacitor / web console) ==='; tail -80 app_out.log 2>/dev/null || true
+          echo '=== app stderr ==='; tail -80 app_err.log 2>/dev/null || true
 
       - name: Screenshot
         run: xcrun simctl io "$UDID" screenshot launch.png
@@ -115,6 +117,8 @@ jobs:
           name: ios-smoke
           path: |
             launch.png
+            app_out.log
+            app_err.log
             diag
           if-no-files-found: ignore
 
