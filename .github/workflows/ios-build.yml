@@ -10,7 +10,96 @@ on:
         type: boolean
 
 jobs:
+  # 冒烟测试：用 iOS 26 模拟器真实启动 App，截图，若黑屏/空白则构建失败。
+  # 这样在上传给苹果之前就能确认不再黑屏（绝不盲提交）。上传 job 依赖它通过。
+  ios-smoke:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26 (iOS 26 SDK)
+        run: |
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XC" ]; then echo "::error::No Xcode 26 on runner"; ls -d /Applications/Xcode*.app; exit 1; fi
+          echo "Selecting: $XC"
+          sudo xcode-select -s "$XC/Contents/Developer"
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Sync web assets + native plugins to iOS
+        run: npx cap sync ios
+
+      - name: Build app for iOS Simulator (unsigned)
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ./dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+
+      - name: Boot an iOS 26 iPad simulator
+        run: |
+          RT=$(xcrun simctl list runtimes | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-26[^ ]*' | head -1)
+          echo "Runtime: $RT"
+          UDID=$(xcrun simctl create ci-ipad 'iPad Air 11-inch (M3)' "$RT" 2>/dev/null \
+                 || xcrun simctl create ci-ipad 'iPad Pro 11-inch (M4)' "$RT" 2>/dev/null \
+                 || xcrun simctl create ci-iphone 'iPhone 16 Pro' "$RT")
+          echo "UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Install + launch app (capture logs)
+        run: |
+          APP=$(find ./dd/Build/Products -maxdepth 3 -name '*.app' | head -1)
+          echo "APP=$APP"
+          xcrun simctl install "$UDID" "$APP"
+          BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
+          echo "Bundle id: $BID"
+          xcrun simctl launch --terminate-running-process --stdout=app_out.log --stderr=app_err.log "$UDID" "$BID" || true
+          sleep 18
+
+      - name: Screenshot launch
+        run: xcrun simctl io "$UDID" screenshot launch.png
+
+      - name: Fail if launch screen is black/blank
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check Pillow || pip3 install --quiet Pillow || true
+          python3 -c "from PIL import Image, ImageStat; s=ImageStat.Stat(Image.open('launch.png').convert('L')); m=s.mean[0]/255; d=s.stddev[0]/255; print('brightness mean=%.4f std=%.4f'%(m,d)); import sys; sys.exit(0 if (m>0.05 and d>0.01) else 1)" || { echo '::error::BLACK/BLANK launch screen detected (App Store 2.1 repro)'; exit 1; }
+          echo "Launch screen is NOT black -- smoke test passed."
+
+      - name: Show app logs
+        if: always()
+        run: |
+          echo '=== app stdout (tail) ==='; tail -60 app_out.log 2>/dev/null || true
+          echo '=== app stderr (tail) ==='; tail -60 app_err.log 2>/dev/null || true
+
+      - name: Upload smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-smoke
+          path: |
+            launch.png
+            app_out.log
+            app_err.log
+          if-no-files-found: ignore
+
   build-ios:
+    needs: ios-smoke
     runs-on: macos-15
     timeout-minutes: 60
 
@@ -23,15 +112,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select latest Xcode
+      - name: Select Xcode 26 (iOS 26 SDK required by Apple + Capacitor 8)
         run: |
-          echo "Available Xcode versions:"
-          ls -d /Applications/Xcode*.app 2>/dev/null || true
-          LATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
-          echo "Selecting: $LATEST_XCODE"
-          sudo xcode-select -s "$LATEST_XCODE/Contents/Developer"
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XC" ]; then echo "::error::No Xcode 26 found on runner"; ls -d /Applications/Xcode*.app; exit 1; fi
+          echo "Selecting: $XC"
+          sudo xcode-select -s "$XC/Contents/Developer"
           xcodebuild -version
-          xcrun --sdk iphoneos --show-sdk-version
+          SDKV=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "iOS SDK: $SDKV"
+          case "$SDKV" in 26.*) echo "OK iOS 26 SDK";; *) echo "::error::Expected iOS 26 SDK, got $SDKV"; exit 1;; esac
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
