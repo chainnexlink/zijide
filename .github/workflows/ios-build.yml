@@ -78,7 +78,9 @@ jobs:
           for i in 1 2 3 4 5 6; do
             xcrun simctl install "$UDID" "$APP" 2>/tmp/inst.err || { echo "install attempt $i failed: $(cat /tmp/inst.err 2>/dev/null)"; sleep 12; continue; }
             set +e
-            LAUNCH_OUT=$(xcrun simctl launch --terminate-running-process --stdout=app_out.log --stderr=app_err.log "$UDID" "$BID" 2>&1)
+            # NOTE: --stdout/--stderr removed — they appear to trigger FBSOpenApplication launch
+            # failure on the iOS 26 simulator. Capture app logs via syslog in the diag step instead.
+            LAUNCH_OUT=$(xcrun simctl launch --terminate-running-process "$UDID" "$BID" 2>&1)
             RC=$?
             set -e
             echo "attempt $i: rc=$RC -> $LAUNCH_OUT"
