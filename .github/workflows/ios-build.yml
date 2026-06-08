@@ -62,19 +62,31 @@ jobs:
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
 
-      - name: Install + launch app
+      - name: Install + launch app (retry past first-boot migration)
         run: |
           APP=$(find ./dd/Build/Products -maxdepth 3 -name '*.app' | head -1)
           echo "APP=$APP"
           BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
           echo "BID=$BID" >> $GITHUB_ENV
           echo "Bundle id: $BID"
-          xcrun simctl install "$UDID" "$APP"
-          set +e
-          LAUNCH_OUT=$(xcrun simctl launch --terminate-running-process --stdout=app_out.log --stderr=app_err.log "$UDID" "$BID" 2>&1)
-          set -e
-          echo "launch -> $LAUNCH_OUT"
-          sleep 14
+          # A freshly-created simulator keeps running first-boot LaunchServices/keychain
+          # migrations AFTER 'bootstatus' returns; installing/launching during that window
+          # fails with FBSOpenApplicationServiceErrorDomain (NOT an app crash). Settle, then
+          # retry install + launch until LaunchServices is ready.
+          sleep 30
+          LAUNCH_OK=0
+          for i in 1 2 3 4 5 6; do
+            xcrun simctl install "$UDID" "$APP" 2>/tmp/inst.err || { echo "install attempt $i failed: $(cat /tmp/inst.err 2>/dev/null)"; sleep 12; continue; }
+            set +e
+            LAUNCH_OUT=$(xcrun simctl launch --terminate-running-process --stdout=app_out.log --stderr=app_err.log "$UDID" "$BID" 2>&1)
+            RC=$?
+            set -e
+            echo "attempt $i: rc=$RC -> $LAUNCH_OUT"
+            if [ "$RC" -eq 0 ]; then LAUNCH_OK=1; break; fi
+            sleep 12
+          done
+          echo "LAUNCH_OK=$LAUNCH_OK"
+          sleep 15
           echo '=== app stdout (Capacitor / web console) ==='; tail -80 app_out.log 2>/dev/null || true
           echo '=== app stderr ==='; tail -80 app_err.log 2>/dev/null || true
 
