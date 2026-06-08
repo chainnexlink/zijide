@@ -101,7 +101,9 @@ jobs:
           mkdir -p diag
           find "$HOME/Library/Logs/DiagnosticReports" -name '*.ips' -newermt '-8 minutes' -exec cp {} diag/ \; 2>/dev/null || true
           find "$HOME/Library/Developer/CoreSimulator" -name '*.ips' -newermt '-8 minutes' -exec cp {} diag/ \; 2>/dev/null || true
-          xcrun simctl spawn "$UDID" log show --last 4m --predicate 'process == "App"' 2>/dev/null | tail -250 > diag/app_syslog.txt || true
+          xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "App"' 2>/dev/null | tail -300 > diag/app_syslog.txt || true
+          echo '=== WR_DIAG (ViewController/bridge/webview state) ==='
+          xcrun simctl spawn "$UDID" log show --last 6m --predicate 'eventMessage CONTAINS "WR_DIAG"' --style compact 2>/dev/null | grep -i WR_DIAG || grep -i WR_DIAG diag/app_syslog.txt || echo '(no WR_DIAG captured)'
           echo '=== app running? ==='
           xcrun simctl spawn "$UDID" launchctl list 2>/dev/null | grep -i "$BID" || echo '(app NOT running -- crashed/exited)'
           echo '=== crash reports ==='
