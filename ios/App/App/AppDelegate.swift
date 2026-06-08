@@ -46,8 +46,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: windowScene)
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        window.rootViewController = storyboard.instantiateInitialViewController()
+        // Instantiate the Capacitor bridge view controller DIRECTLY in code rather than via
+        // the storyboard. On iOS 26 the storyboard lookup failed with
+        // "Unknown class _TtC3App14ViewController in Interface Builder file", leaving a plain
+        // black UIViewController as root (no WKWebView) => the App Store black-screen rejection.
+        // A direct reference also prevents the linker from stripping the class.
+        window.rootViewController = ViewController()
         self.window = window
         window.makeKeyAndVisible()
 
