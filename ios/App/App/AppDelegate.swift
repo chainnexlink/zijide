@@ -25,27 +25,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {}
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        // Called when the app was launched with a url. Keep this call so the App API tracks app url opens.
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        // Called for Universal Links. Keep this call so the App API tracks app url opens.
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
 }
 
 // MARK: - SceneDelegate
-// iOS 26 SDK builds require the UIScene life cycle. With UISceneStoryboardFile=Main
-// declared in Info.plist's UIApplicationSceneManifest, UIKit automatically creates the
-// window and instantiates Main.storyboard's initial view controller
-// (ViewController: CAPBridgeViewController), which loads the WKWebView. This delegate
-// only needs to exist and forward launch URLs / universal links to Capacitor.
+// iOS 26 SDK builds require the UIScene life cycle. This delegate programmatically
+// creates the window and instantiates Main.storyboard's initial view controller
+// (ViewController: CAPBridgeViewController), which loads the Capacitor WKWebView.
+// Programmatic creation avoids any ambiguity between UIMainStoryboardFile /
+// UISceneStoryboardFile and the scene window.
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        let window = UIWindow(windowScene: windowScene)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        window.rootViewController = storyboard.instantiateInitialViewController()
+        self.window = window
+        window.makeKeyAndVisible()
+
         if let urlContext = connectionOptions.urlContexts.first {
             _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: urlContext.url, options: [:])
         }
