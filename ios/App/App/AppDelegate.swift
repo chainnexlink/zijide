@@ -43,17 +43,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = scene as? UIWindowScene else {
-            NSLog("WR_DIAG SceneDelegate: scene is NOT a UIWindowScene")
-            return
-        }
+        guard let windowScene = scene as? UIWindowScene else { return }
         let win = UIWindow(windowScene: windowScene)
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let root = storyboard.instantiateInitialViewController()
-        win.rootViewController = root
+        win.rootViewController = storyboard.instantiateInitialViewController()
         self.window = win
         win.makeKeyAndVisible()
-        NSLog("WR_DIAG SceneDelegate willConnectTo done: rootVC=%@", String(describing: type(of: root)))
 
         if let urlContext = connectionOptions.urlContexts.first {
             _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: urlContext.url, options: [:])
