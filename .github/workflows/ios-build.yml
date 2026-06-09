@@ -14,7 +14,7 @@ jobs:
   # 这样在上传给苹果之前就能确认不再黑屏（绝不盲提交）。上传 job 依赖它通过。
   ios-smoke:
     runs-on: macos-15
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,12 +55,34 @@ jobs:
         run: |
           RT=$(xcrun simctl list runtimes | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-26[^ ]*' | head -1)
           echo "Runtime: $RT"
-          UDID=$(xcrun simctl create ci-ipad 'iPad Air 11-inch (M3)' "$RT" 2>/dev/null \
-                 || xcrun simctl create ci-ipad 'iPad Pro 11-inch (M4)' "$RT" 2>/dev/null \
-                 || xcrun simctl create ci-iphone 'iPhone 16 Pro' "$RT")
-          echo "UDID=$UDID" >> $GITHUB_ENV
-          xcrun simctl boot "$UDID"
-          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl shutdown all 2>/dev/null || true
+          # `simctl bootstatus -b` can WEDGE on a fresh iOS 26 first boot and hang until the
+          # job's wall-clock timeout (observed Run #71: boot step ate all 40 min -> cancelled).
+          # Bound each boot wait with a portable watchdog (no GNU `timeout` dependency) and, if it
+          # wedges, erase the sim and retry on a fresh one. Boot is the flaky step, not the app.
+          boot_wait() {
+            xcrun simctl bootstatus "$1" -b &
+            local bpid=$! secs=0
+            while kill -0 "$bpid" 2>/dev/null; do
+              sleep 5; secs=$((secs+5))
+              if [ "$secs" -ge "$2" ]; then echo "bootstatus exceeded ${2}s -> killing"; kill "$bpid" 2>/dev/null || true; return 1; fi
+            done
+            wait "$bpid"; return $?
+          }
+          BOOTED=0
+          for attempt in 1 2 3; do
+            UDID=$(xcrun simctl create "ci-ipad-$attempt" 'iPad Air 11-inch (M3)' "$RT" 2>/dev/null \
+                   || xcrun simctl create "ci-ipad-$attempt" 'iPad Pro 11-inch (M4)' "$RT" 2>/dev/null \
+                   || xcrun simctl create "ci-iphone-$attempt" 'iPhone 16 Pro' "$RT")
+            echo "attempt $attempt: UDID=$UDID"
+            xcrun simctl boot "$UDID" 2>/tmp/boot.err || echo "boot rc=$? : $(cat /tmp/boot.err 2>/dev/null)"
+            if boot_wait "$UDID" 240; then BOOTED=1; echo "UDID=$UDID" >> $GITHUB_ENV; echo "Booted on attempt $attempt"; break; fi
+            echo "attempt $attempt wedged -> erase + retry"
+            xcrun simctl shutdown "$UDID" 2>/dev/null || true
+            xcrun simctl delete "$UDID" 2>/dev/null || true
+            sleep 5
+          done
+          if [ "$BOOTED" -ne 1 ]; then echo "::error::Simulator failed to boot after 3 attempts"; exit 1; fi
 
       - name: Install + launch app (retry past first-boot migration)
         run: |
