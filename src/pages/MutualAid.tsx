@@ -109,11 +109,18 @@ export default function MutualAid() {
       .select('*')
       .eq('responder_id', user.id);
 
+    // 真实积分余额（互助奖励现已入统一钱包 user_points），而非按响应数粗估
+    const { data: pointsRow } = await supabase
+      .from('user_points')
+      .select('balance')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
     if (responses) {
       setUserStats({
         responses: responses.length,
         helped: responses.filter(r => r.status === 'completed').length,
-        points: responses.length * 10
+        points: pointsRow?.balance ?? 0
       });
       const map: Record<string, string> = {};
       for (const r of responses) { if (r.sos_id) map[r.sos_id] = r.status as string; }

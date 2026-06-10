@@ -332,7 +332,7 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.response);
+    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.response, '互助响应奖励', sosId);
 
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
@@ -415,7 +415,7 @@ async function markArrived(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.arrival);
+    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.arrival, '互助到场奖励', sosId);
 
     return new Response(JSON.stringify({
       success: true,
@@ -463,7 +463,7 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.completion);
+    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.completion, '互助完成奖励', sosId);
 
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
@@ -608,7 +608,14 @@ async function getLeaderboard(supabaseAdmin: any, req: Request, _principal: any)
   }
 }
 
-async function addRewardPoints(supabaseAdmin: any, userId: string, points: number) {
+async function addRewardPoints(
+  supabaseAdmin: any,
+  userId: string,
+  points: number,
+  reason = '互助救援奖励',
+  referenceId?: string,
+) {
+  // 1) 互助排行榜累计分（get-leaderboard 读 mutual_aid_subscriptions.total_rewards）
   const { data: subscription } = await supabaseAdmin
     .from('mutual_aid_subscriptions')
     .select('total_rewards')
@@ -620,6 +627,19 @@ async function addRewardPoints(supabaseAdmin: any, userId: string, points: numbe
       .from('mutual_aid_subscriptions')
       .update({ total_rewards: (subscription.total_rewards || 0) + points })
       .eq('user_id', userId);
+  }
+
+  // 2) 统一积分钱包（/points 显示 + 可抵扣订阅）。原子入账，避免读-改-写竞态；
+  //    之前漏了这一步 —— 互助积分发了却进不了钱包。
+  const { error: walletErr } = await supabaseAdmin.rpc('credit_user_points', {
+    p_user_id: userId,
+    p_amount: points,
+    p_type: 'earn_rescue',
+    p_reason: reason,
+    p_reference_id: referenceId ?? null,
+  });
+  if (walletErr) {
+    console.error('credit_user_points failed:', walletErr);
   }
 }
 
