@@ -420,6 +420,7 @@ async function verifyReceipt(supabaseAdmin: any, req: Request) {
       apple_transaction_id: appleTransactionId,
       apple_original_transaction_id: originalTransactionId,
       apple_product_id: appleProductId,
+      is_intro_offer: isTrialPeriod,
       completed_at: new Date().toISOString(),
     })
     .select()
@@ -877,6 +878,7 @@ async function verifyJWSTransaction(
         apple_transaction_id: transactionId,
         apple_original_transaction_id: originalTransactionId,
         apple_product_id: appleProductId,
+        is_intro_offer: isTrialPeriod,
         completed_at: new Date().toISOString(),
       })
       .select()

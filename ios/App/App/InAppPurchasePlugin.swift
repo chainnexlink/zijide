@@ -36,13 +36,50 @@ public class InAppPurchasePlugin: CAPPlugin, CAPBridgedPlugin {
 
                 for product in storeProducts {
                     self.products[product.id] = product
-                    let productInfo: [String: Any] = [
+                    var productInfo: [String: Any] = [
                         "productId": product.id,
                         "title": product.displayName,
                         "description": product.description,
                         "price": product.displayPrice,
                         "priceValue": NSDecimalNumber(decimal: product.price).doubleValue,
                     ]
+
+                    // Introductory offer: StoreKit auto-applies it to ELIGIBLE NEW subscribers at
+                    // purchase time — no server signing needed (unlike promotional offers). Surface
+                    // it so the UI can show "intro price for N period, then regular price".
+                    if let sub = product.subscription {
+                        // Eligibility is per subscription GROUP, once-per-lifetime. A configured
+                        // offer does NOT mean THIS user qualifies — always gate on this flag.
+                        let eligible = await sub.isEligibleForIntroOffer
+                        productInfo["introEligible"] = eligible
+
+                        if let offer = sub.introductoryOffer {
+                            let unit: String
+                            switch offer.period.unit {
+                            case .day: unit = "day"
+                            case .week: unit = "week"
+                            case .month: unit = "month"
+                            case .year: unit = "year"
+                            @unknown default: unit = "day"
+                            }
+                            let mode: String
+                            switch offer.paymentMode {
+                            case .freeTrial: mode = "free_trial"
+                            case .payAsYouGo: mode = "pay_as_you_go"
+                            case .payUpFront: mode = "pay_up_front"
+                            default: mode = "unknown"
+                            }
+                            productInfo["introductoryOffer"] = [
+                                "displayPrice": offer.displayPrice,
+                                "priceValue": NSDecimalNumber(decimal: offer.price).doubleValue,
+                                "paymentMode": mode,
+                                "periodUnit": unit,
+                                "periodValue": offer.period.value,
+                                "periodCount": offer.periodCount,
+                            ]
+                        }
+                    }
+
                     productList.append(productInfo)
                 }
 

@@ -16,6 +16,19 @@ export const PLAN_TO_PRODUCT: Record<string, string> = {
   family: APPLE_PRODUCT_IDS.family_monthly,
 };
 
+/**
+ * 介绍性优惠（Introductory Offer）—— 由 App Store Connect 配在订阅上，
+ * StoreKit 对「合格新订阅用户」自动套用，无需后台签名（区别于 referral 那种 promotional offer）。
+ */
+export interface IntroductoryOffer {
+  displayPrice: string;          // Apple 本地化后的优惠价文案（免费试用为 "Free"/"¥0.00"）
+  priceValue: number;            // 数值优惠价（免费试用为 0）
+  paymentMode: 'free_trial' | 'pay_as_you_go' | 'pay_up_front' | 'unknown';
+  periodUnit: 'day' | 'week' | 'month' | 'year';
+  periodValue: number;           // 单个周期长度（如 7 天 → unit=day, value=7）
+  periodCount: number;           // 周期重复次数（仅 pay_as_you_go 可能 >1）
+}
+
 export interface AppleProduct {
   productId: string;
   title: string;
@@ -23,6 +36,10 @@ export interface AppleProduct {
   price: string;
   priceLocale: string;
   currencyCode: string;
+  // 是否对「当前用户」可用：资格按订阅组、每人一生一次。
+  // 切勿用 introductoryOffer 是否存在来判断资格（那只代表产品配了优惠）。
+  introEligible?: boolean;
+  introductoryOffer?: IntroductoryOffer | null;
 }
 
 export interface ApplePurchaseResult {
@@ -110,6 +127,8 @@ export async function fetchProducts(): Promise<AppleProduct[]> {
       price: p.price || p.localizedPrice,
       priceLocale: p.priceLocale || '',
       currencyCode: p.currencyCode || p.priceCurrencyCode || '',
+      introEligible: p.introEligible === true,
+      introductoryOffer: p.introductoryOffer ?? null,
     }));
   } catch (e) {
     console.error('Failed to fetch products:', e);

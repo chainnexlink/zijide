@@ -24,6 +24,7 @@ import {
   finishTransaction,
   PLAN_TO_PRODUCT,
   type AppleProduct,
+  type IntroductoryOffer,
 } from '../utils/appleIAP';
 
 interface Plan {
@@ -347,6 +348,38 @@ export default function Subscription() {
     return product?.price || null;
   };
 
+  // Get the introductory offer for a plan — only when the CURRENT user is eligible
+  // (new subscriber). StoreKit auto-applies it at checkout; we just surface it here.
+  const getIntroOffer = (planId: string): IntroductoryOffer | null => {
+    const productId = PLAN_TO_PRODUCT[planId];
+    const product = appleProducts.find(p => p.productId === productId);
+    if (!product || !product.introEligible || !product.introductoryOffer) return null;
+    return product.introductoryOffer;
+  };
+
+  // Build a human-readable two-line label for an intro offer.
+  const formatIntroOffer = (offer: IntroductoryOffer): { line1: string; line2: string } => {
+    const zh = language === 'zh';
+    const uz: Record<string, string> = { day: '天', week: '周', month: '个月', year: '年' };
+    const ue: Record<string, string> = { day: 'day', week: 'week', month: 'month', year: 'year' };
+    const n = offer.periodValue;
+    const periodZh = `${n}${uz[offer.periodUnit] || ''}`;
+    const periodEn = `${n} ${ue[offer.periodUnit] || ''}${n > 1 ? 's' : ''}`;
+    const tail = { line2: zh ? '到期后按下方价格自动续订' : 'then renews at the price below' };
+    if (offer.paymentMode === 'free_trial') {
+      return { line1: zh ? `新用户首 ${periodZh}免费试用` : `Free for your first ${periodEn}`, ...tail };
+    }
+    if (offer.paymentMode === 'pay_up_front') {
+      return { line1: zh ? `新用户首 ${periodZh}仅 ${offer.displayPrice}` : `${offer.displayPrice} for your first ${periodEn}`, ...tail };
+    }
+    if (offer.paymentMode === 'pay_as_you_go') {
+      const c = offer.periodCount;
+      const totalEn = `${c} ${ue[offer.periodUnit] || ''}${c > 1 ? 's' : ''}`;
+      return { line1: zh ? `新用户前 ${c} 期每期仅 ${offer.displayPrice}` : `${offer.displayPrice} each for your first ${totalEn}`, ...tail };
+    }
+    return { line1: zh ? `新用户介绍性优惠 ${offer.displayPrice}` : `Introductory offer: ${offer.displayPrice}`, ...tail };
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center flex-col gap-4">
@@ -528,6 +561,20 @@ export default function Subscription() {
                 </div>
 
                 <div className="mb-6">
+                  {(() => {
+                    const intro = getIntroOffer(plan.id);
+                    if (!intro) return null;
+                    const { line1, line2 } = formatIntroOffer(intro);
+                    return (
+                      <div className="mb-3 inline-flex flex-col gap-0.5 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
+                        <span className="text-green-400 text-sm font-semibold flex items-center gap-1.5">
+                          <Gift className="w-4 h-4" />
+                          {line1}
+                        </span>
+                        <span className="text-green-300/70 text-xs">{line2}</span>
+                      </div>
+                    );
+                  })()}
                   <div className="flex items-baseline gap-2">
                     {applePrice ? (
                       <span className="text-4xl font-bold">{applePrice}</span>
