@@ -101,3 +101,22 @@ DROP POLICY IF EXISTS "用户提交纠错" ON public.shelter_reports;
 CREATE POLICY "用户提交纠错" ON public.shelter_reports FOR INSERT WITH CHECK (reported_by = auth.uid());
 DROP POLICY IF EXISTS "用户查看自己的纠错" ON public.shelter_reports;
 CREATE POLICY "用户查看自己的纠错" ON public.shelter_reports FOR SELECT USING (reported_by = auth.uid());
+
+-- ---------- 7) 客服会话/消息写权限(实测发现:登录用户发起客服会话被 403,联系客服闭环全断) ----------
+ALTER TABLE public.customer_service_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customer_service_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "用户创建客服会话" ON public.customer_service_sessions;
+CREATE POLICY "用户创建客服会话" ON public.customer_service_sessions
+  FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS "用户查看自己的客服会话" ON public.customer_service_sessions;
+CREATE POLICY "用户查看自己的客服会话" ON public.customer_service_sessions
+  FOR SELECT TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "用户更新自己的客服会话" ON public.customer_service_sessions;
+CREATE POLICY "用户更新自己的客服会话" ON public.customer_service_sessions
+  FOR UPDATE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "用户发送客服消息" ON public.customer_service_messages;
+CREATE POLICY "用户发送客服消息" ON public.customer_service_messages
+  FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid() AND sender_type = 'user');
+DROP POLICY IF EXISTS "用户查看自己的客服消息" ON public.customer_service_messages;
+CREATE POLICY "用户查看自己的客服消息" ON public.customer_service_messages
+  FOR SELECT TO authenticated USING (user_id = auth.uid());
