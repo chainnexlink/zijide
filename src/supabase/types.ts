@@ -1176,6 +1176,43 @@ export type Database = {
           },
         ]
       }
+      shelter_reports: {
+        Row: {
+          created_at: string | null
+          id: string
+          reason: string
+          reported_by: string | null
+          shelter_id: string | null
+          shelter_name: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reason: string
+          reported_by?: string | null
+          shelter_id?: string | null
+          shelter_name?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reason?: string
+          reported_by?: string | null
+          shelter_id?: string | null
+          shelter_name?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shelter_reports_reported_by_fkey"
+            columns: ["reported_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shelter_update_logs: {
         Row: {
           changed_fields: Json | null

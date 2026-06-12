@@ -363,6 +363,9 @@ export default function Dashboard() {
           });
         }
         setShowSOSModal(false);
+        // 兜底路径只把求救写进了数据库，并未触发短信/家人/救援者通知（那些在边缘函数里）。
+        // 必须明确告知用户，避免其误以为联系人已被自动通知。
+        alert(t('sosFallbackWarning') || '⚠️ 网络异常：求救已记录，但可能未自动通知紧急联系人，请尽快直接电话联系他们！');
         navigate('/sos-history');
       } catch {
         alert(t('sosError') || 'SOS发送失败，请检查网络后重试');

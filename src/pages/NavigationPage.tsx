@@ -24,6 +24,7 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import { useSubscription } from '../hooks/useSubscription';
 import SubscriptionGate from '../components/SubscriptionGate';
 import WarMap, { fetchDirections } from '../components/WarMap';
+import OfflineMap from '../components/OfflineMap';
 
 interface NavigationStep {
   id: number;
@@ -55,6 +56,7 @@ export default function NavigationPage() {
   const [directionsResult, setDirectionsResult] = useState<google.maps.DirectionsResult | null>(null);
   const [navSteps, setNavSteps] = useState<NavigationStep[]>([]);
   const [routeReady, setRouteReady] = useState(false);
+  const [routeFailed, setRouteFailed] = useState(false); // 离线或无法规划路线时走兜底
 
   const destination = {
     name: searchParams.get('name') || '避难所',
@@ -70,31 +72,48 @@ export default function NavigationPage() {
   }, []);
 
   useEffect(() => {
-    if (location && destination.lat !== 0 && !routeReady) {
-      fetchDirections(
-        { lat: location.latitude, lng: location.longitude },
-        { lat: destination.lat, lng: destination.lng },
-        'DRIVING',
-      ).then(result => {
-        if (result) {
-          setDirectionsResult(result.result);
-          setRemainingDistance(result.distance >= 1000 ? `${(result.distance / 1000).toFixed(1)} km` : `${result.distance} m`);
-          setRemainingTime(result.duration >= 3600
-            ? `${Math.floor(result.duration / 3600)}h ${Math.round((result.duration % 3600) / 60)}min`
-            : `${Math.round(result.duration / 60)} 分钟`);
-          const steps: NavigationStep[] = result.steps.map((s: any, i: number) => ({
-            id: i + 1,
-            instruction: s.instructions?.replace(/<[^>]*>/g, '') || '继续前行',
-            distance: s.distance?.text || '',
-            duration: s.duration?.text || '',
-            type: mapGoogleManeuver(s.maneuver),
-            coordinates: s.start_location ? { lat: s.start_location.lat(), lng: s.start_location.lng() } : undefined,
-          }));
-          setNavSteps(steps);
-          setRouteReady(true);
-        }
-      });
+    if (!location || destination.lat === 0 || routeReady) return;
+
+    // 兜底:断网或路线服务不可用时,至少给出直线距离 + 离线地图,绝不卡在「加载中」
+    const fallbackToStraightLine = () => {
+      const km = calculateDistance(location.latitude, location.longitude, destination.lat, destination.lng);
+      setRemainingDistance(km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`);
+      setRemainingTime('--');
+      setRouteFailed(true);
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      fallbackToStraightLine();
+      return;
     }
+
+    fetchDirections(
+      { lat: location.latitude, lng: location.longitude },
+      { lat: destination.lat, lng: destination.lng },
+      'DRIVING',
+    ).then(result => {
+      if (result) {
+        setRouteFailed(false);
+        setDirectionsResult(result.result);
+        setRemainingDistance(result.distance >= 1000 ? `${(result.distance / 1000).toFixed(1)} km` : `${result.distance} m`);
+        setRemainingTime(result.duration >= 3600
+          ? `${Math.floor(result.duration / 3600)}h ${Math.round((result.duration % 3600) / 60)}min`
+          : `${Math.round(result.duration / 60)} 分钟`);
+        const steps: NavigationStep[] = result.steps.map((s: any, i: number) => ({
+          id: i + 1,
+          instruction: s.instructions?.replace(/<[^>]*>/g, '') || '继续前行',
+          distance: s.distance?.text || '',
+          duration: s.duration?.text || '',
+          type: mapGoogleManeuver(s.maneuver),
+          coordinates: s.start_location ? { lat: s.start_location.lat(), lng: s.start_location.lng() } : undefined,
+        }));
+        setNavSteps(steps);
+        setRouteReady(true);
+      } else {
+        // 路线服务返回空(无 key / 无网络 / 无路线)→ 直线兜底
+        fallbackToStraightLine();
+      }
+    }).catch(() => fallbackToStraightLine());
   }, [location, destination.lat]);
 
   const mapGoogleManeuver = (maneuver: string): NavigationStep['type'] => {
@@ -122,7 +141,9 @@ export default function NavigationPage() {
   }, [location, isNavigating, currentStep, navSteps]);
 
   const getNavigationSteps = (): NavigationStep[] => navSteps.length > 0 ? navSteps : [
-    { id: 1, instruction: '正在加载路线...', distance: '--', duration: '--', type: 'straight' },
+    routeFailed
+      ? { id: 1, instruction: t('offlineHeadToShelter') || '离线模式：请参照地图方向自行前往避难所', distance: remainingDistance, duration: '--', type: 'straight' }
+      : { id: 1, instruction: t('loadingRoute') || '正在加载路线...', distance: '--', duration: '--', type: 'straight' },
   ];
 
   const getStepIcon = (type: string) => {
@@ -182,14 +203,27 @@ export default function NavigationPage() {
 
       <main className="pt-16 lg:pt-4">
         <div className="relative h-96 bg-slate-900 overflow-hidden">
-          <WarMap
-            center={location ? { lat: location.latitude, lng: location.longitude } : { lat: destination.lat, lng: destination.lng }}
-            zoom={15}
-            directionsResult={directionsResult}
-            userLocation={location}
-            showTraffic={true}
-          />
-          <div className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur rounded-xl p-3 border border-slate-700">
+          {routeFailed ? (
+            <OfflineMap
+              center={[location ? location.latitude : destination.lat, location ? location.longitude : destination.lng]}
+              zoom={14}
+              shelters={[{ latitude: destination.lat, longitude: destination.lng, name: destination.name }]}
+            />
+          ) : (
+            <WarMap
+              center={location ? { lat: location.latitude, lng: location.longitude } : { lat: destination.lat, lng: destination.lng }}
+              zoom={15}
+              directionsResult={directionsResult}
+              userLocation={location}
+              showTraffic={true}
+            />
+          )}
+          {routeFailed && (
+            <div className="absolute top-3 left-3 right-3 z-[1000] bg-amber-500/90 text-black rounded-xl px-3 py-2 text-sm font-medium">
+              {t('offlineRouteNotice') || '离线 / 无法规划详细路线 —— 已切换离线地图，显示直线距离与避难所位置，请参照地图方向自行前往'}
+            </div>
+          )}
+          <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/90 backdrop-blur rounded-xl p-3 border border-slate-700">
             <div className="flex items-center gap-2 text-sm">
               <Footprints className="w-4 h-4 text-blue-400" />
               <span>{remainingDistance}</span>

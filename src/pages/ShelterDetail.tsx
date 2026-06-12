@@ -525,15 +525,19 @@ export default function ShelterDetail() {
                         setReportSubmitting(true);
                         try {
                           const { data: { user } } = await supabase.auth.getUser();
-                          await supabase.from('shelter_update_logs').insert({
-                            shelter_id: shelter.id,
-                            update_type: 'report',
-                            changed_fields: { reason: reportReason },
-                            updated_by: user?.id || 'anonymous',
+                          const { error: repErr } = await supabase.from('shelter_reports').insert({
+                            shelter_id: String(shelter.id),
+                            shelter_name: shelter.name || null,
+                            reason: reportReason,
+                            reported_by: user?.id || null,
                           });
-                        } catch { /* best effort */ }
-                        setReportSubmitted(true);
-                        setReportSubmitting(false);
+                          if (repErr) throw repErr;
+                          setReportSubmitted(true);
+                        } catch {
+                          alert(t('submitFailed') || '提交失败，请稍后重试 / Submit failed, please try again');
+                        } finally {
+                          setReportSubmitting(false);
+                        }
                       }}
                       disabled={!reportReason || reportSubmitting}
                       className="w-full h-12 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl font-semibold text-white disabled:opacity-50"
