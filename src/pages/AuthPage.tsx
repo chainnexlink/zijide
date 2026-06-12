@@ -356,6 +356,15 @@ export default function AuthPage() {
       if (funcError) throw funcError;
 
       if (data.success) {
+        // 用后端下发的一次性凭证建立 Supabase 会话——没有会话的话，
+        // 路由守卫会立刻把用户弹回登录页（之前「登录不了」的根因）。
+        if (data.auth?.email && data.auth?.otp) {
+          const { error: signErr } = await supabase.auth.signInWithPassword({
+            email: data.auth.email,
+            password: data.auth.otp,
+          });
+          if (signErr) throw signErr;
+        }
         navigate('/dashboard');
       } else {
         setError(data.error || t('error'));
@@ -433,6 +442,14 @@ export default function AuthPage() {
       if (funcError) throw funcError;
 
       if (data.success) {
+        // 同登录：先用一次性凭证建立会话，再进入主页（否则守卫弹回登录页）。
+        if (data.auth?.email && data.auth?.otp) {
+          const { error: signErr } = await supabase.auth.signInWithPassword({
+            email: data.auth.email,
+            password: data.auth.otp,
+          });
+          if (signErr) throw signErr;
+        }
         navigate('/dashboard');
       } else {
         setError(data.error || t('error'));

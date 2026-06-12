@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendSms } from '../_shared/twilio.ts';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -122,7 +123,16 @@ async function sendSMSCode(supabaseAdmin: any, req: Request) {
     expires_at: new Date(Date.now() + 600000).toISOString()
   });
 
-  console.log(`SMS code for ${fullPhone}: ${code}`);
+  // 真发短信。此前只入库+打日志——用户永远收不到码，注册/登录闭环从这里就断了。
+  // 验证码不进日志（OTP 属敏感信息）。
+  const sms = await sendSms(fullPhone, `【WarRescue】验证码 ${code}，10分钟内有效。Your verification code is ${code}, valid for 10 minutes.`);
+  if (!sms.ok) {
+    console.error(`SMS send to ${fullPhone.slice(0, 6)}**** failed:`, sms.error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: sms.skipped ? 'SMS service not configured' : 'SMS send failed, please try again later',
+    }), { status: 500, headers: corsHeaders });
+  }
 
   return new Response(JSON.stringify({
     success: true,
@@ -174,6 +184,14 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
 
   const isNewUser = !existingUser;
 
+  // 会话引导：验证码通过后给手机用户配「合成邮箱 + 一次性密码」，让前端能
+  // signInWithPassword 建立真正的 Supabase 会话。此前验证成功只返回资料、
+  // 不给任何凭证 → 前端 navigate 后被路由守卫弹回登录页 = 永远登录不进去。
+  // 密码每次短信登录轮换（真正的凭证是短信验证码，这只是会话载体）。
+  const authEmail = `p${fullPhone.replace(/\D/g, '')}@phone.warrescue.app`;
+  const oneTimePassword = crypto.randomUUID() + crypto.randomUUID().slice(0, 8);
+  let sessionAuth: { email: string; otp: string } | null = { email: authEmail, otp: oneTimePassword };
+
   if (!existingUser) {
     const userInviteCode = generateInviteCode();
     const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -181,6 +199,9 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       phone: fullPhone,
       phone_confirm: true,
+      email: authEmail,
+      email_confirm: true,
+      password: oneTimePassword,
       user_metadata: {
         phone: fullPhone,
         invite_code: userInviteCode,
@@ -235,13 +256,32 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
       .from('profiles')
       .update({ device_id: deviceId })
       .eq('id', existingUser.id);
+
+    // 老用户：轮换一次性密码以建立会话。只对手机注册用户（无真实邮箱）操作，
+    // 绝不覆盖「邮箱注册」账户的密码（混合账户请走邮箱登录）。
+    const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(existingUser.id);
+    const hasRealEmail = !!authUser?.user?.email && !authUser.user.email.endsWith('@phone.warrescue.app');
+    if (hasRealEmail) {
+      sessionAuth = null;
+    } else {
+      const { error: rotateErr } = await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+        email: authEmail,
+        email_confirm: true,
+        password: oneTimePassword,
+      });
+      if (rotateErr) {
+        console.error('Session bootstrap rotate failed:', rotateErr.message);
+        sessionAuth = null;
+      }
+    }
   }
 
   return new Response(JSON.stringify({
     success: true,
     user: existingUser,
     isNewUser,
-    trialEndsAt: existingUser.trial_ends_at
+    trialEndsAt: existingUser.trial_ends_at,
+    auth: sessionAuth
   }), { headers: corsHeaders });
 }
 
