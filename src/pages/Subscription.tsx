@@ -102,6 +102,8 @@ export default function Subscription() {
   const [isIOS, setIsIOS] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [referral, setReferral] = useState<{ code: string; availableCoupons: number; referredCount: number } | null>(null);
+  const [pointsBalance, setPointsBalance] = useState<number>(0);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
 
   // Initialize Apple IAP on mount
   useEffect(() => {
@@ -121,6 +123,7 @@ export default function Subscription() {
       await fetchPlans();
       await fetchSubscriptionStatus();
       await fetchReferral();
+      await fetchPoints();
     };
     init();
   }, []);
@@ -167,6 +170,52 @@ export default function Subscription() {
       const { data } = await supabase.functions.invoke('apple-iap', { body: { action: 'get-referral' } });
       if (data?.code) setReferral({ code: data.code, availableCoupons: data.availableCoupons || 0, referredCount: data.referredCount || 0 });
     } catch (e) { /* ignore */ }
+  };
+
+  const fetchPoints = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('user_points').select('balance').eq('user_id', user.id).maybeSingle();
+      setPointsBalance(data?.balance ?? 0);
+    } catch (e) { /* ignore */ }
+  };
+
+  // 积分兑换订阅天数（合规：不降 Apple 实付价，用积分换免费时长）
+  const REDEEM_PACKAGES = [
+    { id: 'd7', days: 7, points: 500 },
+    { id: 'd30', days: 30, points: 2000 },
+  ];
+
+  const handleRedeem = async (packageId: string, planId: string) => {
+    if (redeeming) return;
+    setRedeeming(packageId);
+    setPaymentMessage(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('redeem-points', { body: { packageId, planId } });
+      const errObj = error || (data && (data as any).error);
+      if (errObj) {
+        const code = (data as any)?.error;
+        setPaymentMessage({
+          type: 'error',
+          text: code === 'INSUFFICIENT_POINTS'
+            ? (language === 'zh' ? '积分不足' : 'Not enough points')
+            : (language === 'zh' ? '兑换失败，请稍后重试' : 'Redeem failed, please try again'),
+        });
+        return;
+      }
+      const days = (data as any)?.daysAdded;
+      setPaymentMessage({
+        type: 'success',
+        text: language === 'zh' ? `兑换成功！已增加 ${days} 天订阅` : `Redeemed! Added ${days} days`,
+      });
+      await fetchPoints();
+      await fetchSubscriptionStatus();
+    } catch (e) {
+      setPaymentMessage({ type: 'error', text: language === 'zh' ? '兑换失败' : 'Redeem failed' });
+    } finally {
+      setRedeeming(null);
+    }
   };
 
   // Apple IAP purchase flow
@@ -471,6 +520,45 @@ export default function Subscription() {
                   : '✓ You have a coupon — checkout will automatically apply 50% off.'}
               </p>
             )}
+          </motion.div>
+        )}
+
+        {pointsBalance > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-amber-500/15 to-yellow-500/15 border border-amber-500/30 rounded-2xl p-5 mb-6"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Crown className="w-5 h-5 text-amber-400" />
+              <h3 className="font-semibold">
+                {language === 'zh' ? '用积分兑换订阅天数' : 'Redeem points for subscription days'}
+              </h3>
+            </div>
+            <p className="text-sm text-slate-400 mb-3">
+              {language === 'zh' ? `当前积分：${pointsBalance}` : `Your points: ${pointsBalance}`}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {REDEEM_PACKAGES.map(pkg => (
+                <button
+                  key={pkg.id}
+                  onClick={() => handleRedeem(pkg.id, 'personal')}
+                  disabled={redeeming !== null || pointsBalance < pkg.points}
+                  className="bg-slate-800/70 border border-slate-700 rounded-xl p-3 text-left disabled:opacity-40 hover:border-amber-500/50 transition-colors"
+                >
+                  <div className="text-lg font-bold">{pkg.days} {language === 'zh' ? '天' : 'days'}</div>
+                  <div className="text-xs text-amber-400">{pkg.points} {language === 'zh' ? '积分' : 'pts'}</div>
+                  {redeeming === pkg.id && (
+                    <div className="text-xs text-slate-400 mt-1">{language === 'zh' ? '兑换中...' : 'Redeeming...'}</div>
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+              {language === 'zh'
+                ? '兑换将延长个人版订阅有效期（与 Apple 现金购买相互独立）。'
+                : 'Redeeming extends your Personal plan (separate from Apple cash purchase).'}
+            </p>
           </motion.div>
         )}
 
