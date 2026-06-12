@@ -66,4 +66,10 @@ jobs:
           set_secret APPSTORE_KEY_ID "${{ secrets.APPSTORE_KEY_ID }}"
           set_secret APPSTORE_BUNDLE_ID "${{ secrets.APPSTORE_BUNDLE_ID }}"
           set_secret APPSTORE_PRIVATE_KEY "${{ secrets.APPSTORE_PRIVATE_KEY }}"
+          # 苹果内购 legacy 收据验签共享密钥（App信息→App专用共享密钥）——
+          # 缺它(且缺上面 APPSTORE_*)时 apple-iap 无法验签 → 购买报错(审核 2.1b)
+          set_secret APPLE_SHARED_SECRET "${{ secrets.APPLE_SHARED_SECRET }}"
+          # referral 促销优惠签名(.p8)
+          set_secret APPSTORE_OFFER_KEY_ID "${{ secrets.APPSTORE_OFFER_KEY_ID }}"
+          set_secret APPSTORE_OFFER_KEY "${{ secrets.APPSTORE_OFFER_KEY }}"
           echo "完成。未填的密钥对应功能会安全跳过，填好后重跑本流程即可生效。"
