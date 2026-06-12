@@ -117,7 +117,7 @@ export default function Points() {
           >
             <p className="text-slate-400 text-sm mb-2">{t('pointsBalance') || '当前积分'}</p>
             <p className="text-5xl font-bold text-amber-400 mb-4">{balance}</p>
-            <p className="text-slate-400 text-xs">{t('pointsDesc') || '积分可抵扣订阅费用'}</p>
+            <p className="text-slate-400 text-xs">{t('pointsDesc') || '积分可兑换订阅天数'}</p>
             <div className="flex items-center justify-center gap-8 mt-6">
               <div>
                 <p className="text-green-400 font-semibold text-lg">+{totalEarned}</p>

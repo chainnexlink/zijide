@@ -488,7 +488,7 @@ export const translations = {
     itemsCount: '条',
     // === Misc ===
     myPoints: '我的积分',
-    pointsDesc: '积分可抵扣订阅费用',
+    pointsDesc: '积分可兑换订阅天数',
     familyGroupMgmt: '家庭组管理',
     familyGroupMgmtDesc: '管理家庭成员和权限',
     searchAlertPlaceholder: '搜索预警...'
@@ -968,7 +968,7 @@ export const translations = {
     itemsCount: 'items',
     // === Misc ===
     myPoints: 'My Points',
-    pointsDesc: 'Points can be used as subscription credit',
+    pointsDesc: 'Redeem points for subscription days',
     familyGroupMgmt: 'Family Group',
     familyGroupMgmtDesc: 'Manage family members and permissions',
     searchAlertPlaceholder: 'Search alerts...'

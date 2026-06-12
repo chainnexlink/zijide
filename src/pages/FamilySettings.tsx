@@ -79,7 +79,7 @@ export default function FamilySettings() {
 
   const fetchFamilyData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setLoading(false); return; } // 游客/未登录也要解除 loading，否则整页空白
 
     const { data: profile } = await supabase
       .from('profiles')

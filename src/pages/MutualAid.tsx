@@ -85,7 +85,7 @@ export default function MutualAid() {
 
   const fetchSubscription = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setLoading(false); return; } // 游客/未登录也要解除 loading，否则整页空白
 
     const { data } = await supabase
       .from('mutual_aid_subscriptions')

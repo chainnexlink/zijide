@@ -148,7 +148,7 @@ export default function Settings() {
         {
           icon: Coins,
           label: t('myPoints') || '我的积分',
-          description: t('pointsDesc') || '积分可抵扣订阅费用',
+          description: t('pointsDesc') || '积分可兑换订阅天数',
           path: '/points',
           color: 'text-amber-400',
           bgColor: 'bg-amber-500/20'
