@@ -287,15 +287,23 @@ export default function AdminDashboard() {
 
   const saveAnnouncement = async () => {
     if (!annForm.title.trim()) return;
+    let saveError = null;
     if (editingAnnouncement) {
-      await supabase
+      const { error } = await supabase
         .from('announcements')
         .update({ title: annForm.title, content: annForm.content, type: annForm.type, is_active: annForm.is_active })
         .eq('id', editingAnnouncement.id);
+      saveError = error;
     } else {
-      await supabase
+      const { error } = await supabase
         .from('announcements')
         .insert({ title: annForm.title, content: annForm.content, type: annForm.type, is_active: annForm.is_active });
+      saveError = error;
+    }
+    if (saveError) {
+      // 不再静默失败：此前类型约束错配会让 insert 被拒却照常关弹窗（看似成功实则没存）
+      alert('公告保存失败：' + saveError.message);
+      return;
     }
     setShowAnnouncementModal(false);
     setEditingAnnouncement(null);

@@ -152,7 +152,7 @@ function CreateAnnouncementModal({ onClose, onSave }: { onClose: () => void; onS
       <div className="space-y-4">
         <div><label className="block text-sm text-slate-400 mb-1">标题 *</label><input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500" /></div>
         <div><label className="block text-sm text-slate-400 mb-1">内容 *</label><textarea value={form.content} onChange={e => setForm({...form, content: e.target.value})} className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 h-24" /></div>
-        <div><label className="block text-sm text-slate-400 mb-1">类型</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm"><option value="info">通知</option><option value="warning">警告</option><option value="emergency">紧急</option><option value="update">更新</option></select></div>
+        <div><label className="block text-sm text-slate-400 mb-1">类型</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm"><option value="info">通知</option><option value="warning">警告</option><option value="critical">紧急</option><option value="update">更新</option></select></div>
         <Btn onClick={submit} disabled={!form.title || !form.content} className="w-full justify-center">发布公告</Btn>
       </div>
     </Modal>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAdmin, fmt, SearchBar, Btn, Modal, DetailRow } from '../App';
+import { useAdmin, fmt, SearchBar, Btn, Modal, DetailRow, FilterBtn } from '../App';
 import { STATIC_SHELTERS } from '../../../src/data/shelters';
 
 export default function ShelterMgmtPage({ sub }: { sub: string }) {
@@ -23,6 +23,8 @@ export default function ShelterMgmtPage({ sub }: { sub: string }) {
     if (error) { showToast('导入失败: ' + error.message); return; }
     showToast(`已导入/更新 ${rows.length} 个内置避难所`); load();
   };
+
+  if (sub === 'reports') return <ShelterReportsView />;
 
   if (detail) {
     const d = detail;
@@ -185,5 +187,108 @@ function ShelterForm({ data, onClose, onSave }: { data: any; onClose: () => void
         <Btn onClick={submit} disabled={!f.name} className="w-full justify-center">{data ? '保存' : '创建'}</Btn>
       </div>
     </Modal>
+  );
+}
+
+// ==================== 避难所纠错反馈审核 ====================
+// 用户在 App「避难所详情」提交纠错（写入 shelter_reports）。此前后台没有任何入口处理 →
+// 反馈进了表却无人审核（闭环断裂）。本页提供：按状态筛选 + 标记处理中/已解决/已驳回。
+// 依赖：数据库补丁_20260616.sql 已给 shelter_reports 补「管理员 is_admin FOR ALL」策略，否则后台读不到。
+const REPORT_STATUS: { key: string; label: string; badge: string }[] = [
+  { key: 'pending', label: '待处理', badge: 'bg-yellow-500/20 text-yellow-400' },
+  { key: 'reviewing', label: '处理中', badge: 'bg-blue-500/20 text-blue-400' },
+  { key: 'resolved', label: '已解决', badge: 'bg-green-500/20 text-green-400' },
+  { key: 'dismissed', label: '已驳回', badge: 'bg-red-500/20 text-red-400' },
+];
+const reportStatusMeta = (s: string) => REPORT_STATUS.find(r => r.key === s) || { key: s, label: s, badge: 'bg-slate-500/20 text-slate-400' };
+
+function ShelterReportsView() {
+  const { supabase, showToast } = useAdmin();
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>('pending');
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('shelter_reports')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if (error) showToast('读取失败：' + error.message);
+    setReports(data || []);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const setStatus = async (id: string, status: string) => {
+    setBusyId(id);
+    const { error } = await supabase.from('shelter_reports').update({ status }).eq('id', id);
+    setBusyId(null);
+    if (error) { showToast('更新失败：' + error.message); return; }
+    showToast('已更新为「' + reportStatusMeta(status).label + '」');
+    setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  };
+
+  const counts = REPORT_STATUS.reduce((m, s) => { m[s.key] = reports.filter(r => r.status === s.key).length; return m; }, {} as Record<string, number>);
+  const filtered = filter === 'all' ? reports : reports.filter(r => r.status === filter);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-white">避难所纠错反馈 ({reports.length})</h2>
+        <Btn variant="secondary" onClick={load}>刷新</Btn>
+      </div>
+      <div className="flex flex-wrap gap-3 mb-5">
+        <FilterBtn active={filter === 'all'} onClick={() => setFilter('all')}>全部 ({reports.length})</FilterBtn>
+        {REPORT_STATUS.map(s => (
+          <FilterBtn key={s.key} active={filter === s.key} onClick={() => setFilter(s.key)}>{s.label} ({counts[s.key] || 0})</FilterBtn>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="text-center text-slate-500 py-12">加载中...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center text-slate-500 py-12">暂无{filter === 'all' ? '' : reportStatusMeta(filter).label + '的'}纠错反馈</div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(r => {
+            const meta = reportStatusMeta(r.status);
+            return (
+              <div key={r.id} className="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded text-xs ${meta.badge}`}>{meta.label}</span>
+                      <h3 className="font-semibold text-white truncate">{r.shelter_name || r.shelter_id || '（未指明避难所）'}</h3>
+                    </div>
+                    <p className="text-sm text-slate-300 whitespace-pre-wrap break-words">{r.reason}</p>
+                    <div className="text-xs text-slate-500 mt-2">
+                      提交人: {r.reported_by ? String(r.reported_by).slice(0, 8) + '…' : '匿名'} · {fmt(r.created_at)}
+                      {r.shelter_id && <> · 避难所ID: {r.shelter_id}</>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-700">
+                  {r.status !== 'reviewing' && r.status !== 'resolved' && (
+                    <Btn variant="secondary" disabled={busyId === r.id} onClick={() => setStatus(r.id, 'reviewing')}>开始处理</Btn>
+                  )}
+                  {r.status !== 'resolved' && (
+                    <Btn variant="success" disabled={busyId === r.id} onClick={() => setStatus(r.id, 'resolved')}>标记已解决</Btn>
+                  )}
+                  {r.status !== 'dismissed' && (
+                    <Btn variant="danger" disabled={busyId === r.id} onClick={() => setStatus(r.id, 'dismissed')}>驳回</Btn>
+                  )}
+                  {(r.status === 'resolved' || r.status === 'dismissed') && (
+                    <Btn variant="secondary" disabled={busyId === r.id} onClick={() => setStatus(r.id, 'pending')}>重开</Btn>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
