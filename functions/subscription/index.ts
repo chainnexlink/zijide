@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendSms } from '../_shared/twilio.ts';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -63,6 +64,8 @@ Deno.serve(async (req) => {
         return await sendSMSCode(supabaseAdmin, req);
       case 'verify-sms-code':
         return await verifySMSCode(supabaseAdmin, req);
+      case 'complete-phone-profile':
+        return await completePhoneProfile(supabaseAdmin, req);
       case 'get-plans':
         return await getPlans(supabaseAdmin, req);
       case 'get-subscription-status':
@@ -122,7 +125,16 @@ async function sendSMSCode(supabaseAdmin: any, req: Request) {
     expires_at: new Date(Date.now() + 600000).toISOString()
   });
 
-  console.log(`SMS code for ${fullPhone}: ${code}`);
+  // 真发短信。此前只入库+打日志——用户永远收不到码，注册/登录闭环从这里就断了。
+  // 验证码不进日志（OTP 属敏感信息）。
+  const sms = await sendSms(fullPhone, `【WarRescue】验证码 ${code}，10分钟内有效。Your verification code is ${code}, valid for 10 minutes.`);
+  if (!sms.ok) {
+    console.error(`SMS send to ${fullPhone.slice(0, 6)}**** failed:`, sms.error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: sms.skipped ? 'SMS service not configured' : 'SMS send failed, please try again later',
+    }), { status: 500, headers: corsHeaders });
+  }
 
   return new Response(JSON.stringify({
     success: true,
@@ -174,6 +186,14 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
 
   const isNewUser = !existingUser;
 
+  // 会话引导：验证码通过后给手机用户配「合成邮箱 + 一次性密码」，让前端能
+  // signInWithPassword 建立真正的 Supabase 会话。此前验证成功只返回资料、
+  // 不给任何凭证 → 前端 navigate 后被路由守卫弹回登录页 = 永远登录不进去。
+  // 密码每次短信登录轮换（真正的凭证是短信验证码，这只是会话载体）。
+  const authEmail = `p${fullPhone.replace(/\D/g, '')}@phone.warrescue.app`;
+  const oneTimePassword = crypto.randomUUID() + crypto.randomUUID().slice(0, 8);
+  let sessionAuth: { email: string; otp: string } | null = { email: authEmail, otp: oneTimePassword };
+
   if (!existingUser) {
     const userInviteCode = generateInviteCode();
     const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -181,6 +201,9 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       phone: fullPhone,
       phone_confirm: true,
+      email: authEmail,
+      email_confirm: true,
+      password: oneTimePassword,
       user_metadata: {
         phone: fullPhone,
         invite_code: userInviteCode,
@@ -222,9 +245,10 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
       if (inviter) {
         await supabaseAdmin.from('invites').insert({
           inviter_id: inviter.id,
-          invitee_id: newUser.user.id,
+          invited_phone: fullPhone,
           invite_code: inviteCode,
-          status: 'valid',
+          status: 'registered',
+          registered_at: new Date().toISOString(),
           reward_amount: 0.5
         });
       }
@@ -234,14 +258,92 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
       .from('profiles')
       .update({ device_id: deviceId })
       .eq('id', existingUser.id);
+
+    // 老用户：轮换一次性密码以建立会话。只对手机注册用户（无真实邮箱）操作，
+    // 绝不覆盖「邮箱注册」账户的密码（混合账户请走邮箱登录）。
+    const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(existingUser.id);
+    const hasRealEmail = !!authUser?.user?.email && !authUser.user.email.endsWith('@phone.warrescue.app');
+    if (hasRealEmail) {
+      sessionAuth = null;
+    } else {
+      const { error: rotateErr } = await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+        email: authEmail,
+        email_confirm: true,
+        password: oneTimePassword,
+      });
+      if (rotateErr) {
+        console.error('Session bootstrap rotate failed:', rotateErr.message);
+        sessionAuth = null;
+      }
+    }
   }
 
   return new Response(JSON.stringify({
     success: true,
     user: existingUser,
     isNewUser,
-    trialEndsAt: existingUser.trial_ends_at
+    trialEndsAt: existingUser.trial_ends_at,
+    auth: sessionAuth
   }), { headers: corsHeaders });
+}
+
+async function completePhoneProfile(supabaseAdmin: any, req: Request) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+  const user = authData?.user;
+  if (authError || !user?.id || !user.phone) {
+    return new Response(JSON.stringify({ error: 'Verified phone session required' }), { status: 401, headers: corsHeaders });
+  }
+
+  const { inviteCode, deviceId } = await req.json();
+  const { data: existingProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('id,invite_code,trial_ends_at')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  let profile = existingProfile;
+  if (!profile) {
+    const userInviteCode = generateInviteCode();
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: inserted, error: insertError } = await supabaseAdmin.from('profiles').insert({
+      id: user.id,
+      phone: user.phone,
+      invite_code: userInviteCode,
+      device_id: deviceId,
+      trial_ends_at: trialEndsAt,
+      is_guest: false,
+      language: 'zh',
+    }).select('id,invite_code,trial_ends_at').single();
+
+    if (insertError) {
+      return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: corsHeaders });
+    }
+    profile = inserted;
+
+    if (inviteCode) {
+      const { data: inviter } = await supabaseAdmin.from('profiles').select('id').eq('invite_code', inviteCode).maybeSingle();
+      if (inviter && inviter.id !== user.id) {
+        await supabaseAdmin.from('invites').insert({
+          inviter_id: inviter.id,
+          invited_phone: user.phone,
+          invite_code: inviteCode,
+          status: 'registered',
+          registered_at: new Date().toISOString(),
+          reward_amount: 0.5,
+        });
+      }
+    }
+  } else {
+    await supabaseAdmin.from('profiles').update({ phone: user.phone, device_id: deviceId }).eq('id', user.id);
+  }
+
+  return new Response(JSON.stringify({ success: true, profile }), { headers: corsHeaders });
 }
 
 async function getPlans(supabaseAdmin: any, req: Request) {
