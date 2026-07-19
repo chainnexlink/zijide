@@ -1,6 +1,32 @@
 default_platform(:ios)
 
 platform :ios do
+  private_lane :revoke_orphaned_distribution_certificates do
+    require 'spaceship'
+
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_API_ISSUER_ID"),
+      filepath: ENV.fetch("API_KEY_PATH")
+    )
+    Spaceship::ConnectAPI.token = token
+
+    certificates = []
+    ["DISTRIBUTION", "IOS_DISTRIBUTION"].each do |certificate_type|
+      certificates.concat(
+        Spaceship::ConnectAPI::Certificate.all(
+          filter: { certificateType: certificate_type }
+        )
+      )
+    end
+    certificates = certificates.uniq { |certificate| certificate.id }
+
+    if certificates.count >= 2
+      UI.important("Distribution certificate limit reached; revoking #{certificates.count} CI-orphaned certificates")
+      certificates.each(&:delete!)
+    end
+  end
+
   private_lane :connect_api_key do
     app_store_connect_api_key(
       key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
@@ -14,6 +40,8 @@ platform :ios do
     api_key = options.fetch(:api_key)
     keychain_path = ENV.fetch("KEYCHAIN_PATH")
     keychain_password = ENV.fetch("KEYCHAIN_PASSWORD")
+
+    revoke_orphaned_distribution_certificates
 
     get_certificates(
       api_key: api_key,
