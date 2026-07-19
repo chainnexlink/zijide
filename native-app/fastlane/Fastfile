@@ -1,0 +1,96 @@
+default_platform(:ios)
+
+platform :ios do
+  private_lane :connect_api_key do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_API_ISSUER_ID"),
+      key_filepath: ENV.fetch("API_KEY_PATH"),
+      in_house: false
+    )
+  end
+
+  private_lane :prepare_signing do |options|
+    api_key = options.fetch(:api_key)
+    keychain_path = ENV.fetch("KEYCHAIN_PATH")
+    keychain_password = ENV.fetch("KEYCHAIN_PASSWORD")
+
+    get_certificates(
+      api_key: api_key,
+      platform: "ios",
+      keychain_path: keychain_path,
+      keychain_password: keychain_password
+    )
+
+    sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}'")
+
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.warrescue.app",
+      platform: "ios",
+      force: true
+    )
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      team_id: ENV.fetch("APPLE_TEAM_ID"),
+      path: "ios/WarRescue.xcodeproj",
+      code_sign_identity: "Apple Distribution",
+      profile_name: lane_context[SharedValues::SIGH_NAME],
+      bundle_identifier: "com.warrescue.app",
+      targets: ["WarRescue"]
+    )
+  end
+
+  private_lane :build_native_app do |options|
+    api_key = options.fetch(:api_key)
+
+    build_app(
+      workspace: "ios/WarRescue.xcworkspace",
+      scheme: "WarRescue",
+      configuration: "Release",
+      export_method: "app-store",
+      clean: true,
+      output_directory: ".",
+      output_name: "WarRescue.ipa",
+      export_options: {
+        signingStyle: "manual",
+        teamID: ENV.fetch("APPLE_TEAM_ID"),
+        provisioningProfiles: {
+          "com.warrescue.app" => lane_context[SharedValues::SIGH_NAME]
+        }
+      }
+    )
+  end
+
+  desc "Build the React Native app and upload it to TestFlight"
+  lane :release do
+    api_key = connect_api_key
+    prepare_signing(api_key: api_key)
+
+    next_build = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: "com.warrescue.app",
+      version: "1.1.0",
+      initial_build_number: 0
+    ) + 1
+
+    increment_build_number(
+      build_number: next_build,
+      xcodeproj: "ios/WarRescue.xcodeproj"
+    )
+
+    build_native_app(api_key: api_key)
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Build the React Native app without uploading"
+  lane :build_only do
+    api_key = connect_api_key
+    prepare_signing(api_key: api_key)
+    build_native_app(api_key: api_key)
+  end
+end

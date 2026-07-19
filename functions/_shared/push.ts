@@ -68,7 +68,7 @@ async function getApnsJwt(): Promise<string | null> {
 async function sendApns(
   deviceToken: string, payload: PushPayload, jwt: string,
 ): Promise<{ ok: boolean; status: number; reason?: string }> {
-  const bundleId = Deno.env.get('APNS_BUNDLE_ID') || 'com.warrescue.appname';
+  const bundleId = Deno.env.get('APNS_BUNDLE_ID') || 'com.warrescue.app';
   const host = (Deno.env.get('APNS_USE_SANDBOX') || '').toLowerCase() === 'true'
     ? 'https://api.sandbox.push.apple.com'
     : 'https://api.push.apple.com';
