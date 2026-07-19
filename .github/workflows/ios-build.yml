@@ -73,16 +73,40 @@ jobs:
             echo "::error::Required iOS simulator runtime or device type is unavailable"
             exit 1
           fi
-          UDID=$(xcrun simctl create ci-warrescue-native "$DEVICE" "$RUNTIME")
-          xcrun simctl boot "$UDID"
-          python3 - "$UDID" <<'PY'
+          BOOTED=0
+          for attempt in 1 2 3; do
+            UDID=$(xcrun simctl create "ci-warrescue-native-$attempt" "$DEVICE" "$RUNTIME")
+            xcrun simctl boot "$UDID" 2>/tmp/native-boot.err || true
+            if python3 - "$UDID" <<'PY'
           import subprocess, sys
           subprocess.run(["xcrun", "simctl", "bootstatus", sys.argv[1], "-b"], check=True, timeout=240)
           PY
+            then
+              BOOTED=1
+              break
+            fi
+            xcrun simctl shutdown "$UDID" 2>/dev/null || true
+            xcrun simctl delete "$UDID" 2>/dev/null || true
+          done
+          if [ "$BOOTED" -ne 1 ]; then
+            echo "::error::iOS simulator failed to boot after 3 attempts"
+            exit 1
+          fi
           APP="native-app/dd/Build/Products/Release-iphonesimulator/WarRescue.app"
           test -d "$APP"
-          xcrun simctl install "$UDID" "$APP"
-          xcrun simctl launch --terminate-running-process "$UDID" com.warrescue.app
+          LAUNCHED=0
+          for attempt in 1 2 3 4 5 6; do
+            xcrun simctl install "$UDID" "$APP" 2>/tmp/native-install.err || { sleep 12; continue; }
+            if xcrun simctl launch --terminate-running-process "$UDID" com.warrescue.app; then
+              LAUNCHED=1
+              break
+            fi
+            sleep 12
+          done
+          if [ "$LAUNCHED" -ne 1 ]; then
+            echo "::error::Native app failed to launch after 6 attempts"
+            exit 1
+          fi
           sleep 12
           xcrun simctl io "$UDID" screenshot native-app/native-launch.png
           xcrun simctl spawn "$UDID" launchctl list | grep com.warrescue.app
