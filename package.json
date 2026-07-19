@@ -6,7 +6,10 @@
     "build": "webpack --mode production",
     "typecheck": "tsc --noEmit",
     "admin": "webpack serve --config admin/webpack.config.js",
-    "admin:build": "webpack --config admin/webpack.config.js --mode production"
+    "admin:build": "webpack --config admin/webpack.config.js --mode production",
+    "native:start": "npm --prefix native-app start",
+    "native:typecheck": "npm --prefix native-app run typecheck",
+    "native:prebuild": "npm --prefix native-app run prebuild"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.0",

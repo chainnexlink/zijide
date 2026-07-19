@@ -122,6 +122,11 @@ android/keystore.properties
 android/*.keystore
 *.keystore
 
+# Expo native app generated state (regenerated in CI with `expo prebuild`)
+native-app/.expo/
+native-app/ios/
+native-app/android/
+
 # Supabase local config
 .supabase/
 
@@ -129,6 +134,7 @@ android/*.keystore
 *.png
 !src/**/*.png
 !assets/**/*.png
+!resources/*.png
 !ios/App/App/Assets.xcassets/**/*.png
 
 # Test scripts

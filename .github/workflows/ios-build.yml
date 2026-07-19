@@ -1,170 +1,106 @@
-name: Build iOS & Upload to App Store Connect
+name: Build Native iOS & Upload to TestFlight
 
 on:
   workflow_dispatch:
     inputs:
-      upload_to_appstore:
-        description: 'Upload to App Store Connect'
+      upload_to_testflight:
+        description: Upload the native build to TestFlight
         required: true
-        default: 'true'
+        default: true
         type: boolean
 
 jobs:
-  # 冒烟测试：用 iOS 26 模拟器真实启动 App，截图，若黑屏/空白则构建失败。
-  # 这样在上传给苹果之前就能确认不再黑屏（绝不盲提交）。上传 job 依赖它通过。
-  ios-smoke:
+  native-smoke:
     runs-on: macos-15
     timeout-minutes: 60
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 26 (iOS 26 SDK)
+      - name: Select Xcode 26
         run: |
           XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
-          if [ -z "$XC" ]; then echo "::error::No Xcode 26 on runner"; ls -d /Applications/Xcode*.app; exit 1; fi
-          echo "Selecting: $XC"
+          if [ -z "$XC" ]; then
+            echo "::error::No Xcode 26 found on runner"
+            exit 1
+          fi
           sudo xcode-select -s "$XC/Contents/Developer"
           xcodebuild -version
-          xcrun --sdk iphonesimulator --show-sdk-version
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: npm
+          cache-dependency-path: native-app/package-lock.json
 
-      - name: Install dependencies
+      - name: Install native dependencies
+        working-directory: native-app
         run: npm ci
 
-      - name: Build web app
-        run: npm run build
-
-      - name: Sync web assets + native plugins to iOS
-        run: npx cap sync ios
-
-      - name: Build app for iOS Simulator (unsigned)
+      - name: Verify native project
+        working-directory: native-app
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
-            -configuration Debug -sdk iphonesimulator \
+          npm run typecheck
+          npx expo-doctor
+
+      - name: Generate iOS project
+        working-directory: native-app
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: Install CocoaPods
+        working-directory: native-app/ios
+        run: pod install
+
+      - name: Compile for iOS Simulator
+        run: |
+          xcodebuild \
+            -workspace native-app/ios/WarRescue.xcworkspace \
+            -scheme WarRescue \
+            -configuration Release \
+            -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath ./dd \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+            -derivedDataPath native-app/dd \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
 
-      - name: Boot an iOS 26 iPad simulator
+      - name: Launch native app in Simulator
         run: |
-          RT=$(xcrun simctl list runtimes | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-26[^ ]*' | head -1)
-          echo "Runtime: $RT"
-          xcrun simctl shutdown all 2>/dev/null || true
-          # `simctl bootstatus -b` can WEDGE on a fresh iOS 26 first boot and hang until the
-          # job's wall-clock timeout (observed Run #71: boot step ate all 40 min -> cancelled).
-          # Bound each boot wait with a portable watchdog (no GNU `timeout` dependency) and, if it
-          # wedges, erase the sim and retry on a fresh one. Boot is the flaky step, not the app.
-          boot_wait() {
-            xcrun simctl bootstatus "$1" -b &
-            local bpid=$! secs=0
-            while kill -0 "$bpid" 2>/dev/null; do
-              sleep 5; secs=$((secs+5))
-              if [ "$secs" -ge "$2" ]; then echo "bootstatus exceeded ${2}s -> killing"; kill "$bpid" 2>/dev/null || true; return 1; fi
-            done
-            wait "$bpid"; return $?
-          }
-          BOOTED=0
-          for attempt in 1 2 3; do
-            UDID=$(xcrun simctl create "ci-ipad-$attempt" 'iPad Air 11-inch (M3)' "$RT" 2>/dev/null \
-                   || xcrun simctl create "ci-ipad-$attempt" 'iPad Pro 11-inch (M4)' "$RT" 2>/dev/null \
-                   || xcrun simctl create "ci-iphone-$attempt" 'iPhone 16 Pro' "$RT")
-            echo "attempt $attempt: UDID=$UDID"
-            xcrun simctl boot "$UDID" 2>/tmp/boot.err || echo "boot rc=$? : $(cat /tmp/boot.err 2>/dev/null)"
-            if boot_wait "$UDID" 240; then BOOTED=1; echo "UDID=$UDID" >> $GITHUB_ENV; echo "Booted on attempt $attempt"; break; fi
-            echo "attempt $attempt wedged -> erase + retry"
-            xcrun simctl shutdown "$UDID" 2>/dev/null || true
-            xcrun simctl delete "$UDID" 2>/dev/null || true
-            sleep 5
-          done
-          if [ "$BOOTED" -ne 1 ]; then echo "::error::Simulator failed to boot after 3 attempts"; exit 1; fi
+          RUNTIME=$(xcrun simctl list runtimes available | awk -F '[()]' '/iOS 26/{print $(NF-1); exit}')
+          DEVICE=$(xcrun simctl list devicetypes | awk -F '[()]' '/iPhone 16 Pro/{print $(NF-1); exit}')
+          if [ -z "$RUNTIME" ] || [ -z "$DEVICE" ]; then
+            echo "::error::Required iOS simulator runtime or device type is unavailable"
+            exit 1
+          fi
+          UDID=$(xcrun simctl create ci-warrescue-native "$DEVICE" "$RUNTIME")
+          xcrun simctl boot "$UDID"
+          python3 - "$UDID" <<'PY'
+          import subprocess, sys
+          subprocess.run(["xcrun", "simctl", "bootstatus", sys.argv[1], "-b"], check=True, timeout=240)
+          PY
+          APP="native-app/dd/Build/Products/Release-iphonesimulator/WarRescue.app"
+          test -d "$APP"
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch --terminate-running-process "$UDID" com.warrescue.app
+          sleep 12
+          xcrun simctl io "$UDID" screenshot native-app/native-launch.png
+          xcrun simctl spawn "$UDID" launchctl list | grep com.warrescue.app
 
-      - name: Install + launch app (retry past first-boot migration)
-        run: |
-          APP=$(find ./dd/Build/Products -maxdepth 3 -name '*.app' | head -1)
-          echo "APP=$APP"
-          BID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
-          echo "BID=$BID" >> $GITHUB_ENV
-          echo "Bundle id: $BID"
-          # A freshly-created simulator keeps running first-boot LaunchServices/keychain
-          # migrations AFTER 'bootstatus' returns; installing/launching during that window
-          # fails with FBSOpenApplicationServiceErrorDomain (NOT an app crash). Settle, then
-          # retry install + launch until LaunchServices is ready.
-          sleep 30
-          LAUNCH_OK=0
-          for i in 1 2 3 4 5 6; do
-            xcrun simctl install "$UDID" "$APP" 2>/tmp/inst.err || { echo "install attempt $i failed: $(cat /tmp/inst.err 2>/dev/null)"; sleep 12; continue; }
-            set +e
-            # NOTE: --stdout/--stderr removed — they appear to trigger FBSOpenApplication launch
-            # failure on the iOS 26 simulator. Capture app logs via syslog in the diag step instead.
-            LAUNCH_OUT=$(xcrun simctl launch --terminate-running-process "$UDID" "$BID" 2>&1)
-            RC=$?
-            set -e
-            echo "attempt $i: rc=$RC -> $LAUNCH_OUT"
-            if [ "$RC" -eq 0 ]; then LAUNCH_OK=1; break; fi
-            sleep 12
-          done
-          echo "LAUNCH_OK=$LAUNCH_OK"
-          sleep 15
-          echo '=== app stdout (Capacitor / web console) ==='; tail -80 app_out.log 2>/dev/null || true
-          echo '=== app stderr ==='; tail -80 app_err.log 2>/dev/null || true
-
-      - name: Screenshot
-        run: xcrun simctl io "$UDID" screenshot launch.png
-
-      - name: Collect diagnostics (crash reports + syslog)
-        if: always()
-        run: |
-          mkdir -p diag
-          find "$HOME/Library/Logs/DiagnosticReports" -name '*.ips' -newermt '-8 minutes' -exec cp {} diag/ \; 2>/dev/null || true
-          find "$HOME/Library/Developer/CoreSimulator" -name '*.ips' -newermt '-8 minutes' -exec cp {} diag/ \; 2>/dev/null || true
-          xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "App"' 2>/dev/null | tail -300 > diag/app_syslog.txt || true
-          echo '=== WR_DIAG (ViewController/bridge/webview state) ==='
-          xcrun simctl spawn "$UDID" log show --last 6m --predicate 'eventMessage CONTAINS "WR_DIAG"' --style compact 2>/dev/null | grep -i WR_DIAG || grep -i WR_DIAG diag/app_syslog.txt || echo '(no WR_DIAG captured)'
-          echo '=== app running? ==='
-          xcrun simctl spawn "$UDID" launchctl list 2>/dev/null | grep -i "$BID" || echo '(app NOT running -- crashed/exited)'
-          echo '=== crash reports ==='
-          ls diag/*.ips 2>/dev/null || echo '(none)'
-          for f in diag/*.ips; do [ -f "$f" ] && { echo "----- $f -----"; head -80 "$f"; }; done 2>/dev/null || true
-          echo '=== app syslog tail ==='
-          tail -120 diag/app_syslog.txt 2>/dev/null || true
-
-      - name: Verdict (app running + screen not black)
-        run: |
-          if ls diag/App*.ips >/dev/null 2>&1; then echo '::error::App crash report found on launch'; exit 1; fi
-          RUNNING=$(xcrun simctl spawn "$UDID" launchctl list 2>/dev/null | grep -ic "$BID" || true)
-          echo "running matches: $RUNNING"
-          if [ "${RUNNING:-0}" -lt 1 ]; then echo '::error::App is NOT running after launch (crashed/exited)'; exit 1; fi
-          python3 -m venv /tmp/pv
-          /tmp/pv/bin/pip install --quiet --disable-pip-version-check Pillow
-          BR=$(/tmp/pv/bin/python -c "from PIL import Image, ImageStat; s=ImageStat.Stat(Image.open('launch.png').convert('L')); print('%.4f %.4f'%(s.mean[0]/255, s.stddev[0]/255))")
-          echo "brightness mean/std: $BR"
-          MEAN=$(echo "$BR" | cut -d' ' -f1); STD=$(echo "$BR" | cut -d' ' -f2)
-          awk "BEGIN{exit !($MEAN>0.04 && $STD>0.01)}" || { echo '::error::Screen is black/blank'; exit 1; }
-          echo 'PASS: app is running and screen is not black.'
-
-      - name: Upload smoke artifacts
+      - name: Upload smoke build logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-smoke
+          name: native-ios-smoke
           path: |
-            launch.png
-            app_out.log
-            app_err.log
-            diag
+            native-app/dd/Logs
+            native-app/native-launch.png
           if-no-files-found: ignore
 
-  build-ios:
-    needs: ios-smoke
+  build-native-ios:
+    needs: native-smoke
     runs-on: macos-15
     timeout-minutes: 60
-
     env:
       APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
       APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
@@ -174,129 +110,77 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 26 (iOS 26 SDK required by Apple + Capacitor 8)
+      - name: Select Xcode 26
         run: |
           XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
-          if [ -z "$XC" ]; then echo "::error::No Xcode 26 found on runner"; ls -d /Applications/Xcode*.app; exit 1; fi
-          echo "Selecting: $XC"
+          if [ -z "$XC" ]; then
+            echo "::error::No Xcode 26 found on runner"
+            exit 1
+          fi
           sudo xcode-select -s "$XC/Contents/Developer"
           xcodebuild -version
-          SDKV=$(xcrun --sdk iphoneos --show-sdk-version)
-          echo "iOS SDK: $SDKV"
-          case "$SDKV" in 26.*) echo "OK iOS 26 SDK";; *) echo "::error::Expected iOS 26 SDK, got $SDKV"; exit 1;; esac
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: npm
+          cache-dependency-path: native-app/package-lock.json
 
-      - name: Install dependencies
+      - name: Install native dependencies
+        working-directory: native-app
         run: npm ci
 
-      - name: Build web app
-        run: npm run build
-
-      - name: Sync web assets + native plugins to iOS
-        run: npx cap sync ios
-
-      - name: Generate App Icons
-        run: |
-          SOURCE="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
-          DEST="ios/App/App/Assets.xcassets/AppIcon.appiconset"
-
-          # Generate all required icon sizes from 1024x1024 source
-          sips -z 20 20 "$SOURCE" --out "$DEST/Icon-20.png"
-          sips -z 29 29 "$SOURCE" --out "$DEST/Icon-29.png"
-          sips -z 40 40 "$SOURCE" --out "$DEST/Icon-40.png"
-          sips -z 40 40 "$SOURCE" --out "$DEST/Icon-20@2x.png"
-          sips -z 58 58 "$SOURCE" --out "$DEST/Icon-29@2x.png"
-          sips -z 60 60 "$SOURCE" --out "$DEST/Icon-20@3x.png"
-          sips -z 80 80 "$SOURCE" --out "$DEST/Icon-40@2x.png"
-          sips -z 87 87 "$SOURCE" --out "$DEST/Icon-29@3x.png"
-          sips -z 120 120 "$SOURCE" --out "$DEST/Icon-40@3x.png"
-          sips -z 120 120 "$SOURCE" --out "$DEST/Icon-60@2x.png"
-          sips -z 152 152 "$SOURCE" --out "$DEST/Icon-76@2x.png"
-          sips -z 167 167 "$SOURCE" --out "$DEST/Icon-83.5@2x.png"
-          sips -z 180 180 "$SOURCE" --out "$DEST/Icon-60@3x.png"
-          cp "$SOURCE" "$DEST/Icon-1024.png"
-
-          echo "Generated icons:"
-          ls -la "$DEST"/Icon-*.png
-
-      - name: Fix iOS deployment target
-        working-directory: ios/App
-        run: |
-          sed -i '' "s/platform :ios, '.*'/platform :ios, '16.0'/" Podfile
-          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' App.xcodeproj/project.pbxproj
+      - name: Generate iOS project
+        working-directory: native-app
+        run: npx expo prebuild --platform ios --no-install
 
       - name: Install CocoaPods
-        working-directory: ios/App
+        working-directory: native-app/ios
         run: pod install
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
-          bundler-cache: true
 
       - name: Install Fastlane
-        # 显式加上 multi_json:fastlane 间接依赖 representable -> multi_json，
-        # 但 macOS runner 镜像近期更新把预装的 multi_json 移除了，导致 `fastlane release`
-        # 启动时 Gem::MissingSpecError 立即崩溃（见 Run #54 日志）。固定写死避免漂移。
         run: gem install fastlane multi_json
 
-      - name: Setup API Key file
+      - name: Setup App Store Connect API key
         env:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
         run: |
-          mkdir -p ~/.private_keys
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.private_keys/AuthKey.p8
-          echo "API_KEY_PATH=$HOME/.private_keys/AuthKey.p8" >> $GITHUB_ENV
+          mkdir -p "$HOME/.private_keys"
+          printf '%s' "$APP_STORE_CONNECT_API_KEY_CONTENT" > "$HOME/.private_keys/AuthKey.p8"
+          echo "API_KEY_PATH=$HOME/.private_keys/AuthKey.p8" >> "$GITHUB_ENV"
 
-      - name: Setup Keychain for Code Signing
+      - name: Setup signing keychain
         run: |
-          KEYCHAIN_PASSWORD="ci_build_temp_pwd_$(date +%s)"
-          KEYCHAIN_PATH="$HOME/Library/Keychains/build.keychain-db"
-
-          # Create keychain with non-empty password (critical for set-key-partition-list)
+          KEYCHAIN_PASSWORD="ci_native_$(date +%s)"
+          KEYCHAIN_PATH="$HOME/Library/Keychains/native-build.keychain-db"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
-          # Set as default and add to search list
           security default-keychain -s "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH"
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> "$GITHUB_ENV"
 
-          # Import Apple WWDR intermediate certificates for trust chain
-          curl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
-          curl -sO https://www.apple.com/certificateauthority/AppleWWDRCAG6.cer
-          security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -T /usr/bin/security
-          security import AppleWWDRCAG6.cer -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -T /usr/bin/security
-          rm -f AppleWWDRCAG3.cer AppleWWDRCAG6.cer
-
-          # Allow codesign to access keychain items without UI prompt
-          # Note: may fail with "item not found" if no private keys exist yet - that's OK
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" || true
-
-          # Export for Fastlane
-          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
-          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
-
-      - name: Build and Upload with Fastlane
-        working-directory: ios/App
+      - name: Build native IPA and optionally upload
+        working-directory: native-app
         run: |
-          if [ "${{ inputs.upload_to_appstore }}" = "true" ]; then
+          if [ "${{ inputs.upload_to_testflight }}" = "true" ]; then
             fastlane release
           else
             fastlane build_only
           fi
 
-      - name: Upload IPA as artifact
+      - name: Upload native IPA artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WarRescue-iOS
-          path: ios/App/*.ipa
+          name: WarRescue-Native-iOS
+          path: native-app/WarRescue.ipa
           retention-days: 30
           if-no-files-found: ignore

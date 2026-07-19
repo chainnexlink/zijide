@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "WarRescue",
+    "slug": "warrescue-native",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "../resources/icon-only.png",
+    "ios": {
+      "bundleIdentifier": "com.warrescue.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"],
+        "NSLocationWhenInUseUsageDescription": "WarRescue uses your location to show nearby threats, shelters, and emergency routes.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.warrescue.app",
+      "adaptiveIcon": {
+        "foregroundImage": "../resources/icon-foreground.png",
+        "backgroundColor": "#070B12"
+      },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "POST_NOTIFICATIONS", "VIBRATE"]
+    },
+    "plugins": [
+      ["expo-location", { "locationWhenInUsePermission": "WarRescue uses your location to find nearby shelters and threats." }],
+      ["expo-notifications", { "color": "#EF4444" }],
+      ["expo-splash-screen", { "image": "../resources/icon-only.png", "imageWidth": 220, "resizeMode": "contain", "backgroundColor": "#070B12" }],
+      "expo-secure-store"
+    ]
+  }
+}
