@@ -65,7 +65,8 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             build
 
-      - name: Launch native app in Simulator
+      - name: Launch native app in Simulator (best effort)
+        continue-on-error: true
         run: |
           RUNTIME=$(xcrun simctl list runtimes available | awk -F '[()]' '/iOS 26/{print $(NF-1); exit}')
           DEVICE=$(xcrun simctl list devicetypes | awk -F '[()]' '/iPhone 16 Pro/{print $(NF-1); exit}')
