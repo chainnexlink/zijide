@@ -64,6 +64,8 @@ Deno.serve(async (req) => {
         return await sendSMSCode(supabaseAdmin, req);
       case 'verify-sms-code':
         return await verifySMSCode(supabaseAdmin, req);
+      case 'complete-phone-profile':
+        return await completePhoneProfile(supabaseAdmin, req);
       case 'get-plans':
         return await getPlans(supabaseAdmin, req);
       case 'get-subscription-status':
@@ -283,6 +285,65 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
     trialEndsAt: existingUser.trial_ends_at,
     auth: sessionAuth
   }), { headers: corsHeaders });
+}
+
+async function completePhoneProfile(supabaseAdmin: any, req: Request) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+  const user = authData?.user;
+  if (authError || !user?.id || !user.phone) {
+    return new Response(JSON.stringify({ error: 'Verified phone session required' }), { status: 401, headers: corsHeaders });
+  }
+
+  const { inviteCode, deviceId } = await req.json();
+  const { data: existingProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('id,invite_code,trial_ends_at')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  let profile = existingProfile;
+  if (!profile) {
+    const userInviteCode = generateInviteCode();
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: inserted, error: insertError } = await supabaseAdmin.from('profiles').insert({
+      id: user.id,
+      phone: user.phone,
+      invite_code: userInviteCode,
+      device_id: deviceId,
+      trial_ends_at: trialEndsAt,
+      is_guest: false,
+      language: 'zh',
+    }).select('id,invite_code,trial_ends_at').single();
+
+    if (insertError) {
+      return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: corsHeaders });
+    }
+    profile = inserted;
+
+    if (inviteCode) {
+      const { data: inviter } = await supabaseAdmin.from('profiles').select('id').eq('invite_code', inviteCode).maybeSingle();
+      if (inviter && inviter.id !== user.id) {
+        await supabaseAdmin.from('invites').insert({
+          inviter_id: inviter.id,
+          invited_phone: user.phone,
+          invite_code: inviteCode,
+          status: 'registered',
+          registered_at: new Date().toISOString(),
+          reward_amount: 0.5,
+        });
+      }
+    }
+  } else {
+    await supabaseAdmin.from('profiles').update({ phone: user.phone, device_id: deviceId }).eq('id', user.id);
+  }
+
+  return new Response(JSON.stringify({ success: true, profile }), { headers: corsHeaders });
 }
 
 async function getPlans(supabaseAdmin: any, req: Request) {
