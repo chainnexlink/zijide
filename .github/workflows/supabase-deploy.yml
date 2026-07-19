@@ -34,8 +34,17 @@ jobs:
             name=$(basename "$d")
             [ "$name" = "_shared" ] && continue
             echo "===== deploy $name ====="
-            supabase functions deploy "$name" --project-ref "$PROJECT_REF" || echo "WARN: deploy $name failed (继续)"
+            supabase functions deploy "$name" --project-ref "$PROJECT_REF"
           done
+
+      - name: Enable phone OTP authentication
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request PATCH \
+            --url "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"external_phone_enabled":true}' >/dev/null
 
       - name: Set function secrets (只设置已填写的)
         run: |
