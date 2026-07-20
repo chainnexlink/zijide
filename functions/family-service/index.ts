@@ -37,6 +37,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function authPrincipal(supabaseAdmin: any, req: Request): Promise<{ kind: 'service' } | { kind: 'user'; userId: string } | null> {
+  const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  if (!token) return null;
+  if (token === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '___no_service_key___')) return { kind: 'service' };
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  return user ? { kind: 'user', userId: user.id } : null;
+}
+
+function unauthorized(message = 'Unauthorized') {
+  return new Response(JSON.stringify({ error: message }), { status: 401, headers: corsHeaders });
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -50,16 +62,28 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     let action = url.searchParams.get('action') || '';
+    let requestBody: any = {};
 
     // 前端通过 supabase.functions.invoke 将 action 放在 body 中
     // 仅 URL 参数为空时从 body 读取，使用 clone() 保留原始 body
     if (!action && req.method === 'POST') {
       try {
-        const clonedBody = await req.clone().json();
-        action = clonedBody.action || '';
+        requestBody = await req.clone().json();
+        action = requestBody.action || '';
       } catch {}
     }
     if (!action) action = 'get-family';
+
+    const principal = await authPrincipal(supabaseAdmin, req);
+    if (!principal) return unauthorized();
+    if (principal.kind === 'user') {
+      const claimedUserId = action === 'remove-member'
+        ? requestBody.adminId
+        : action === 'transfer-admin'
+          ? requestBody.currentAdminId
+          : (requestBody.userId || url.searchParams.get('userId'));
+      if (!claimedUserId || claimedUserId !== principal.userId) return unauthorized('Cannot act as another user');
+    }
 
     switch (action) {
       case 'create-family':
@@ -102,6 +126,9 @@ async function createFamily(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
     const { userId, name } = body;
+
+    const { data: currentMembership } = await supabaseAdmin.from('family_members').select('id').eq('user_id', userId).maybeSingle();
+    if (currentMembership) return new Response(JSON.stringify({ error: 'Already belongs to a family' }), { status: 400, headers: corsHeaders });
 
     const inviteCode = generateInviteCode();
 
@@ -154,6 +181,9 @@ async function joinFamily(supabaseAdmin: any, req: Request) {
     const body = await req.json();
     const { userId, inviteCode } = body;
 
+    const { data: currentMembership } = await supabaseAdmin.from('family_members').select('id').eq('user_id', userId).maybeSingle();
+    if (currentMembership) return new Response(JSON.stringify({ error: 'Already belongs to a family' }), { status: 400, headers: corsHeaders });
+
     const { data: family } = await supabaseAdmin
       .from('family_groups')
       .select('*')
@@ -205,7 +235,7 @@ async function joinFamily(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('*, profiles(*)')
+      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,profiles(nickname,avatar_url,city,country)')
       .eq('family_id', family.id);
 
     await notifyFamilyMembers(supabaseAdmin, family.id, userId, 'new_member');
@@ -317,7 +347,7 @@ async function getFamily(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('*, profiles(*)')
+      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,profiles(nickname,avatar_url,city,country)')
       .eq('family_id', member.family_id);
 
     return new Response(JSON.stringify({

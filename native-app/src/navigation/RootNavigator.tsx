@@ -18,6 +18,7 @@ import { AlertDetailScreen } from '../screens/AlertDetailScreen';
 import { AlertHistoryScreen } from '../screens/AlertHistoryScreen';
 import { AlertSettingsScreen } from '../screens/AlertSettingsScreen';
 import { ShelterDetailScreen } from '../screens/ShelterDetailScreen';
+import { FamilyScreen } from '../screens/FamilyScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -39,6 +40,7 @@ export type RootStackParams = {
   AlertHistory: undefined;
   AlertSettings: undefined;
   ShelterDetail: { shelterId: string; distance?: number | null };
+  Family: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -73,6 +75,7 @@ export function RootNavigator() {
       <Stack.Screen name="AlertHistory" component={AlertHistoryScreen} />
       <Stack.Screen name="AlertSettings" component={AlertSettingsScreen} />
       <Stack.Screen name="ShelterDetail" component={ShelterDetailScreen} />
+      <Stack.Screen name="Family" component={FamilyScreen} />
     </>}
   </Stack.Navigator>;
 }
