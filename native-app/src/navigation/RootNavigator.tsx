@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { usePushRegistration } from '../hooks/useDeviceFeatures';
@@ -9,6 +10,8 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SheltersScreen } from '../screens/SheltersScreen';
 import { SOSScreen } from '../screens/SOSScreen';
+import { EmergencyProfileScreen } from '../screens/EmergencyProfileScreen';
+import { SOSHistoryScreen } from '../screens/SOSHistoryScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -19,7 +22,14 @@ type TabParams = {
   Profile: undefined;
 };
 
+export type RootStackParams = {
+  MainTabs: undefined;
+  EmergencyProfile: undefined;
+  SOSHistory: undefined;
+};
+
 const Tab = createBottomTabNavigator<TabParams>();
+const Stack = createNativeStackNavigator<RootStackParams>();
 
 const icons: Record<string, string> = {
   Home: '⌂',
@@ -38,6 +48,14 @@ export function RootNavigator() {
   }
   if (!session) return <AuthScreen />;
 
+  return <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="MainTabs" component={MainTabs} />
+    <Stack.Screen name="EmergencyProfile" component={EmergencyProfileScreen} />
+    <Stack.Screen name="SOSHistory" component={SOSHistoryScreen} />
+  </Stack.Navigator>;
+}
+
+function MainTabs() {
   return (
     <Tab.Navigator
       initialRouteName="Home"
