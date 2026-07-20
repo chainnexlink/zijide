@@ -51,7 +51,6 @@ jobs:
                   "https://api.appstoreconnect.apple.com/v1/betaGroups",
                   headers={"Authorization": f"Bearer {token}"},
                   params={
-                      "filter[app]": "6774955063",
                       "filter[builds]": latest_id,
                       "include": "betaTesters",
                       "limit": "50",
