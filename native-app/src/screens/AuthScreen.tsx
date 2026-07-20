@@ -187,6 +187,18 @@ export function AuthScreen() {
     setMessage(error ? friendlyError(error.message) : '验证邮件已重新发送，请检查收件箱和垃圾邮件');
   };
 
+  const resetPassword = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
+      setMessage('请先输入注册时使用的邮箱');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
+    setLoading(false);
+    setMessage(error ? friendlyError(error.message) : '密码重置邮件已发送，请检查收件箱和垃圾邮件');
+  };
+
   const switchMode = () => {
     setMode((value) => (value === 'login' ? 'register' : 'login'));
     setVerificationCode('');
@@ -275,6 +287,7 @@ export function AuthScreen() {
             <Pressable style={[styles.primary, loading && styles.disabled]} onPress={method === 'phone' ? submitPhone : submitEmail} disabled={loading}>
               {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.primaryText}>{mode === 'login' ? '登录' : '注册'}</Text>}
             </Pressable>
+            {mode === 'login' && method === 'email' ? <Pressable onPress={resetPassword} disabled={loading}><Text style={styles.forgotText}>忘记密码？发送重置邮件</Text></Pressable> : null}
             <Pressable onPress={switchMode}>
               <Text style={styles.switchText}>{mode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录'}</Text>
             </Pressable>
@@ -319,5 +332,6 @@ const styles = StyleSheet.create({
   secondary: { height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.info, alignItems: 'center', justifyContent: 'center' },
   secondaryText: { color: colors.info, fontWeight: '800' },
   switchText: { color: colors.info, textAlign: 'center', fontWeight: '700' },
+  forgotText: { color: colors.muted, textAlign: 'center', fontWeight: '700' },
   disabled: { opacity: 0.55 },
 });
