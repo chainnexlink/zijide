@@ -48,21 +48,33 @@ jobs:
           if payload.get("data"):
               latest_id = payload["data"][0]["id"]
               groups_response = requests.get(
-                  f"https://api.appstoreconnect.apple.com/v1/builds/{latest_id}/betaGroups",
-                  headers={"Authorization": f"Bearer {token}"}, timeout=30,
+                  "https://api.appstoreconnect.apple.com/v1/betaGroups",
+                  headers={"Authorization": f"Bearer {token}"},
+                  params={
+                      "filter[app]": "6774955063",
+                      "filter[builds]": latest_id,
+                      "include": "betaTesters",
+                      "limit": "50",
+                      "limit[betaTesters]": "50",
+                  },
+                  timeout=30,
               )
               groups_response.raise_for_status()
+              groups_payload = groups_response.json()
+              included_testers = {
+                  tester["id"]: tester.get("attributes", {}).get("email")
+                  for tester in groups_payload.get("included", [])
+                  if tester.get("type") == "betaTesters"
+              }
               distribution = []
-              for group in groups_response.json().get("data", []):
-                  testers_response = requests.get(
-                      f"https://api.appstoreconnect.apple.com/v1/betaGroups/{group['id']}/betaTesters",
-                      headers={"Authorization": f"Bearer {token}"},
-                      params={"filter[email]": "717082194@qq.com", "limit": "10"}, timeout=30,
-                  )
-                  testers_response.raise_for_status()
+              for group in groups_payload.get("data", []):
+                  tester_links = group.get("relationships", {}).get("betaTesters", {}).get("data", [])
                   distribution.append({
                       "group": group.get("attributes", {}).get("name"),
-                      "targetTesterIncluded": bool(testers_response.json().get("data")),
+                      "targetTesterIncluded": any(
+                          included_testers.get(link.get("id")) == "717082194@qq.com"
+                          for link in tester_links
+                      ),
                   })
               print("DISTRIBUTION=" + json.dumps(distribution, ensure_ascii=False))
           PY
