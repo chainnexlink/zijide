@@ -1,0 +1,48 @@
+name: Verify latest TestFlight build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+        run: |
+          python -m pip install --quiet pyjwt cryptography requests
+          python - <<'PY'
+          import json, os, time
+          import jwt, requests
+
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": os.environ["ASC_ISSUER_ID"], "iat": now, "exp": now + 1200, "aud": "appstoreconnect-v1"},
+              os.environ["ASC_PRIVATE_KEY"].replace("\\n", "\n"),
+              algorithm="ES256",
+              headers={"kid": os.environ["ASC_KEY_ID"]},
+          )
+          response = requests.get(
+              "https://api.appstoreconnect.apple.com/v1/builds",
+              headers={"Authorization": f"Bearer {token}"},
+              params={"filter[app]": "6774955063", "sort": "-uploadedDate", "limit": "3", "include": "preReleaseVersion"},
+              timeout=30,
+          )
+          response.raise_for_status()
+          payload = response.json()
+          versions = {item["id"]: item["attributes"].get("version") for item in payload.get("included", []) if item.get("type") == "preReleaseVersions"}
+          output = []
+          for item in payload.get("data", []):
+              relation = item.get("relationships", {}).get("preReleaseVersion", {}).get("data") or {}
+              attrs = item.get("attributes", {})
+              output.append({
+                  "version": versions.get(relation.get("id")),
+                  "build": attrs.get("version"),
+                  "processingState": attrs.get("processingState"),
+                  "uploadedDate": attrs.get("uploadedDate"),
+              })
+          print(json.dumps(output, ensure_ascii=False))
+          PY
