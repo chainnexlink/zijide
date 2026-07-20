@@ -14,6 +14,10 @@ import { EmergencyProfileScreen } from '../screens/EmergencyProfileScreen';
 import { SOSHistoryScreen } from '../screens/SOSHistoryScreen';
 import { LegalDocumentScreen } from '../screens/LegalDocumentScreen';
 import { AccountSecurityScreen } from '../screens/AccountSecurityScreen';
+import { AlertDetailScreen } from '../screens/AlertDetailScreen';
+import { AlertHistoryScreen } from '../screens/AlertHistoryScreen';
+import { AlertSettingsScreen } from '../screens/AlertSettingsScreen';
+import { ShelterDetailScreen } from '../screens/ShelterDetailScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -31,6 +35,10 @@ export type RootStackParams = {
   SOSHistory: undefined;
   AccountSecurity: undefined;
   LegalDocument: { kind: 'terms' | 'privacy' };
+  AlertDetail: { alertId: string };
+  AlertHistory: undefined;
+  AlertSettings: undefined;
+  ShelterDetail: { shelterId: string; distance?: number | null };
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -61,6 +69,10 @@ export function RootNavigator() {
       <Stack.Screen name="SOSHistory" component={SOSHistoryScreen} />
       <Stack.Screen name="AccountSecurity" component={AccountSecurityScreen} />
       <Stack.Screen name="LegalDocument" component={LegalDocumentScreen} />
+      <Stack.Screen name="AlertDetail" component={AlertDetailScreen} />
+      <Stack.Screen name="AlertHistory" component={AlertHistoryScreen} />
+      <Stack.Screen name="AlertSettings" component={AlertSettingsScreen} />
+      <Stack.Screen name="ShelterDetail" component={ShelterDetailScreen} />
     </>}
   </Stack.Navigator>;
 }
