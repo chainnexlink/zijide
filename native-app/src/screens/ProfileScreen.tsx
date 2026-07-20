@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Screen } from '../components/Screen';
 import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { ProfileRow } from '../types';
+import type { RootStackParams } from '../navigation/RootNavigator';
 
 export function ProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [email, setEmail] = useState('');
 
@@ -38,6 +42,12 @@ export function ProfileScreen() {
       </View>
 
       <View style={styles.card}>
+        <Text style={styles.cardTitle}>安全服务</Text>
+        <Menu label="紧急医疗资料" description="血型、病史、用药和紧急联系人" onPress={() => navigation.navigate('EmergencyProfile')} />
+        <Menu label="SOS 历史" description="查看求救状态与救援阶段" onPress={() => navigation.navigate('SOSHistory')} />
+      </View>
+
+      <View style={styles.card}>
         <Text style={styles.cardTitle}>App 状态</Text>
         <Row label="推送通知" value="已启用" tone={colors.safe} />
         <Row label="安全监测" value="运行中" tone={colors.safe} />
@@ -55,6 +65,10 @@ function Row({ label, value, tone }: { label: string; value: string; tone?: stri
   return <View style={styles.row}><Text style={styles.label}>{label}</Text><Text style={[styles.value, tone ? { color: tone } : null]}>{value}</Text></View>;
 }
 
+function Menu({ label, description, onPress }: { label: string; description: string; onPress: () => void }) {
+  return <Pressable style={styles.menu} onPress={onPress}><View style={styles.menuText}><Text style={styles.menuLabel}>{label}</Text><Text style={styles.menuDescription}>{description}</Text></View><Text style={styles.chevron}>›</Text></Pressable>;
+}
+
 const styles = StyleSheet.create({
   identity: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg },
   avatar: { width: 66, height: 66, borderRadius: 24, backgroundColor: '#EF444422', borderColor: '#EF444455', borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
@@ -70,4 +84,9 @@ const styles = StyleSheet.create({
   value: { color: colors.text, fontWeight: '700', maxWidth: '60%', textAlign: 'right' },
   logout: { height: 52, borderRadius: radius.md, borderColor: '#EF444466', borderWidth: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EF44440F' },
   logoutText: { color: colors.danger, fontWeight: '800' },
+  menu: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth },
+  menuText: { flex: 1 },
+  menuLabel: { color: colors.text, fontWeight: '800' },
+  menuDescription: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  chevron: { color: colors.muted, fontSize: 26 },
 });
