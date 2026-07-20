@@ -12,6 +12,8 @@ import { SheltersScreen } from '../screens/SheltersScreen';
 import { SOSScreen } from '../screens/SOSScreen';
 import { EmergencyProfileScreen } from '../screens/EmergencyProfileScreen';
 import { SOSHistoryScreen } from '../screens/SOSHistoryScreen';
+import { LegalDocumentScreen } from '../screens/LegalDocumentScreen';
+import { AccountSecurityScreen } from '../screens/AccountSecurityScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -23,9 +25,12 @@ type TabParams = {
 };
 
 export type RootStackParams = {
+  Auth: undefined;
   MainTabs: undefined;
   EmergencyProfile: undefined;
   SOSHistory: undefined;
+  AccountSecurity: undefined;
+  LegalDocument: { kind: 'terms' | 'privacy' };
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -46,12 +51,17 @@ export function RootNavigator() {
   if (loading) {
     return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
   }
-  if (!session) return <AuthScreen />;
-
   return <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="MainTabs" component={MainTabs} />
-    <Stack.Screen name="EmergencyProfile" component={EmergencyProfileScreen} />
-    <Stack.Screen name="SOSHistory" component={SOSHistoryScreen} />
+    {!session ? <>
+      <Stack.Screen name="Auth" component={AuthScreen} />
+      <Stack.Screen name="LegalDocument" component={LegalDocumentScreen} />
+    </> : <>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="EmergencyProfile" component={EmergencyProfileScreen} />
+      <Stack.Screen name="SOSHistory" component={SOSHistoryScreen} />
+      <Stack.Screen name="AccountSecurity" component={AccountSecurityScreen} />
+      <Stack.Screen name="LegalDocument" component={LegalDocumentScreen} />
+    </>}
   </Stack.Navigator>;
 }
 

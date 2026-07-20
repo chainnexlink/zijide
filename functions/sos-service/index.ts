@@ -154,6 +154,29 @@ async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
       }), { headers: corsHeaders });
     }
 
+    const { data: emergencyProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('nickname,birth_date,gender,language,blood_type,allergies,medical_history,current_medication,medical_notes,emergency_contact_name,emergency_contact_phone,emergency_contact_relation')
+      .eq('id', userId)
+      .maybeSingle();
+    const medicalSnapshot = emergencyProfile ? JSON.stringify({
+      captured_at: new Date().toISOString(),
+      nickname: emergencyProfile.nickname,
+      birth_date: emergencyProfile.birth_date,
+      gender: emergencyProfile.gender,
+      language: emergencyProfile.language,
+      blood_type: emergencyProfile.blood_type,
+      allergies: emergencyProfile.allergies,
+      medical_history: emergencyProfile.medical_history,
+      current_medication: emergencyProfile.current_medication,
+      medical_notes: emergencyProfile.medical_notes,
+      emergency_contact: {
+        name: emergencyProfile.emergency_contact_name,
+        phone: emergencyProfile.emergency_contact_phone,
+        relation: emergencyProfile.emergency_contact_relation,
+      },
+    }) : null;
+
     const { data: sos, error } = await supabaseAdmin
       .from('sos_records')
       .insert({
@@ -164,6 +187,7 @@ async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
         latitude,
         longitude,
         address,
+        notes: medicalSnapshot,
       })
       .select()
       .single();

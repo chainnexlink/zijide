@@ -11,9 +11,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
+import type { RootStackParams } from '../navigation/RootNavigator';
 
 type AuthMode = 'login' | 'register';
 type AuthMethod = 'phone' | 'email';
@@ -32,6 +35,7 @@ const friendlyError = (message: string) => {
 };
 
 export function AuthScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
   const [mode, setMode] = useState<AuthMode>('login');
   const [method, setMethod] = useState<AuthMethod>('phone');
   const [email, setEmail] = useState('');
@@ -194,7 +198,7 @@ export function AuthScreen() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, { redirectTo: 'warrescue://reset-password' });
     setLoading(false);
     setMessage(error ? friendlyError(error.message) : '密码重置邮件已发送，请检查收件箱和垃圾邮件');
   };
@@ -271,10 +275,15 @@ export function AuthScreen() {
             {mode === 'register' ? (
               <>
                 <TextInput style={styles.input} value={inviteCode} onChangeText={setInviteCode} placeholder="邀请码（选填）" placeholderTextColor={colors.muted} autoCapitalize="characters" />
-                <Pressable style={styles.agreement} onPress={() => setAgreed((value) => !value)}>
+                <View style={styles.agreement}>
+                  <Pressable onPress={() => setAgreed((value) => !value)}>
                   <View style={[styles.checkbox, agreed && styles.checkboxChecked]}><Text style={styles.checkmark}>{agreed ? '✓' : ''}</Text></View>
-                  <Text style={styles.agreementText}>我已阅读并同意《用户协议》和《隐私政策》</Text>
-                </Pressable>
+                  </Pressable>
+                  <Text style={styles.agreementText}>我已阅读并同意</Text>
+                  <Pressable onPress={() => navigation.navigate('LegalDocument', { kind: 'terms' })}><Text style={styles.legalLink}>《用户协议》</Text></Pressable>
+                  <Text style={styles.agreementText}>和</Text>
+                  <Pressable onPress={() => navigation.navigate('LegalDocument', { kind: 'privacy' })}><Text style={styles.legalLink}>《隐私政策》</Text></Pressable>
+                </View>
               </>
             ) : null}
 
@@ -320,11 +329,12 @@ const styles = StyleSheet.create({
   phoneInput: { flex: 1 },
   codeButton: { minWidth: 118, height: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm },
   codeButtonText: { color: colors.danger, fontWeight: '800' },
-  agreement: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  agreement: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.xs },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   checkboxChecked: { backgroundColor: colors.danger, borderColor: colors.danger },
   checkmark: { color: colors.white, fontWeight: '900' },
-  agreementText: { flex: 1, color: colors.muted, lineHeight: 20 },
+  agreementText: { color: colors.muted, lineHeight: 20 },
+  legalLink: { color: colors.info, fontWeight: '800', lineHeight: 20 },
   message: { color: colors.warning, lineHeight: 20 },
   success: { color: colors.safe },
   primary: { height: 52, borderRadius: radius.md, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
