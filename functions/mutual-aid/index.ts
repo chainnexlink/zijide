@@ -229,10 +229,12 @@ async function unsubscribe(supabaseAdmin: any, req: Request, principal: any) {
 async function getNearbySOS(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const url = new URL(req.url);
-    const userId = actingUserId(principal, url.searchParams.get('userId') || undefined);
+    let body: any = {};
+    if (req.method === 'POST') { try { body = await req.json(); } catch {} }
+    const userId = actingUserId(principal, body.userId || url.searchParams.get('userId') || undefined);
     if (!userId) return unauthorized('no user');
-    const latitude = parseFloat(url.searchParams.get('lat') || '0');
-    const longitude = parseFloat(url.searchParams.get('lng') || '0');
+    const latitude = Number(body.latitude ?? body.lat ?? url.searchParams.get('lat') ?? 0);
+    const longitude = Number(body.longitude ?? body.lng ?? url.searchParams.get('lng') ?? 0);
 
     const { data: subscription } = await supabaseAdmin
       .from('mutual_aid_subscriptions')
@@ -522,7 +524,9 @@ async function cancelResponse(supabaseAdmin: any, req: Request, principal: any) 
 async function getResponses(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const url = new URL(req.url);
-    const userId = actingUserId(principal, url.searchParams.get('userId') || undefined);
+    let body: any = {};
+    if (req.method === 'POST') { try { body = await req.json(); } catch {} }
+    const userId = actingUserId(principal, body.userId || url.searchParams.get('userId') || undefined);
     if (!userId) return unauthorized('no user');
 
     const { data: responses } = await supabaseAdmin
@@ -546,7 +550,9 @@ async function getResponses(supabaseAdmin: any, req: Request, principal: any) {
 async function getStats(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const url = new URL(req.url);
-    const userId = actingUserId(principal, url.searchParams.get('userId') || undefined);
+    let body: any = {};
+    if (req.method === 'POST') { try { body = await req.json(); } catch {} }
+    const userId = actingUserId(principal, body.userId || url.searchParams.get('userId') || undefined);
     if (!userId) return unauthorized('no user');
 
     const { data: subscription } = await supabaseAdmin
