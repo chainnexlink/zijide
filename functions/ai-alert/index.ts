@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendPushToUsers } from '../_shared/push.ts';
+import { sendEmail } from '../_shared/email.ts';
+import { sendSms } from '../_shared/twilio.ts';
 
 interface AlertSource {
   id: string;
@@ -443,13 +445,17 @@ function generateMockAlerts(source: AlertSource, now: Date): AlertData[] {
 }
 
 async function notifySubscribers(supabaseAdmin: any, alert: any) {
-  const { data: subscribers } = await supabaseAdmin
-    .from('user_alert_settings')
-    .select('user_id, monitor_radius_km, last_latitude, last_longitude, profiles(country)')
-    .eq('push_enabled', true);
-
-  // 地理过滤：只推给"在预警附近"的用户（有坐标→距离≤监测半径；无坐标→退回国家匹配）
-  const targets = (subscribers || []).filter((u: any) => isAlertRelevantToUser(u, alert));
+  const { data: settingsRows } = await supabaseAdmin.from('user_alert_settings').select('*').eq('push_enabled', true);
+  if (!settingsRows?.length) return;
+  const userIds = settingsRows.map((item: any) => item.user_id);
+  const [{ data: profiles }, { data: extraLocations }] = await Promise.all([
+    supabaseAdmin.from('profiles').select('id,email,phone,city,country').in('id', userIds),
+    supabaseAdmin.from('monitored_locations').select('user_id,city,country,latitude,longitude,radius_km,is_enabled').in('user_id', userIds).eq('is_enabled', true),
+  ]);
+  const profilesById = new Map((profiles || []).map((item: any) => [item.id, item]));
+  const locationsByUser = new Map<string, any[]>();
+  for (const location of extraLocations || []) locationsByUser.set(location.user_id, [...(locationsByUser.get(location.user_id) || []), location]);
+  const targets = settingsRows.filter((settings: any) => matchesUserAlertSettings(settings, profilesById.get(settings.user_id), locationsByUser.get(settings.user_id) || [], alert));
   if (targets.length === 0) return;
 
   const targetIds = targets.map((u: any) => u.user_id);
@@ -473,7 +479,35 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
   } catch (e) {
     console.error('push dispatch failed:', e);
   }
+
+  if (alert.severity === 'red') {
+    const { data: paid } = await supabaseAdmin.from('subscriptions').select('user_id').eq('status', 'active').gt('expires_at', new Date().toISOString()).in('user_id', targetIds);
+    const paidIds = new Set((paid || []).map((item: any) => item.user_id));
+    for (const settings of targets.filter((item: any) => paidIds.has(item.user_id))) {
+      const profile: any = profilesById.get(settings.user_id); const delivered: string[] = [];
+      const subject = `⚠️ WarRescue紧急预警: ${alert.title}`; const message = `${alert.title}\n${alert.description || ''}`;
+      if (settings.email_enabled && profile?.email) { const result = await sendEmail(profile.email, subject, message); if (result.ok) delivered.push('email'); }
+      if (settings.sms_enabled && profile?.phone) { const result = await sendSms(profile.phone, message); if (result.ok) delivered.push('sms'); }
+      if (delivered.length) await supabaseAdmin.from('notifications').insert({ user_id: settings.user_id, title: subject, body: alert.description, type: 'email_sms', data: { alert_id: alert.id, delivery: delivered } });
+    }
+  }
 }
+
+function matchesUserAlertSettings(settings: any, profile: any, extraLocations: any[], alert: any) {
+  const typeColumn: Record<string, string> = { air_strike: 'alert_air_strike', artillery: 'alert_artillery', conflict: 'alert_conflict', curfew: 'alert_curfew' };
+  if (typeColumn[alert.alert_type] && settings[typeColumn[alert.alert_type]] === false) return false;
+  const rank: Record<string, number> = { yellow: 1, orange: 2, red: 3 };
+  if ((rank[alert.severity] || 0) < (rank[settings.min_severity || 'yellow'] || 1)) return false;
+  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start, settings.dnd_end)) return false;
+  const primary = { city: settings.city || profile?.city, country: settings.country || profile?.country, latitude: settings.last_latitude, longitude: settings.last_longitude, radius_km: settings.monitor_radius_km || 30 };
+  return [primary, ...extraLocations].some((location: any) => {
+    if (location.latitude != null && location.longitude != null && hasValidCoord(alert.latitude, alert.longitude)) return haversineKm(Number(location.latitude), Number(location.longitude), Number(alert.latitude), Number(alert.longitude)) <= Number(location.radius_km || settings.monitor_radius_km || 30);
+    if (location.city && alert.city && location.city.toLowerCase() === String(alert.city).toLowerCase() && (!location.country || !alert.country || location.country.toLowerCase() === String(alert.country).toLowerCase())) return true;
+    return !!(location.country && alert.country && location.country.toLowerCase() === String(alert.country).toLowerCase());
+  });
+}
+
+function isWithinDnd(start?: string, end?: string) { if (!start || !end) return false; const now = new Date(); const minutes = now.getUTCHours() * 60 + now.getUTCMinutes(); const parse = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; }; const from = parse(start); const to = parse(end); return from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to; }
 
 // 坐标是否“有效”：必须是有限数，且不是 (0,0)。
 // (0,0) 在几内亚湾，绝不会是真实预警点；历史上无经纬度的源被写成 0,0，

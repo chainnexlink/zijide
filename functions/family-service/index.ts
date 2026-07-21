@@ -383,9 +383,16 @@ async function updateSettings(supabaseAdmin: any, req: Request) {
       });
     }
 
+    const allowedSettings: Record<string, unknown> = {};
+    for (const key of ['name', 'location_sharing_enabled', 'sos_sync_enabled', 'alert_sync_enabled']) {
+      if (Object.prototype.hasOwnProperty.call(settings || {}, key)) allowedSettings[key] = settings[key];
+    }
+    if (typeof allowedSettings.name === 'string') allowedSettings.name = allowedSettings.name.trim().slice(0, 50);
+    if (!Object.keys(allowedSettings).length) return new Response(JSON.stringify({ error: 'No valid settings supplied' }), { status: 400, headers: corsHeaders });
+
     const { data: family, error } = await supabaseAdmin
       .from('family_groups')
-      .update(settings)
+      .update(allowedSettings)
       .eq('id', familyId)
       .select()
       .single();

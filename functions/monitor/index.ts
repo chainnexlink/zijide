@@ -231,15 +231,24 @@ function generateMockAlerts(source: AlertSource, now: Date): AlertData[] {
 }
 
 async function notifySubscribers(supabaseAdmin: any, alert: any) {
-  // Basic in-app notifications go to all users with push_enabled
-  const { data: subscribers } = await supabaseAdmin
+  const { data: settingsRows } = await supabaseAdmin
     .from('user_alert_settings')
-    .select('user_id')
+    .select('*')
     .eq('push_enabled', true);
+  if (!settingsRows?.length) return;
+  const userIds = settingsRows.map((item: any) => item.user_id);
+  const [{ data: profiles }, { data: extraLocations }] = await Promise.all([
+    supabaseAdmin.from('profiles').select('id,email,phone,city,country').in('id', userIds),
+    supabaseAdmin.from('monitored_locations').select('user_id,city,country,latitude,longitude,radius_km,is_enabled').in('user_id', userIds).eq('is_enabled', true),
+  ]);
+  const profilesById = new Map((profiles || []).map((item: any) => [item.id, item]));
+  const locationsByUser = new Map<string, any[]>();
+  for (const location of extraLocations || []) locationsByUser.set(location.user_id, [...(locationsByUser.get(location.user_id) || []), location]);
+  const matchedSettings = settingsRows.filter((settings: any) => matchesAlert(settings, profilesById.get(settings.user_id), locationsByUser.get(settings.user_id) || [], alert));
 
-  if (subscribers && subscribers.length > 0) {
-    const notifications = subscribers.map((sub: any) => ({
-      user_id: sub.user_id,
+  if (matchedSettings.length > 0) {
+    const notifications = matchedSettings.map((settings: any) => ({
+      user_id: settings.user_id,
       title: `🚨 ${alert.title}`,
       body: alert.description,
       type: 'alert',
@@ -259,22 +268,10 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
       .gt('expires_at', new Date().toISOString());
 
     if (paidUsers && paidUsers.length > 0) {
-      const paidUserIds = paidUsers.map((u: any) => u.user_id);
-
-      // Get email/phone for paid users
-      const { data: profiles } = await supabaseAdmin
-        .from('profiles')
-        .select('id, email, phone')
-        .in('id', paidUserIds);
-
-      const { data: deliverySettings } = await supabaseAdmin
-        .from('user_alert_settings')
-        .select('user_id,email_enabled,sms_enabled')
-        .in('user_id', paidUserIds);
-      const settingsByUser = new Map((deliverySettings || []).map((item: any) => [item.user_id, item]));
-
+      const paidUserIds = new Set(paidUsers.map((u: any) => u.user_id));
+      const settingsByUser = new Map(matchedSettings.map((item: any) => [item.user_id, item]));
       if (profiles) {
-        for (const profile of profiles) {
+        for (const profile of profiles.filter((item: any) => paidUserIds.has(item.id) && settingsByUser.has(item.id))) {
           const delivery: string[] = [];
           const settings: any = settingsByUser.get(profile.id);
           const subject = `⚠️ WarRescue紧急预警: ${alert.title}`;
@@ -300,6 +297,31 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
     }
   }
 }
+
+function matchesAlert(settings: any, profile: any, extraLocations: any[], alert: any) {
+  const typeColumn: Record<string, string> = { air_strike: 'alert_air_strike', artillery: 'alert_artillery', conflict: 'alert_conflict', curfew: 'alert_curfew' };
+  if (typeColumn[alert.alert_type] && settings[typeColumn[alert.alert_type]] === false) return false;
+  const rank: Record<string, number> = { yellow: 1, orange: 2, red: 3 };
+  if ((rank[alert.severity] || 0) < (rank[settings.min_severity || 'yellow'] || 1)) return false;
+  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start, settings.dnd_end)) return false;
+  const primary = { city: settings.city || profile?.city, country: settings.country || profile?.country, latitude: null, longitude: null, radius_km: settings.monitor_radius_km || 30 };
+  const locations = [primary, ...extraLocations];
+  return locations.some((location: any) => {
+    if (location.city && alert.city && location.city.toLowerCase() === String(alert.city).toLowerCase() && (!location.country || !alert.country || location.country.toLowerCase() === String(alert.country).toLowerCase())) return true;
+    if (location.latitude != null && location.longitude != null && alert.latitude != null && alert.longitude != null) return distanceKm(location, alert) <= Number(location.radius_km || settings.monitor_radius_km || 30);
+    return !location.city && !location.country;
+  });
+}
+
+function isWithinDnd(start?: string, end?: string) {
+  if (!start || !end) return false;
+  const minutes = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
+  const parse = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; };
+  const from = parse(start); const to = parse(end);
+  return from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to;
+}
+
+function distanceKm(a: any, b: any) { const rad = (value: number) => value * Math.PI / 180; const dLat = rad(Number(b.latitude) - Number(a.latitude)); const dLng = rad(Number(b.longitude) - Number(a.longitude)); const value = Math.sin(dLat / 2) ** 2 + Math.cos(rad(Number(a.latitude))) * Math.cos(rad(Number(b.latitude))) * Math.sin(dLng / 2) ** 2; return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value)); }
 
 async function processPendingAlerts(supabaseAdmin: any) {
   // 活跃预警 = end_time IS NULL；按严重级别 TTL 过期（red 2h / orange 4h / yellow 8h）

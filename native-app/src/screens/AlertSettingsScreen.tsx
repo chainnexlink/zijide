@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Screen } from '../components/Screen';
 import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
@@ -10,7 +11,8 @@ type Settings = { monitor_radius_km: number; city: string; country: string; min_
 const defaults: Settings = { monitor_radius_km: 30, city: '', country: '', min_severity: 'yellow', alert_air_strike: true, alert_artillery: true, alert_conflict: true, alert_curfew: true, push_enabled: true, sound_enabled: true, vibration_enabled: true, flash_enabled: true, dnd_enabled: false, precise_location_enabled: true, background_monitor_enabled: true };
 export function AlertSettingsScreen({ navigation }: Props) {
   const [form, setForm] = useState(defaults); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
-  useEffect(() => { void (async () => { const { data: auth } = await supabase.auth.getUser(); if (auth.user) { const { data } = await supabase.from('user_alert_settings').select('*').eq('user_id', auth.user.id).maybeSingle(); if (data) setForm({ ...defaults, ...data }); } setLoading(false); })(); }, []);
+  const load = useCallback(async () => { const { data: auth } = await supabase.auth.getUser(); if (auth.user) { const { data } = await supabase.from('user_alert_settings').select('*').eq('user_id', auth.user.id).maybeSingle(); if (data) setForm({ ...defaults, ...data }); } setLoading(false); }, []);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
   const toggle = (key: keyof Settings) => setForm((current) => ({ ...current, [key]: !current[key] }));
   const save = async () => { setSaving(true); const { data: auth } = await supabase.auth.getUser(); const result = auth.user ? await supabase.from('user_alert_settings').upsert({ user_id: auth.user.id, ...form }, { onConflict: 'user_id' }) : { error: new Error('登录已失效') }; setSaving(false); Alert.alert(result.error ? '保存失败' : '设置已同步', result.error?.message || '新的预警规则已保存到后台'); };
   if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
@@ -20,7 +22,7 @@ export function AlertSettingsScreen({ navigation }: Props) {
     <View style={styles.card}><Text style={styles.title}>最低提醒级别</Text><View style={styles.options}>{(['yellow', 'orange', 'red'] as const).map((value) => <Pressable key={value} style={[styles.range, form.min_severity === value && styles.rangeActive]} onPress={() => setForm((current) => ({ ...current, min_severity: value }))}><Text style={[styles.rangeText, form.min_severity === value && styles.rangeTextActive]}>{value === 'yellow' ? '黄色+' : value === 'orange' ? '橙色+' : '仅红色'}</Text></Pressable>)}</View></View>
     <View style={styles.card}><Text style={styles.title}>预警类型</Text><Toggle label="空袭与导弹" value={form.alert_air_strike} onChange={() => toggle('alert_air_strike')} /><Toggle label="炮击与火箭弹" value={form.alert_artillery} onChange={() => toggle('alert_artillery')} /><Toggle label="地面冲突" value={form.alert_conflict} onChange={() => toggle('alert_conflict')} /><Toggle label="宵禁与管制" value={form.alert_curfew} onChange={() => toggle('alert_curfew')} /></View>
     <View style={styles.card}><Text style={styles.title}>提醒方式</Text><Toggle label="推送通知" value={form.push_enabled} onChange={() => toggle('push_enabled')} /><Toggle label="声音" value={form.sound_enabled} onChange={() => toggle('sound_enabled')} /><Toggle label="震动" value={form.vibration_enabled} onChange={() => toggle('vibration_enabled')} /><Toggle label="闪光灯提醒" value={form.flash_enabled} onChange={() => toggle('flash_enabled')} /><Toggle label="免打扰时段" value={form.dnd_enabled} onChange={() => toggle('dnd_enabled')} /></View>
-    <View style={styles.card}><Text style={styles.title}>高级监控</Text><Toggle label="精准定位" value={form.precise_location_enabled} onChange={() => toggle('precise_location_enabled')} /><Toggle label="后台安全监控" value={form.background_monitor_enabled} onChange={() => toggle('background_monitor_enabled')} /></View>
+    <View style={styles.card}><Text style={styles.title}>高级监控</Text><Toggle label="精准定位" value={form.precise_location_enabled} onChange={() => toggle('precise_location_enabled')} /><Toggle label="后台安全监控" value={form.background_monitor_enabled} onChange={() => toggle('background_monitor_enabled')} /><Pressable onPress={() => navigation.navigate('MonitoredLocations')}><Text style={styles.cityValue}>管理多位置监控 ›</Text></Pressable></View>
     <Pressable style={styles.save} onPress={save} disabled={saving}>{saving ? <ActivityIndicator color={colors.white} /> : <Text style={styles.saveText}>保存并同步后台</Text>}</Pressable>
   </Screen>;
 }

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Screen } from '../components/Screen';
 import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
@@ -11,7 +12,8 @@ type Form = { nickname: string; avatar_url: string; phone: string; email: string
 const empty: Form = { nickname: '', avatar_url: '', phone: '', email: '', gender: 'secret', birth_date: '', city: '', country: '' };
 export function ProfileEditScreen({ navigation }: Props) {
   const [form, setForm] = useState(empty); const [userId, setUserId] = useState(''); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
-  useEffect(() => { void (async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; setUserId(auth.user.id); const { data } = await supabase.from('profiles').select('nickname,avatar_url,phone,email,gender,birth_date,city,country').eq('id', auth.user.id).maybeSingle(); setForm({ ...empty, phone: auth.user.phone || '', email: auth.user.email || '', ...(data || {}) } as Form); setLoading(false); })(); }, []);
+  const load = useCallback(async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; setUserId(auth.user.id); const { data } = await supabase.from('profiles').select('nickname,avatar_url,phone,email,gender,birth_date,city,country').eq('id', auth.user.id).maybeSingle(); setForm({ ...empty, phone: auth.user.phone || '', email: auth.user.email || '', ...(data || {}) } as Form); setLoading(false); }, []);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
   const update = (key: keyof Form, value: string) => setForm((current) => ({ ...current, [key]: value }));
   const pickAvatar = async () => { const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 }); if (result.canceled || !result.assets[0] || !userId) return; setSaving(true); try { const asset = result.assets[0]; const response = await fetch(asset.uri); const bytes = await response.arrayBuffer(); const extension = asset.mimeType?.split('/')[1] || 'jpg'; const path = `${userId}/avatar.${extension}`; const uploaded = await supabase.storage.from('avatars').upload(path, bytes, { contentType: asset.mimeType || 'image/jpeg', upsert: true }); if (uploaded.error) throw uploaded.error; const { data } = supabase.storage.from('avatars').getPublicUrl(path); update('avatar_url', `${data.publicUrl}?v=${Date.now()}`); } catch (error) { Alert.alert('头像上传失败', error instanceof Error ? error.message : '请稍后重试'); } finally { setSaving(false); } };
   const save = async () => { if (!form.nickname.trim()) return Alert.alert('请填写昵称'); setSaving(true); const { error } = await supabase.from('profiles').update({ nickname: form.nickname.trim(), avatar_url: form.avatar_url || null, gender: form.gender, birth_date: form.birth_date || null, city: form.city.trim() || null, country: form.country.trim() || null }).eq('id', userId); setSaving(false); if (error) Alert.alert('保存失败', error.message); else Alert.alert('资料已同步'); };

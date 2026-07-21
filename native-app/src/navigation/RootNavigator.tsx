@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { usePushRegistration } from '../hooks/useDeviceFeatures';
+import { useAlertLocationSync, usePushRegistration } from '../hooks/useDeviceFeatures';
 import { useSession } from '../hooks/useSession';
 import { AlertsScreen } from '../screens/AlertsScreen';
 import { AuthScreen } from '../screens/AuthScreen';
@@ -27,6 +27,18 @@ import { NotificationSettingsScreen } from '../screens/NotificationSettingsScree
 import { MapSettingsScreen } from '../screens/MapSettingsScreen';
 import { OfflineMapsScreen } from '../screens/OfflineMapsScreen';
 import { StorageSettingsScreen } from '../screens/StorageSettingsScreen';
+import { DangerZoneScreen } from '../screens/DangerZoneScreen';
+import { PointsScreen } from '../screens/PointsScreen';
+import { InviteFriendsScreen } from '../screens/InviteFriendsScreen';
+import { SubscriptionScreen } from '../screens/SubscriptionScreen';
+import { AnnouncementsScreen } from '../screens/AnnouncementsScreen';
+import { AnnouncementDetailScreen } from '../screens/AnnouncementDetailScreen';
+import { AboutScreen } from '../screens/AboutScreen';
+import { PasswordResetScreen } from '../screens/PasswordResetScreen';
+import { MonitoredLocationsScreen } from '../screens/MonitoredLocationsScreen';
+import { LanguageScreen } from '../screens/LanguageScreen';
+import { NewsScreen } from '../screens/NewsScreen';
+import { NewsDetailScreen } from '../screens/NewsDetailScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -57,6 +69,18 @@ export type RootStackParams = {
   MapSettings: undefined;
   OfflineMaps: undefined;
   StorageSettings: undefined;
+  DangerZone: { alertId: string };
+  Points: undefined;
+  InviteFriends: undefined;
+  Subscription: undefined;
+  Announcements: undefined;
+  AnnouncementDetail: { announcement: { id: string; title: string; content: string; type: string; created_at: string } };
+  About: undefined;
+  PasswordReset: undefined;
+  MonitoredLocations: undefined;
+  Language: undefined;
+  News: undefined;
+  NewsDetail: { article: { id: string; title: string; summary: string | null; content: string; category: string; author: string | null; tags: string[]; published_at: string; view_count: number } };
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -73,6 +97,7 @@ const icons: Record<string, string> = {
 export function RootNavigator() {
   const { session, loading } = useSession();
   usePushRegistration(Boolean(session));
+  useAlertLocationSync(Boolean(session));
 
   if (loading) {
     return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
@@ -81,6 +106,7 @@ export function RootNavigator() {
     {!session ? <>
       <Stack.Screen name="Auth" component={AuthScreen} />
       <Stack.Screen name="LegalDocument" component={LegalDocumentScreen} />
+      <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
     </> : <>
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="EmergencyProfile" component={EmergencyProfileScreen} />
@@ -100,6 +126,18 @@ export function RootNavigator() {
       <Stack.Screen name="MapSettings" component={MapSettingsScreen} />
       <Stack.Screen name="OfflineMaps" component={OfflineMapsScreen} />
       <Stack.Screen name="StorageSettings" component={StorageSettingsScreen} />
+      <Stack.Screen name="DangerZone" component={DangerZoneScreen} />
+      <Stack.Screen name="Points" component={PointsScreen} />
+      <Stack.Screen name="InviteFriends" component={InviteFriendsScreen} />
+      <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+      <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
+      <Stack.Screen name="AnnouncementDetail" component={AnnouncementDetailScreen} />
+      <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="MonitoredLocations" component={MonitoredLocationsScreen} />
+      <Stack.Screen name="Language" component={LanguageScreen} />
+      <Stack.Screen name="News" component={NewsScreen} />
+      <Stack.Screen name="NewsDetail" component={NewsDetailScreen} />
+      <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
     </>}
   </Stack.Navigator>;
 }

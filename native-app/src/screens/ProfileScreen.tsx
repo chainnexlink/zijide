@@ -47,10 +47,17 @@ export function ProfileScreen() {
         <Menu label="通知设置" description="推送、短信、邮件、声音和免打扰" onPress={() => navigation.navigate('NotificationSettings')} />
         <Menu label="地图设置" description="地图类型、路线偏好、图层和单位" onPress={() => navigation.navigate('MapSettings')} />
         <Menu label="存储设置" description="缓存、离线包和本地数据" onPress={() => navigation.navigate('StorageSettings')} />
+        <Menu label="语言 / Language" description="9种预警与紧急信息语言" onPress={() => navigation.navigate('Language')} />
         <Menu label="紧急医疗资料" description="血型、病史、用药和紧急联系人" onPress={() => navigation.navigate('EmergencyProfile')} />
         <Menu label="SOS 历史" description="查看求救状态与救援阶段" onPress={() => navigation.navigate('SOSHistory')} />
         <Menu label="家庭守护" description="创建或加入家庭、位置和SOS联动" onPress={() => navigation.navigate('Family')} />
         <Menu label="1公里互助" description="附近求救、响应、到达、完成与积分" onPress={() => navigation.navigate('MutualAid')} />
+        <Menu label="互助积分" description="积分明细与兑换免费订阅时长" onPress={() => navigation.navigate('Points')} />
+        <Menu label="邀请好友" description="邀请码、分享、注册记录与5折券" onPress={() => navigation.navigate('InviteFriends')} />
+        <Menu label="订阅服务" description="个人/家庭方案、Apple购买与恢复" onPress={() => navigation.navigate('Subscription')} />
+        <Menu label="公告与安全资讯" description="平台通知和重要安全说明" onPress={() => navigation.navigate('Announcements')} />
+        <Menu label="安全资讯文章" description="避险指南、功能说明与风险知识" onPress={() => navigation.navigate('News')} />
+        <Menu label="关于 WarRescue" description="使命、版本与重要说明" onPress={() => navigation.navigate('About')} />
         <Menu label="账号安全" description="修改密码、退出设备和注销账号" onPress={() => navigation.navigate('AccountSecurity')} />
         <Menu label="用户协议" description="查看服务使用规则" onPress={() => navigation.navigate('LegalDocument', { kind: 'terms' })} />
         <Menu label="隐私政策" description="查看信息收集与使用说明" onPress={() => navigation.navigate('LegalDocument', { kind: 'privacy' })} />

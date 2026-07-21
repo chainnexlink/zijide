@@ -22,6 +22,16 @@ jobs:
         with:
           version: latest
 
+      - name: Apply native parity database migration
+        run: |
+          jq -Rs '{query: .}' migrations/20260720_native_parity.sql | \
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              --url "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
+              --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data-binary @- >/dev/null
+
       - name: Prepare functions (CLI 期望放在 supabase/functions/)
         run: |
           mkdir -p supabase/functions
