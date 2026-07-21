@@ -31,18 +31,18 @@ export function SOSScreen() {
         body: { action: 'trigger', triggerMethod: 'manual', latitude, longitude, address },
       });
       if (error) throw error;
-      if (!data?.success && !data?.sosId) throw new Error(data?.error || 'SOS 发送失败');
+      if (!data?.success && !data?.sosId) throw new Error(data?.error || 'SOS ????');
       setLastSosId(data.sosId);
-      Alert.alert('SOS 已发送', '家人、附近救援人员和紧急联系人已收到通知。请保持电话畅通。');
+      Alert.alert('SOS ???', '?????????????????????????????');
     } catch (error) {
-      Alert.alert('无法发送 SOS', error instanceof Error ? error.message : '请检查网络后重试');
+      Alert.alert('???? SOS', error instanceof Error ? error.message : '????????');
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <Screen title="紧急求救" subtitle="长按按钮 1 秒，防止误触">
+    <Screen title="????" subtitle="???? 1 ??????">
       <View style={styles.hero}>
         <View style={styles.ringOuter}>
           <View style={styles.ringInner}>
@@ -51,22 +51,22 @@ export function SOSScreen() {
               onLongPress={trigger}
               delayLongPress={1000}
               disabled={sending}
-              accessibilityLabel="长按发送 SOS"
+              accessibilityLabel="???? SOS"
             >
-              {sending ? <ActivityIndicator color={colors.white} size="large" /> : <><Text style={styles.sosText}>SOS</Text><Text style={styles.hold}>长按求救</Text></>}
+              {sending ? <ActivityIndicator color={colors.white} size="large" /> : <><Text style={styles.sosText}>SOS</Text><Text style={styles.hold}>????</Text></>}
             </Pressable>
           </View>
         </View>
-        <Text style={styles.hint}>触发后会上传当前位置，并通知家人、附近互助人员及紧急联系人。</Text>
+        <Text style={styles.hint}>??????????????????????????????</Text>
       </View>
 
-      {lastSosId ? <View style={styles.active}><Text style={styles.activeTitle}>求救信号已激活</Text><Text style={styles.activeId}>编号 {lastSosId.slice(0, 8).toUpperCase()}</Text></View> : null}
+      {lastSosId ? <View style={styles.active}><Text style={styles.activeTitle}>???????</Text><Text style={styles.activeId}>?? {lastSosId.slice(0, 8).toUpperCase()}</Text></View> : null}
 
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>发送前请确认</Text>
-        <Info text="仅在真实危险或紧急医疗情况下使用" />
-        <Info text="允许定位可显著提高救援速度" />
-        <Info text="发送后保持设备联网并留意来电" />
+        <Text style={styles.infoTitle}>??????</Text>
+        <Info text="????????????????" />
+        <Info text="?????????????" />
+        <Info text="??????????????" />
       </View>
     </Screen>
   );

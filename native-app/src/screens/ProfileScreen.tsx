@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -18,44 +18,60 @@ export function ProfileScreen() {
     void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       setEmail(data.user.email || '');
-      const { data: row } = await supabase.from('profiles').select('id,nickname,email,city,country,blood_type,emergency_contact_name,emergency_contact_phone').eq('id', data.user.id).maybeSingle();
+      const { data: row } = await supabase.from('profiles').select('id,nickname,avatar_url,email,city,country,blood_type,emergency_contact_name,emergency_contact_phone').eq('id', data.user.id).maybeSingle();
       setProfile(row as ProfileRow | null);
     });
   }, []);
 
   return (
-    <Screen title="我的" subtitle="个人安全与设备设置">
+    <Screen title="??" subtitle="?????????">
       <View style={styles.identity}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{(profile?.nickname || email || 'W').slice(0, 1).toUpperCase()}</Text></View>
+        {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.avatarText}>{(profile?.nickname || email || 'W').slice(0, 1).toUpperCase()}</Text></View>}
         <View style={styles.identityText}>
-          <Text style={styles.name}>{profile?.nickname || 'WarRescue 用户'}</Text>
+          <Text style={styles.name}>{profile?.nickname || 'WarRescue ??'}</Text>
           <Text style={styles.email}>{email}</Text>
-          <Text style={styles.location}>{[profile?.city, profile?.country].filter(Boolean).join(' · ') || '尚未设置常驻地点'}</Text>
+          <Text style={styles.location}>{[profile?.city, profile?.country].filter(Boolean).join(' ? ') || '????????'}</Text>
         </View>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>紧急资料</Text>
-        <Row label="血型" value={profile?.blood_type || '未设置'} />
-        <Row label="紧急联系人" value={profile?.emergency_contact_name || '未设置'} />
-        <Row label="联系电话" value={profile?.emergency_contact_phone || '未设置'} />
+        <Text style={styles.cardTitle}>????</Text>
+        <Row label="??" value={profile?.blood_type || '???'} />
+        <Row label="?????" value={profile?.emergency_contact_name || '???'} />
+        <Row label="????" value={profile?.emergency_contact_phone || '???'} />
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>安全服务</Text>
-        <Menu label="紧急医疗资料" description="血型、病史、用药和紧急联系人" onPress={() => navigation.navigate('EmergencyProfile')} />
-        <Menu label="SOS 历史" description="查看求救状态与救援阶段" onPress={() => navigation.navigate('SOSHistory')} />
+        <Text style={styles.cardTitle}>????</Text>
+        <Menu label="??????" description="????????????????" onPress={() => navigation.navigate('ProfileEdit')} />
+        <Menu label="????" description="???????????????" onPress={() => navigation.navigate('NotificationSettings')} />
+        <Menu label="????" description="???????????????" onPress={() => navigation.navigate('MapSettings')} />
+        <Menu label="????" description="???????????" onPress={() => navigation.navigate('StorageSettings')} />
+        <Menu label="?? / Language" description="9??????????" onPress={() => navigation.navigate('Language')} />
+        <Menu label="??????" description="??????????????" onPress={() => navigation.navigate('EmergencyProfile')} />
+        <Menu label="SOS ??" description="???????????" onPress={() => navigation.navigate('SOSHistory')} />
+        <Menu label="????" description="???????????SOS??" onPress={() => navigation.navigate('Family')} />
+        <Menu label="1????" description="????????????????" onPress={() => navigation.navigate('MutualAid')} />
+        <Menu label="????" description="?????????????" onPress={() => navigation.navigate('Points')} />
+        <Menu label="????" description="????????????5??" onPress={() => navigation.navigate('InviteFriends')} />
+        <Menu label="????" description="??/?????Apple?????" onPress={() => navigation.navigate('Subscription')} />
+        <Menu label="???????" description="???????????" onPress={() => navigation.navigate('Announcements')} />
+        <Menu label="??????" description="??????????????" onPress={() => navigation.navigate('News')} />
+        <Menu label="?? WarRescue" description="??????????" onPress={() => navigation.navigate('About')} />
+        <Menu label="????" description="??????????????" onPress={() => navigation.navigate('AccountSecurity')} />
+        <Menu label="????" description="????????" onPress={() => navigation.navigate('LegalDocument', { kind: 'terms' })} />
+        <Menu label="????" description="???????????" onPress={() => navigation.navigate('LegalDocument', { kind: 'privacy' })} />
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>App 状态</Text>
-        <Row label="推送通知" value="已启用" tone={colors.safe} />
-        <Row label="安全监测" value="运行中" tone={colors.safe} />
-        <Row label="版本" value="1.0.0 Native" />
+        <Text style={styles.cardTitle}>App ??</Text>
+        <Row label="????" value="???" tone={colors.safe} />
+        <Row label="????" value="???" tone={colors.safe} />
+        <Row label="??" value="1.0.0 Native" />
       </View>
 
       <Pressable style={styles.logout} onPress={() => void supabase.auth.signOut()}>
-        <Text style={styles.logoutText}>退出登录</Text>
+        <Text style={styles.logoutText}>????</Text>
       </Pressable>
     </Screen>
   );
@@ -66,7 +82,7 @@ function Row({ label, value, tone }: { label: string; value: string; tone?: stri
 }
 
 function Menu({ label, description, onPress }: { label: string; description: string; onPress: () => void }) {
-  return <Pressable style={styles.menu} onPress={onPress}><View style={styles.menuText}><Text style={styles.menuLabel}>{label}</Text><Text style={styles.menuDescription}>{description}</Text></View><Text style={styles.chevron}>›</Text></Pressable>;
+  return <Pressable style={styles.menu} onPress={onPress}><View style={styles.menuText}><Text style={styles.menuLabel}>{label}</Text><Text style={styles.menuDescription}>{description}</Text></View><Text style={styles.chevron}>?</Text></Pressable>;
 }
 
 const styles = StyleSheet.create({

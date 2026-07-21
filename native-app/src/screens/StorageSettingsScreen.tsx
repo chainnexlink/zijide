@@ -1,0 +1,28 @@
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Screen } from '../components/Screen';
+import { supabase } from '../lib/supabase';
+import { colors, radius, spacing } from '../theme';
+import type { RootStackParams } from '../navigation/RootNavigator';
+type Props = NativeStackScreenProps<RootStackParams, 'StorageSettings'>;
+export function StorageSettingsScreen({ navigation }: Props) {
+  const [cache, setCache] = useState(0); const [offline, setOffline] = useState(0); const [keys, setKeys] = useState(0);
+  const load = async () => { const all = await AsyncStorage.getAllKeys(); setKeys(all.length); setCache(await directorySize(FileSystem.cacheDirectory)); setOffline(await directorySize(`${FileSystem.documentDirectory}offline-maps/`)); };
+  useEffect(() => { void load(); }, []);
+  const clearCache = () => Alert.alert('??????', '?????????????', [{ text: '??', style: 'cancel' }, { text: '??', onPress: async () => { if (FileSystem.cacheDirectory) await FileSystem.deleteAsync(FileSystem.cacheDirectory, { idempotent: true }); await load(); } }]);
+  const clearOffline = () => Alert.alert('???????', '???????????????', [{ text: '??', style: 'cancel' }, { text: '??', style: 'destructive', onPress: async () => { await FileSystem.deleteAsync(`${FileSystem.documentDirectory}offline-maps/`, { idempotent: true }); await AsyncStorage.removeItem('offline-map-packs'); await load(); } }]);
+  const reset = () => Alert.alert('????????', '????????????????????????????????', [{ text: '??', style: 'cancel' }, { text: '??', style: 'destructive', onPress: async () => { await AsyncStorage.clear(); if (FileSystem.cacheDirectory) await FileSystem.deleteAsync(FileSystem.cacheDirectory, { idempotent: true }); await FileSystem.deleteAsync(`${FileSystem.documentDirectory}offline-maps/`, { idempotent: true }); await supabase.auth.signOut(); } }]);
+  return <Screen title="????" subtitle="??????" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>??</Text></Pressable>}>
+    <View style={styles.overview}><Text style={styles.total}>{format(cache + offline)}</Text><Text style={styles.totalLabel}>WarRescue????</Text><View style={styles.bar}><View style={[styles.segment, { flex: cache || 1, backgroundColor: colors.info }]} /><View style={[styles.segment, { flex: offline || 1, backgroundColor: colors.safe }]} /></View><Row label="?????" value={format(cache)} tone={colors.info} /><Row label="?????" value={format(offline)} tone={colors.safe} /><Row label="?????" value={`${keys} ?`} /></View>
+    <View style={styles.card}><Action label="??????" description="??????????" onPress={clearCache} /><Action label="??????" description="?????????" onPress={clearOffline} /><Action label="??????" description="??????????" onPress={() => navigation.navigate('OfflineMaps')} /></View>
+    <Pressable style={styles.reset} onPress={reset}><Text style={styles.resetText}>????????</Text></Pressable>
+  </Screen>;
+}
+async function directorySize(uri: string | null): Promise<number> { if (!uri) return 0; try { const info = await FileSystem.getInfoAsync(uri); if (!info.exists) return 0; if (!info.isDirectory) return info.size || 0; const names = await FileSystem.readDirectoryAsync(uri); return (await Promise.all(names.map((name): Promise<number> => directorySize(`${uri}${uri.endsWith('/') ? '' : '/'}${name}`)))).reduce((a, b) => a + b, 0); } catch { return 0; } }
+function format(value: number) { return value < 1024 ? `${value} B` : value < 1048576 ? `${(value / 1024).toFixed(1)} KB` : `${(value / 1048576).toFixed(1)} MB`; }
+function Row({ label, value, tone = colors.text }: { label: string; value: string; tone?: string }) { return <View style={styles.row}><Text style={styles.rowLabel}>{label}</Text><Text style={[styles.rowValue, { color: tone }]}>{value}</Text></View>; }
+function Action({ label, description, onPress }: { label: string; description: string; onPress: () => void }) { return <Pressable style={styles.action} onPress={onPress}><View><Text style={styles.actionTitle}>{label}</Text><Text style={styles.actionDescription}>{description}</Text></View><Text style={styles.chevron}>?</Text></Pressable>; }
+const styles = StyleSheet.create({ back: { color: colors.info, fontWeight: '800' }, overview: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm }, total: { color: colors.text, fontSize: 34, fontWeight: '900' }, totalLabel: { color: colors.muted }, bar: { height: 10, flexDirection: 'row', borderRadius: 5, overflow: 'hidden', marginVertical: spacing.sm }, segment: { minWidth: 4 }, row: { flexDirection: 'row', justifyContent: 'space-between' }, rowLabel: { color: colors.muted }, rowValue: { fontWeight: '800' }, card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.lg }, action: { minHeight: 66, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth }, actionTitle: { color: colors.text, fontWeight: '900' }, actionDescription: { color: colors.muted, fontSize: 12, marginTop: 4 }, chevron: { color: colors.muted, fontSize: 27 }, reset: { height: 50, borderRadius: radius.md, borderColor: '#EF444466', borderWidth: 1, alignItems: 'center', justifyContent: 'center' }, resetText: { color: colors.danger, fontWeight: '900' } });

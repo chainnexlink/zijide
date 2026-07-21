@@ -1,18 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Screen } from '../components/Screen';
 import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { AlertRow } from '../types';
+import type { RootStackParams } from '../navigation/RootNavigator';
+import { readOfflineCollection } from '../lib/offlinePacks';
 
 export function AlertsScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,is_active').order('created_at', { ascending: false }).limit(50);
-    setAlerts((data || []) as AlertRow[]);
+    const { data, error } = await supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,is_active').order('created_at', { ascending: false }).limit(50);
+    const online = (data || []) as AlertRow[];
+    setAlerts(error || online.length === 0 ? await readOfflineCollection<AlertRow>('alerts') : online);
   }, []);
 
   useEffect(() => {
@@ -24,19 +30,20 @@ export function AlertsScreen() {
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
   return (
-    <Screen title="预警中心" subtitle="按时间与危险级别实时更新" refreshing={refreshing} onRefresh={refresh}>
-      {alerts.length === 0 ? <Text style={styles.empty}>暂时没有预警记录</Text> : alerts.map((alert) => {
+    <Screen title="????" subtitle="????????????" refreshing={refreshing} onRefresh={refresh} action={<View style={styles.headerActions}><Pressable onPress={() => navigation.navigate('AlertHistory')}><Text style={styles.headerLink}>??</Text></Pressable><Pressable onPress={() => navigation.navigate('AlertSettings')}><Text style={styles.headerLink}>??</Text></Pressable></View>}>
+      {alerts.length === 0 ? <Text style={styles.empty}>????????</Text> : alerts.map((alert) => {
         const tone = alert.severity === 'red' ? colors.danger : alert.severity === 'orange' ? colors.warning : colors.info;
         return (
-          <View key={alert.id} style={styles.card}>
+          <Pressable key={alert.id} style={styles.card} onPress={() => navigation.navigate('AlertDetail', { alertId: alert.id })}>
             <View style={styles.top}>
               <View style={[styles.level, { backgroundColor: `${tone}22`, borderColor: tone }]}><Text style={[styles.levelText, { color: tone }]}>{alert.severity.toUpperCase()}</Text></View>
               <Text style={styles.time}>{formatTime(alert.created_at)}</Text>
             </View>
             <Text style={styles.title}>{alert.title}</Text>
-            <Text style={styles.location}>{[alert.city, alert.country].filter(Boolean).join(' · ') || '位置未知'} · {alert.alert_type}</Text>
+            <Text style={styles.location}>{[alert.city, alert.country].filter(Boolean).join(' ? ') || '????'} ? {alert.alert_type}</Text>
             {alert.description ? <Text style={styles.description}>{alert.description}</Text> : null}
-          </View>
+            <Text style={styles.detail}>????????? ?</Text>
+          </Pressable>
         );
       })}
     </Screen>
@@ -58,4 +65,5 @@ const styles = StyleSheet.create({
   location: { color: colors.info, fontSize: 13, marginTop: 5 },
   description: { color: '#CBD5E1', lineHeight: 20, marginTop: spacing.sm },
   empty: { color: colors.muted, textAlign: 'center', paddingTop: 60 },
+  headerActions: { flexDirection: 'row', gap: spacing.md }, headerLink: { color: colors.info, fontWeight: '800' }, detail: { color: colors.info, fontSize: 12, fontWeight: '800', marginTop: spacing.sm },
 });

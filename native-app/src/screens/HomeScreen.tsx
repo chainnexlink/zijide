@@ -35,29 +35,29 @@ export function HomeScreen({ navigation }: Props) {
   const danger = alerts.some((alert) => alert.severity === 'red');
 
   return (
-    <Screen title="WarRescue" subtitle="实时守护已开启" refreshing={refreshing} onRefresh={refresh}>
+    <Screen title="WarRescue" subtitle="???????" refreshing={refreshing} onRefresh={refresh}>
       <View style={[styles.status, danger ? styles.statusDanger : styles.statusSafe]}>
         <View style={[styles.pulse, { backgroundColor: danger ? colors.danger : colors.safe }]} />
         <View style={styles.statusText}>
-          <Text style={styles.statusTitle}>{danger ? '附近存在紧急预警' : '当前位置暂时安全'}</Text>
-          <Text style={styles.statusSub}>{danger ? '请查看预警并准备前往安全区域' : '系统正在监测附近威胁与避难资源'}</Text>
+          <Text style={styles.statusTitle}>{danger ? '????????' : '????????'}</Text>
+          <Text style={styles.statusSub}>{danger ? '??????????????' : '???????????????'}</Text>
         </View>
       </View>
 
       <View style={styles.quickGrid}>
-        <Quick title="实时预警" value={`${alerts.length} 条`} tone={colors.danger} onPress={() => navigation.navigate('Alerts')} />
-        <Quick title="开放避难所" value={`${shelterCount} 个`} tone={colors.safe} onPress={() => navigation.navigate('Shelters')} />
-        <Quick title="一键 SOS" value="长按触发" tone={colors.warning} onPress={() => navigation.navigate('SOS')} />
-        <Quick title="家人安全" value="查看状态" tone={colors.info} onPress={() => navigation.navigate('Profile')} />
+        <Quick title="????" value={`${alerts.length} ?`} tone={colors.danger} onPress={() => navigation.navigate('Alerts')} />
+        <Quick title="?????" value={`${shelterCount} ?`} tone={colors.safe} onPress={() => navigation.navigate('Shelters')} />
+        <Quick title="?? SOS" value="????" tone={colors.warning} onPress={() => navigation.navigate('SOS')} />
+        <Quick title="????" value="????" tone={colors.info} onPress={() => navigation.navigate('Profile')} />
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>附近预警</Text>
-        <Pressable onPress={() => navigation.navigate('Alerts')}><Text style={styles.link}>查看全部</Text></Pressable>
+        <Text style={styles.sectionTitle}>????</Text>
+        <Pressable onPress={() => navigation.navigate('Alerts')}><Text style={styles.link}>????</Text></Pressable>
       </View>
 
       {alerts.length === 0 ? (
-        <View style={styles.empty}><Text style={styles.emptyTitle}>当前没有活跃预警</Text><Text style={styles.emptySub}>下拉可刷新最新安全信息</Text></View>
+        <View style={styles.empty}><Text style={styles.emptyTitle}>????????</Text><Text style={styles.emptySub}>???????????</Text></View>
       ) : alerts.map((alert) => <AlertPreview key={alert.id} alert={alert} />)}
     </Screen>
   );
@@ -80,7 +80,7 @@ function AlertPreview({ alert }: { alert: AlertRow }) {
       <View style={[styles.alertBar, { backgroundColor: tone }]} />
       <View style={styles.alertBody}>
         <View style={styles.alertTop}><Text style={styles.alertTitle}>{alert.title}</Text><Text style={[styles.badge, { color: tone }]}>{alert.severity.toUpperCase()}</Text></View>
-        <Text style={styles.alertMeta}>{[alert.city, alert.country].filter(Boolean).join(' · ') || '位置确认中'}</Text>
+        <Text style={styles.alertMeta}>{[alert.city, alert.country].filter(Boolean).join(' ? ') || '?????'}</Text>
         {alert.description ? <Text style={styles.alertDescription} numberOfLines={2}>{alert.description}</Text> : null}
       </View>
     </View>

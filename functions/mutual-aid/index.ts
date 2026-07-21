@@ -44,7 +44,7 @@ const REWARD_POINTS = {
   completion: 50,
 };
 
-// ===== 鉴权:从 Authorization 令牌取真实身份,绝不信任 body/query 里传来的 userId（防冒名刷积分）=====
+// ===== ??:? Authorization ???????,???? body/query ???? userId????????=====
 async function authPrincipal(
   supabaseAdmin: any,
   req: Request,
@@ -59,7 +59,7 @@ async function authPrincipal(
 function unauthorized(msg = 'Unauthorized') {
   return new Response(JSON.stringify({ error: msg }), { status: 401, headers: corsHeaders });
 }
-// 操作者真实 userId:普通用户=令牌身份;service_role 内部调用=用传入值
+// ????? userId:????=????;service_role ????=????
 function actingUserId(principal: any, fallback?: string): string | null {
   return principal.kind === 'service' ? (fallback || null) : principal.userId;
 }
@@ -78,8 +78,8 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     let action = url.searchParams.get('action') || '';
 
-    // 前端通过 supabase.functions.invoke 将 action 放在 body 中
-    // 仅 URL 参数为空时从 body 读取，使用 clone() 保留原始 body
+    // ???? supabase.functions.invoke ? action ?? body ?
+    // ? URL ?????? body ????? clone() ???? body
     if (!action && req.method === 'POST') {
       try {
         const clonedBody = await req.clone().json();
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     }
     if (!action) action = 'subscribe';
 
-    // 鉴权:所有接口都要求有效登录令牌（或 service_role 内部调用）
+    // ??:??????????????? service_role ?????
     const principal = await authPrincipal(supabaseAdmin, req);
     if (!principal) return unauthorized();
 
@@ -229,10 +229,12 @@ async function unsubscribe(supabaseAdmin: any, req: Request, principal: any) {
 async function getNearbySOS(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const url = new URL(req.url);
-    const userId = actingUserId(principal, url.searchParams.get('userId') || undefined);
+    let body: any = {};
+    if (req.method === 'POST') { try { body = await req.json(); } catch {} }
+    const userId = actingUserId(principal, body.userId || url.searchParams.get('userId') || undefined);
     if (!userId) return unauthorized('no user');
-    const latitude = parseFloat(url.searchParams.get('lat') || '0');
-    const longitude = parseFloat(url.searchParams.get('lng') || '0');
+    const latitude = Number(body.latitude ?? body.lat ?? url.searchParams.get('lat') ?? 0);
+    const longitude = Number(body.longitude ?? body.lng ?? url.searchParams.get('lng') ?? 0);
 
     const { data: subscription } = await supabaseAdmin
       .from('mutual_aid_subscriptions')
@@ -307,7 +309,7 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
       });
     }
 
-    // 只能响应仍处于 active 的求救（防止对已结束/取消的 SOS 刷“响应”分）
+    // ??????? active ??????????/??? SOS ???????
     const { data: sosActive } = await supabaseAdmin
       .from('sos_records')
       .select('status')
@@ -332,7 +334,7 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.response, '互助响应奖励', sosId);
+    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.response, '??????', sosId);
 
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
@@ -343,7 +345,7 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
     if (sos) {
       await supabaseAdmin.from('notifications').insert({
         user_id: sos.user_id,
-        title: '🤝 Help is on the way',
+        title: '?? Help is on the way',
         body: 'Someone is responding to your SOS',
         type: 'sos_response',
         data: { sos_id: sosId, responder_id: userId },
@@ -370,7 +372,7 @@ async function markArrived(supabaseAdmin: any, req: Request, principal: any) {
     const userId = actingUserId(principal, body.userId);
     if (!userId) return unauthorized('no user');
 
-    // 必须先处于 'responding' 才能标记到达（防跳步刷分）
+    // ????? 'responding' ?????????????
     const { data: existing } = await supabaseAdmin
       .from('mutual_aid_responses')
       .select('*')
@@ -384,7 +386,7 @@ async function markArrived(supabaseAdmin: any, req: Request, principal: any) {
       return new Response(JSON.stringify({ error: 'Invalid state: ' + existing.status }), { status: 400, headers: corsHeaders });
     }
 
-    // GPS 到场核实：响应者当前坐标须在求救点 300m 内（SOS 有坐标时强制），杜绝“没到场就领到达分”
+    // GPS ????????????????? 300m ??SOS ????????????????????
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
       .select('latitude, longitude')
@@ -415,7 +417,7 @@ async function markArrived(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.arrival, '互助到场奖励', sosId);
+    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.arrival, '??????', sosId);
 
     return new Response(JSON.stringify({
       success: true,
@@ -437,7 +439,7 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
     const userId = actingUserId(principal, body.userId);
     if (!userId) return unauthorized('no user');
 
-    // 必须先“到达”才能“完成”（防止跳过到达直接领完成分）
+    // ???????????????????????????
     const { data: existing } = await supabaseAdmin
       .from('mutual_aid_responses')
       .select('id, status')
@@ -463,7 +465,7 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.completion, '互助完成奖励', sosId);
+    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.completion, '??????', sosId);
 
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
@@ -474,7 +476,7 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
     if (sos) {
       await supabaseAdmin.from('notifications').insert({
         user_id: sos.user_id,
-        title: '✅ Rescue completed',
+        title: '? Rescue completed',
         body: 'Your SOS has been resolved',
         type: 'sos_completed',
         data: { sos_id: sosId },
@@ -522,7 +524,9 @@ async function cancelResponse(supabaseAdmin: any, req: Request, principal: any) 
 async function getResponses(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const url = new URL(req.url);
-    const userId = actingUserId(principal, url.searchParams.get('userId') || undefined);
+    let body: any = {};
+    if (req.method === 'POST') { try { body = await req.json(); } catch {} }
+    const userId = actingUserId(principal, body.userId || url.searchParams.get('userId') || undefined);
     if (!userId) return unauthorized('no user');
 
     const { data: responses } = await supabaseAdmin
@@ -546,7 +550,9 @@ async function getResponses(supabaseAdmin: any, req: Request, principal: any) {
 async function getStats(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const url = new URL(req.url);
-    const userId = actingUserId(principal, url.searchParams.get('userId') || undefined);
+    let body: any = {};
+    if (req.method === 'POST') { try { body = await req.json(); } catch {} }
+    const userId = actingUserId(principal, body.userId || url.searchParams.get('userId') || undefined);
     if (!userId) return unauthorized('no user');
 
     const { data: subscription } = await supabaseAdmin
@@ -612,10 +618,10 @@ async function addRewardPoints(
   supabaseAdmin: any,
   userId: string,
   points: number,
-  reason = '互助救援奖励',
+  reason = '??????',
   referenceId?: string,
 ) {
-  // 1) 互助排行榜累计分（get-leaderboard 读 mutual_aid_subscriptions.total_rewards）
+  // 1) ?????????get-leaderboard ? mutual_aid_subscriptions.total_rewards?
   const { data: subscription } = await supabaseAdmin
     .from('mutual_aid_subscriptions')
     .select('total_rewards')
@@ -629,8 +635,8 @@ async function addRewardPoints(
       .eq('user_id', userId);
   }
 
-  // 2) 统一积分钱包（/points 显示 + 可抵扣订阅）。原子入账，避免读-改-写竞态；
-  //    之前漏了这一步 —— 互助积分发了却进不了钱包。
+  // 2) ???????/points ?? + ???????????????-?-????
+  //    ??????? ?? ?????????????
   const { error: walletErr } = await supabaseAdmin.rpc('credit_user_points', {
     p_user_id: userId,
     p_amount: points,

@@ -37,6 +37,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function authPrincipal(supabaseAdmin: any, req: Request): Promise<{ kind: 'service' } | { kind: 'user'; userId: string } | null> {
+  const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  if (!token) return null;
+  if (token === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '___no_service_key___')) return { kind: 'service' };
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  return user ? { kind: 'user', userId: user.id } : null;
+}
+
+function unauthorized(message = 'Unauthorized') {
+  return new Response(JSON.stringify({ error: message }), { status: 401, headers: corsHeaders });
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -50,16 +62,28 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     let action = url.searchParams.get('action') || '';
+    let requestBody: any = {};
 
-    // 前端通过 supabase.functions.invoke 将 action 放在 body 中
-    // 仅 URL 参数为空时从 body 读取，使用 clone() 保留原始 body
+    // ???? supabase.functions.invoke ? action ?? body ?
+    // ? URL ?????? body ????? clone() ???? body
     if (!action && req.method === 'POST') {
       try {
-        const clonedBody = await req.clone().json();
-        action = clonedBody.action || '';
+        requestBody = await req.clone().json();
+        action = requestBody.action || '';
       } catch {}
     }
     if (!action) action = 'get-family';
+
+    const principal = await authPrincipal(supabaseAdmin, req);
+    if (!principal) return unauthorized();
+    if (principal.kind === 'user') {
+      const claimedUserId = action === 'remove-member'
+        ? requestBody.adminId
+        : action === 'transfer-admin'
+          ? requestBody.currentAdminId
+          : (requestBody.userId || url.searchParams.get('userId'));
+      if (!claimedUserId || claimedUserId !== principal.userId) return unauthorized('Cannot act as another user');
+    }
 
     switch (action) {
       case 'create-family':
@@ -102,6 +126,9 @@ async function createFamily(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
     const { userId, name } = body;
+
+    const { data: currentMembership } = await supabaseAdmin.from('family_members').select('id').eq('user_id', userId).maybeSingle();
+    if (currentMembership) return new Response(JSON.stringify({ error: 'Already belongs to a family' }), { status: 400, headers: corsHeaders });
 
     const inviteCode = generateInviteCode();
 
@@ -154,6 +181,9 @@ async function joinFamily(supabaseAdmin: any, req: Request) {
     const body = await req.json();
     const { userId, inviteCode } = body;
 
+    const { data: currentMembership } = await supabaseAdmin.from('family_members').select('id').eq('user_id', userId).maybeSingle();
+    if (currentMembership) return new Response(JSON.stringify({ error: 'Already belongs to a family' }), { status: 400, headers: corsHeaders });
+
     const { data: family } = await supabaseAdmin
       .from('family_groups')
       .select('*')
@@ -205,7 +235,7 @@ async function joinFamily(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('*, profiles(*)')
+      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,battery_level,safety_status,profiles(nickname,avatar_url,city,country)')
       .eq('family_id', family.id);
 
     await notifyFamilyMembers(supabaseAdmin, family.id, userId, 'new_member');
@@ -287,7 +317,7 @@ async function getFamily(supabaseAdmin: any, req: Request) {
     const url = new URL(req.url);
     let userId = url.searchParams.get('userId');
 
-    // 支持从 body 读取 userId（前端通过 supabase.functions.invoke 调用时）
+    // ??? body ?? userId????? supabase.functions.invoke ????
     if (!userId && req.method === 'POST') {
       try {
         const body = await req.json();
@@ -317,7 +347,7 @@ async function getFamily(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('*, profiles(*)')
+      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,battery_level,safety_status,profiles(nickname,avatar_url,city,country)')
       .eq('family_id', member.family_id);
 
     return new Response(JSON.stringify({
@@ -353,9 +383,16 @@ async function updateSettings(supabaseAdmin: any, req: Request) {
       });
     }
 
+    const allowedSettings: Record<string, unknown> = {};
+    for (const key of ['name', 'location_sharing_enabled', 'sos_sync_enabled', 'alert_sync_enabled']) {
+      if (Object.prototype.hasOwnProperty.call(settings || {}, key)) allowedSettings[key] = settings[key];
+    }
+    if (typeof allowedSettings.name === 'string') allowedSettings.name = allowedSettings.name.trim().slice(0, 50);
+    if (!Object.keys(allowedSettings).length) return new Response(JSON.stringify({ error: 'No valid settings supplied' }), { status: 400, headers: corsHeaders });
+
     const { data: family, error } = await supabaseAdmin
       .from('family_groups')
-      .update(settings)
+      .update(allowedSettings)
       .eq('id', familyId)
       .select()
       .single();
@@ -377,7 +414,7 @@ async function updateSettings(supabaseAdmin: any, req: Request) {
 async function updateLocation(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
-    const { userId, latitude, longitude, accuracy } = body;
+    const { userId, latitude, longitude, accuracy, batteryLevel, safetyStatus } = body;
 
     const { data: member } = await supabaseAdmin
       .from('family_members')
@@ -410,6 +447,8 @@ async function updateLocation(supabaseAdmin: any, req: Request) {
       .update({
         latitude,
         longitude,
+        battery_level: Number.isFinite(Number(batteryLevel)) ? Math.max(0, Math.min(100, Math.round(Number(batteryLevel)))) : null,
+        safety_status: ['safe', 'attention', 'danger', 'unknown'].includes(safetyStatus) ? safetyStatus : 'unknown',
         last_seen_at: new Date().toISOString(),
         is_online: true,
       })
@@ -442,7 +481,7 @@ async function getFamilyLocations(supabaseAdmin: any, req: Request) {
     const url = new URL(req.url);
     let userId = url.searchParams.get('userId');
 
-    // 支持从 body 读取 userId（前端通过 supabase.functions.invoke 调用时）
+    // ??? body ?? userId????? supabase.functions.invoke ????
     if (!userId && req.method === 'POST') {
       try {
         const body = await req.json();
@@ -475,7 +514,7 @@ async function getFamilyLocations(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('user_id, latitude, longitude, last_seen_at, is_online, profiles(nickname, avatar_url)')
+      .select('user_id, latitude, longitude, last_seen_at, is_online, battery_level, safety_status, profiles(nickname, avatar_url)')
       .eq('family_id', member.family_id)
       .neq('user_id', userId);
 
@@ -489,6 +528,8 @@ async function getFamilyLocations(supabaseAdmin: any, req: Request) {
         longitude: m.longitude,
         lastSeen: m.last_seen_at,
         isOnline: m.is_online,
+        batteryLevel: m.battery_level,
+        safetyStatus: m.safety_status,
       }));
 
     return new Response(JSON.stringify({
@@ -614,7 +655,7 @@ async function syncAlertToFamily(supabaseAdmin: any, req: Request) {
     if (familyMembers && familyMembers.length > 0) {
       const notifications = familyMembers.map((m: any) => ({
         user_id: m.user_id,
-        title: `🚨 Family Alert: ${alertTitle}`,
+        title: `?? Family Alert: ${alertTitle}`,
         body: `Alert in your family member's area`,
         type: 'family_alert',
         data: { alert_id: alertId, severity: alertSeverity },
@@ -670,7 +711,7 @@ async function syncSOSToFamily(supabaseAdmin: any, req: Request) {
     if (familyMembers && familyMembers.length > 0) {
       const notifications = familyMembers.map((m: any) => ({
         user_id: m.user_id,
-        title: '🆘 Family SOS Alert',
+        title: '?? Family SOS Alert',
         body: `${user?.nickname || 'Family member'} triggered SOS!`,
         type: 'family_sos',
         data: { sos_id: sosId },
@@ -697,7 +738,7 @@ async function notifyFamilyMembers(supabaseAdmin: any, familyId: string, exclude
 
   if (members && members.length > 0) {
     const messages: Record<string, { title: string; body: string }> = {
-      new_member: { title: '👋 New Family Member', body: 'Someone joined your family group' },
+      new_member: { title: '?? New Family Member', body: 'Someone joined your family group' },
     };
 
     const notifications = members.map((m: any) => ({

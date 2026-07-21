@@ -1,22 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Screen } from '../components/Screen';
 import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { ShelterRow } from '../types';
+import type { RootStackParams } from '../navigation/RootNavigator';
+import { readOfflineCollection } from '../lib/offlinePacks';
 
 type Position = { latitude: number; longitude: number };
 
 export function SheltersScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
   const [shelters, setShelters] = useState<ShelterRow[]>([]);
   const [position, setPosition] = useState<Position | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').limit(100);
-    setShelters((data || []) as ShelterRow[]);
+    const { data, error } = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').limit(100);
+    const online = (data || []) as ShelterRow[];
+    setShelters(error || online.length === 0 ? await readOfflineCollection<ShelterRow>('shelters') : online);
   }, []);
 
   useEffect(() => {
@@ -36,11 +42,11 @@ export function SheltersScreen() {
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
   return (
-    <Screen title="安全地点" subtitle={position ? '已按距离排序' : '允许定位后显示距离'} refreshing={refreshing} onRefresh={refresh}>
+    <Screen title="????" subtitle={position ? '??????' : '?????????'} refreshing={refreshing} onRefresh={refresh}>
       {sorted.map((shelter) => (
         <View key={shelter.id} style={styles.card}>
           <View style={styles.row}>
-            <View style={styles.pin}><Text style={styles.pinText}>⌖</Text></View>
+            <View style={styles.pin}><Text style={styles.pinText}>?</Text></View>
             <View style={styles.body}>
               <Text style={styles.title}>{shelter.name}</Text>
               <Text style={styles.address}>{shelter.address || [shelter.city, shelter.country].filter(Boolean).join(', ')}</Text>
@@ -48,16 +54,17 @@ export function SheltersScreen() {
             <Text style={styles.distance}>{shelter.distance == null ? '--' : `${shelter.distance.toFixed(1)} km`}</Text>
           </View>
           <View style={styles.facilities}>
-            {shelter.has_water ? <Text style={styles.facility}>饮水</Text> : null}
-            {shelter.has_medical ? <Text style={styles.facility}>医疗</Text> : null}
-            {shelter.capacity ? <Text style={styles.facility}>容量 {shelter.capacity}</Text> : null}
+            {shelter.has_water ? <Text style={styles.facility}>??</Text> : null}
+            {shelter.has_medical ? <Text style={styles.facility}>??</Text> : null}
+            {shelter.capacity ? <Text style={styles.facility}>?? {shelter.capacity}</Text> : null}
           </View>
-          <Pressable style={styles.route} onPress={() => Linking.openURL(`https://maps.apple.com/?daddr=${shelter.latitude},${shelter.longitude}&dirflg=w`)}>
-            <Text style={styles.routeText}>开始导航</Text>
+          <Pressable style={styles.route} onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${shelter.latitude},${shelter.longitude}&travelmode=walking`)}>
+            <Text style={styles.routeText}>????</Text>
           </Pressable>
+          <Pressable style={styles.detail} onPress={() => navigation.navigate('ShelterDetail', { shelterId: shelter.id, distance: shelter.distance })}><Text style={styles.detailText}>???????????? ?</Text></Pressable>
         </View>
       ))}
-      {sorted.length === 0 ? <Text style={styles.empty}>尚未找到避难所数据</Text> : null}
+      {sorted.length === 0 ? <Text style={styles.empty}>?????????</Text> : null}
     </Screen>
   );
 }
@@ -83,5 +90,6 @@ const styles = StyleSheet.create({
   facility: { color: '#CBD5E1', backgroundColor: colors.surfaceRaised, paddingHorizontal: 9, paddingVertical: 5, borderRadius: radius.round, fontSize: 11 },
   route: { marginTop: spacing.md, borderRadius: radius.sm, backgroundColor: '#22C55E1F', paddingVertical: 11, alignItems: 'center' },
   routeText: { color: colors.safe, fontWeight: '800' },
+  detail: { paddingTop: spacing.sm, alignItems: 'center' }, detailText: { color: colors.info, fontWeight: '800', fontSize: 12 },
   empty: { color: colors.muted, textAlign: 'center', paddingTop: 60 },
 });

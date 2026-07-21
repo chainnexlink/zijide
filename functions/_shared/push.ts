@@ -1,13 +1,13 @@
 /**
- * 共享推送下发模块（被 ai-alert / sos-service / push-dispatch 复用）
+ * ?????????? ai-alert / sos-service / push-dispatch ???
  *
- * - iOS：APNs（用 .p8 私钥签 ES256 JWT，HTTP/2 直连 api.push.apple.com）
- * - Android：FCM HTTP v1（用服务账号私钥换取 OAuth2 access token）
+ * - iOS?APNs?? .p8 ??? ES256 JWT?HTTP/2 ?? api.push.apple.com?
+ * - Android?FCM HTTP v1?????????? OAuth2 access token?
  *
- * 所有密钥从环境变量读取；缺失则对应平台**安全跳过**（不报成功、不抛异常）。
- * 需要的环境变量（在 Supabase Edge Function Secrets 配置）：
- *   APNS_KEY_ID, APNS_TEAM_ID, APNS_AUTH_KEY(.p8 全文), APNS_BUNDLE_ID, [APNS_USE_SANDBOX=true]
- *   FCM_SERVICE_ACCOUNT(服务账号 JSON 全文), [FCM_PROJECT_ID]
+ * ???????????????????**????**????????????
+ * ????????? Supabase Edge Function Secrets ????
+ *   APNS_KEY_ID, APNS_TEAM_ID, APNS_AUTH_KEY(.p8 ??), APNS_BUNDLE_ID, [APNS_USE_SANDBOX=true]
+ *   FCM_SERVICE_ACCOUNT(???? JSON ??), [FCM_PROJECT_ID]
  */
 
 export interface PushPayload {
@@ -17,7 +17,7 @@ export interface PushPayload {
   severity?: 'red' | 'orange' | 'yellow';
 }
 
-// ---------- 编码助手 ----------
+// ---------- ???? ----------
 function b64urlFromBytes(bytes: Uint8Array): string {
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
@@ -47,7 +47,7 @@ async function getApnsJwt(): Promise<string | null> {
   if (!keyId || !teamId || !p8) return null;
 
   const nowSec = Math.floor(Date.now() / 1000);
-  // APNs JWT 有效期最长 60 分钟；提前到 50 分钟刷新
+  // APNs JWT ????? 60 ?????? 50 ????
   if (apnsJwtCache && nowSec - apnsJwtCache.iat < 3000) return apnsJwtCache.token;
 
   const header = b64url(JSON.stringify({ alg: 'ES256', kid: keyId }));
@@ -76,7 +76,7 @@ async function sendApns(
   const aps: Record<string, any> = {
     alert: { title: payload.title, body: payload.body },
     sound: 'default',
-    // 红色预警用 time-sensitive 尽量穿透专注模式；其余 active
+    // ????? time-sensitive ??????????? active
     'interruption-level': payload.severity === 'red' ? 'time-sensitive' : 'active',
   };
   const body = { aps, ...(payload.data || {}) };
@@ -177,7 +177,7 @@ async function sendFcm(
   return { ok: false, status: res.status, reason };
 }
 
-// ---------- 对外：给一批用户下发 ----------
+// ---------- ?????????? ----------
 export async function sendPushToUsers(
   admin: any, userIds: string[], payload: PushPayload,
 ): Promise<{ sent: number; failed: number; skipped: boolean; tokens: number }> {
@@ -197,9 +197,9 @@ export async function sendPushToUsers(
   const fcmAccess = sa ? await getFcmAccessToken() : null;
   const projectId = sa?.project_id || Deno.env.get('FCM_PROJECT_ID') || '';
 
-  // 两端密钥都没配 → 整体跳过（明确返回 skipped，便于上层判断是否真的发出去了）
+  // ??????? ? ????????? skipped????????????????
   if (!apnsJwt && !(fcmAccess && projectId)) {
-    console.warn('push skipped: 未配置 APNs / FCM 密钥');
+    console.warn('push skipped: ??? APNs / FCM ??');
     return { sent: 0, failed: 0, skipped: true, tokens: tokens.length };
   }
 
@@ -227,7 +227,7 @@ export async function sendPushToUsers(
     }
   }
 
-  // 失效 token 标记为禁用，下次不再发
+  // ?? token ???????????
   if (disable.length > 0) {
     await admin.from('device_tokens').update({ enabled: false }).in('token', disable);
   }
