@@ -121,15 +121,16 @@ jobs:
               tester_payload = api("GET", "/betaTesters", params={"filter[email]": tester_email, "limit": "1"})
               tester = next(iter(tester_payload.get("data", [])), None)
               if tester:
+                  tester_id = tester["id"]
                   api(
                       "POST",
-                      f"/betaTesters/{tester['id']}/relationships/betaGroups",
+                      f"/betaTesters/{tester_id}/relationships/betaGroups",
                       payload={"data": [{"type": "betaGroups", "id": group_id}]},
                       allow_conflict=True,
                   )
                   print(f"EXISTING_TESTER_ASSIGNED={tester_email}")
               else:
-                  api(
+                  created_tester = api(
                       "POST",
                       "/betaTesters",
                       payload={
@@ -140,7 +141,20 @@ jobs:
                           }
                       },
                   )
+                  tester_id = created_tester["data"]["id"]
                   print(f"TESTER_INVITED={tester_email}")
+              api(
+                  "POST",
+                  "/betaTesterInvitations",
+                  payload={
+                      "data": {
+                          "type": "betaTesterInvitations",
+                          "relationships": {"betaTester": {"data": {"type": "betaTesters", "id": tester_id}}},
+                      }
+                  },
+                  allow_conflict=True,
+              )
+              print(f"INVITATION_EMAIL_REQUESTED={tester_email}")
 
           distribution = api(
               "GET",
