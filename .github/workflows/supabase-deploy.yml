@@ -91,18 +91,17 @@ jobs:
               algorithm="ES256",
               headers={"kid": os.environ["APNS_KEY_ID"]},
           )
-          response = httpx.post(
-              "https://api.sandbox.push.apple.com/3/device/" + "0" * 64,
-              headers={
-                  "authorization": f"bearer {token}",
-                  "apns-topic": os.environ["APNS_BUNDLE_ID"],
-                  "apns-push-type": "alert",
-                  "apns-priority": "10",
-              },
-              json={"aps": {"alert": "credential-check"}},
-              http2=True,
-              timeout=30,
-          )
+          with httpx.Client(http2=True, timeout=30) as client:
+              response = client.post(
+                  "https://api.sandbox.push.apple.com/3/device/" + "0" * 64,
+                  headers={
+                      "authorization": f"bearer {token}",
+                      "apns-topic": os.environ["APNS_BUNDLE_ID"],
+                      "apns-push-type": "alert",
+                      "apns-priority": "10",
+                  },
+                  json={"aps": {"alert": "credential-check"}},
+              )
           body = response.json() if response.content else {}
           reason = body.get("reason", "")
           print(f"APNS_STATUS={response.status_code} APNS_REASON={reason}")
