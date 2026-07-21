@@ -69,6 +69,49 @@ jobs:
             email_confirmation_required: ((.mailer_autoconfirm // false) | not)
           }'
 
+      - name: Verify APNs provider credentials
+        env:
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
+          APNS_TEAM_ID: ${{ secrets.APNS_TEAM_ID || secrets.APPLE_TEAM_ID }}
+          APNS_BUNDLE_ID: ${{ secrets.APNS_BUNDLE_ID }}
+          APNS_AUTH_KEY: ${{ secrets.APNS_AUTH_KEY }}
+        run: |
+          if [ -z "$APNS_KEY_ID" ] || [ -z "$APNS_TEAM_ID" ] || [ -z "$APNS_BUNDLE_ID" ] || [ -z "$APNS_AUTH_KEY" ]; then
+            echo "APNs 凭据不完整，跳过验证"
+            exit 0
+          fi
+          python -m pip install --quiet pyjwt cryptography 'httpx[http2]'
+          python - <<'PY'
+          import os, time
+          import httpx, jwt
+
+          token = jwt.encode(
+              {"iss": os.environ["APNS_TEAM_ID"], "iat": int(time.time())},
+              os.environ["APNS_AUTH_KEY"].replace("\\n", "\n"),
+              algorithm="ES256",
+              headers={"kid": os.environ["APNS_KEY_ID"]},
+          )
+          response = httpx.post(
+              "https://api.sandbox.push.apple.com/3/device/" + "0" * 64,
+              headers={
+                  "authorization": f"bearer {token}",
+                  "apns-topic": os.environ["APNS_BUNDLE_ID"],
+                  "apns-push-type": "alert",
+                  "apns-priority": "10",
+              },
+              json={"aps": {"alert": "credential-check"}},
+              http2=True,
+              timeout=30,
+          )
+          body = response.json() if response.content else {}
+          reason = body.get("reason", "")
+          print(f"APNS_STATUS={response.status_code} APNS_REASON={reason}")
+          if reason in {"InvalidProviderToken", "ExpiredProviderToken", "MissingProviderToken"}:
+              raise SystemExit("APNs provider key validation failed")
+          if response.status_code not in {200, 400, 410}:
+              raise SystemExit(f"Unexpected APNs response: {response.status_code} {reason}")
+          PY
+
       - name: Set function secrets (只设置已填写的)
         run: |
           set_secret() {
