@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { ShelterRow } from '../types';
 import type { RootStackParams } from '../navigation/RootNavigator';
+import { readOfflineCollection } from '../lib/offlinePacks';
 
 type Position = { latitude: number; longitude: number };
 
@@ -19,8 +20,9 @@ export function SheltersScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').limit(100);
-    setShelters((data || []) as ShelterRow[]);
+    const { data, error } = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').limit(100);
+    const online = (data || []) as ShelterRow[];
+    setShelters(error || online.length === 0 ? await readOfflineCollection<ShelterRow>('shelters') : online);
   }, []);
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export function SheltersScreen() {
             {shelter.has_medical ? <Text style={styles.facility}>医疗</Text> : null}
             {shelter.capacity ? <Text style={styles.facility}>容量 {shelter.capacity}</Text> : null}
           </View>
-          <Pressable style={styles.route} onPress={() => Linking.openURL(`https://maps.apple.com/?daddr=${shelter.latitude},${shelter.longitude}&dirflg=w`)}>
+          <Pressable style={styles.route} onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${shelter.latitude},${shelter.longitude}&travelmode=walking`)}>
             <Text style={styles.routeText}>开始导航</Text>
           </Pressable>
           <Pressable style={styles.detail} onPress={() => navigation.navigate('ShelterDetail', { shelterId: shelter.id, distance: shelter.distance })}><Text style={styles.detailText}>查看容量、设施和详细路线 ›</Text></Pressable>

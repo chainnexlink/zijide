@@ -6,18 +6,19 @@ import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { ShelterRow } from '../types';
 import type { RootStackParams } from '../navigation/RootNavigator';
+import { NativeGoogleMap } from '../components/NativeGoogleMap';
 type Props = NativeStackScreenProps<RootStackParams, 'ShelterDetail'>;
 export function ShelterDetailScreen({ route, navigation }: Props) {
   const [shelter, setShelter] = useState<ShelterRow | null>(null);
   useEffect(() => { void supabase.from('shelters').select('*').eq('id', route.params.shelterId).maybeSingle().then(({ data }) => setShelter(data as ShelterRow | null)); }, [route.params.shelterId]);
   if (!shelter) return <View style={styles.loading}><ActivityIndicator color={colors.safe} size="large" /></View>;
   const status = ({ open: '开放', crowded: '拥挤', full: '已满', closed: '关闭' } as Record<string, string>)[shelter.status || ''] || '状态未知';
-  const navigate = (mode: 'w' | 'd') => void Linking.openURL(`https://maps.apple.com/?daddr=${shelter.latitude},${shelter.longitude}&dirflg=${mode}`);
+  const navigate = (mode: 'walking' | 'driving') => void Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${shelter.latitude},${shelter.longitude}&travelmode=${mode}`);
   return <Screen title="避难所详情" subtitle={status} action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
-    <View style={styles.map}><View style={styles.safeRange}><Text style={styles.pin}>⌖</Text></View><Text style={styles.coords}>{shelter.latitude.toFixed(5)}, {shelter.longitude.toFixed(5)}</Text></View>
+    <NativeGoogleMap center={{ latitude: shelter.latitude, longitude: shelter.longitude }} markers={[{ id: shelter.id, latitude: shelter.latitude, longitude: shelter.longitude, title: shelter.name, description: shelter.address || undefined, color: colors.safe }]} radiusMeters={250} radiusColor={colors.safe} zoom={0.025} />
     <View style={styles.card}><View style={styles.heading}><View style={styles.headingBody}><Text style={styles.name}>{shelter.name}</Text><Text style={styles.address}>{shelter.address || [shelter.city, shelter.country].filter(Boolean).join(', ')}</Text></View><Text style={[styles.status, shelter.status === 'open' ? styles.open : shelter.status === 'closed' ? styles.closed : styles.crowded]}>{status}</Text></View>{route.params.distance != null ? <Row label="当前位置距离" value={`${route.params.distance.toFixed(1)} km`} /> : null}<Row label="容量" value={shelter.capacity ? `${shelter.current_occupancy || 0} / ${shelter.capacity}` : '未公布'} /><Row label="开放时间" value={shelter.opening_hours || '全天或以现场公告为准'} /><Row label="联系电话" value={shelter.phone || '未提供'} />{shelter.phone ? <Pressable onPress={() => void Linking.openURL(`tel:${shelter.phone}`)}><Text style={styles.link}>拨打避难所电话</Text></Pressable> : null}</View>
     <View style={styles.card}><Text style={styles.section}>设施</Text><View style={styles.facilities}><Facility label="饮用水" active={!!shelter.has_water} /><Facility label="电力" active={!!shelter.has_electricity} /><Facility label="医疗" active={!!shelter.has_medical} /><Facility label="卫生间" active={!!shelter.has_toilet} /><Facility label="休息区" active={!!shelter.has_rest_area} /></View></View>
-    <Pressable style={styles.primary} onPress={() => navigate('w')}><Text style={styles.primaryText}>步行导航到这里</Text></Pressable><Pressable style={styles.secondary} onPress={() => navigate('d')}><Text style={styles.secondaryText}>规划驾车逃生路线</Text></Pressable>
+    <Pressable style={styles.primary} onPress={() => navigate('walking')}><Text style={styles.primaryText}>Google Maps 步行导航</Text></Pressable><Pressable style={styles.secondary} onPress={() => navigation.navigate('RoutePlan', { latitude: shelter.latitude, longitude: shelter.longitude, name: shelter.name })}><Text style={styles.secondaryText}>App内规划多条逃生路线</Text></Pressable>
     {shelter.updated_at ? <Text style={styles.updated}>信息更新时间：{new Date(shelter.updated_at).toLocaleString('zh-CN')}</Text> : null}
   </Screen>;
 }

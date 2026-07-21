@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { AlertRow } from '../types';
 import type { RootStackParams } from '../navigation/RootNavigator';
+import { readOfflineCollection } from '../lib/offlinePacks';
 
 export function AlertsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
@@ -15,8 +16,9 @@ export function AlertsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,is_active').order('created_at', { ascending: false }).limit(50);
-    setAlerts((data || []) as AlertRow[]);
+    const { data, error } = await supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,is_active').order('created_at', { ascending: false }).limit(50);
+    const online = (data || []) as AlertRow[];
+    setAlerts(error || online.length === 0 ? await readOfflineCollection<AlertRow>('alerts') : online);
   }, []);
 
   useEffect(() => {

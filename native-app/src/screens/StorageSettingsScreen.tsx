@@ -1,0 +1,28 @@
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Screen } from '../components/Screen';
+import { supabase } from '../lib/supabase';
+import { colors, radius, spacing } from '../theme';
+import type { RootStackParams } from '../navigation/RootNavigator';
+type Props = NativeStackScreenProps<RootStackParams, 'StorageSettings'>;
+export function StorageSettingsScreen({ navigation }: Props) {
+  const [cache, setCache] = useState(0); const [offline, setOffline] = useState(0); const [keys, setKeys] = useState(0);
+  const load = async () => { const all = await AsyncStorage.getAllKeys(); setKeys(all.length); setCache(await directorySize(FileSystem.cacheDirectory)); setOffline(await directorySize(`${FileSystem.documentDirectory}offline-maps/`)); };
+  useEffect(() => { void load(); }, []);
+  const clearCache = () => Alert.alert('清理应用缓存', '不会删除账号和离线城市包。', [{ text: '取消', style: 'cancel' }, { text: '清理', onPress: async () => { if (FileSystem.cacheDirectory) await FileSystem.deleteAsync(FileSystem.cacheDirectory, { idempotent: true }); await load(); } }]);
+  const clearOffline = () => Alert.alert('删除全部离线包', '离线预警和避难所数据将被删除。', [{ text: '取消', style: 'cancel' }, { text: '删除', style: 'destructive', onPress: async () => { await FileSystem.deleteAsync(`${FileSystem.documentDirectory}offline-maps/`, { idempotent: true }); await AsyncStorage.removeItem('offline-map-packs'); await load(); } }]);
+  const reset = () => Alert.alert('重置所有本地数据', '将删除本地设置、缓存、离线数据并退出登录。后台账号数据不会删除。', [{ text: '取消', style: 'cancel' }, { text: '重置', style: 'destructive', onPress: async () => { await AsyncStorage.clear(); if (FileSystem.cacheDirectory) await FileSystem.deleteAsync(FileSystem.cacheDirectory, { idempotent: true }); await FileSystem.deleteAsync(`${FileSystem.documentDirectory}offline-maps/`, { idempotent: true }); await supabase.auth.signOut(); } }]);
+  return <Screen title="存储设置" subtitle="管理本地空间" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
+    <View style={styles.overview}><Text style={styles.total}>{format(cache + offline)}</Text><Text style={styles.totalLabel}>WarRescue本地数据</Text><View style={styles.bar}><View style={[styles.segment, { flex: cache || 1, backgroundColor: colors.info }]} /><View style={[styles.segment, { flex: offline || 1, backgroundColor: colors.safe }]} /></View><Row label="缓存与日志" value={format(cache)} tone={colors.info} /><Row label="离线城市包" value={format(offline)} tone={colors.safe} /><Row label="本地设置项" value={`${keys} 项`} /></View>
+    <View style={styles.card}><Action label="清理应用缓存" description="图片、临时文件和日志" onPress={clearCache} /><Action label="清理离线地图" description="删除全部城市安全包" onPress={clearOffline} /><Action label="管理离线区域" description="查看、下载或单独删除" onPress={() => navigation.navigate('OfflineMaps')} /></View>
+    <Pressable style={styles.reset} onPress={reset}><Text style={styles.resetText}>重置所有本地数据</Text></Pressable>
+  </Screen>;
+}
+async function directorySize(uri: string | null): Promise<number> { if (!uri) return 0; try { const info = await FileSystem.getInfoAsync(uri); if (!info.exists) return 0; if (!info.isDirectory) return info.size || 0; const names = await FileSystem.readDirectoryAsync(uri); return (await Promise.all(names.map((name): Promise<number> => directorySize(`${uri}${uri.endsWith('/') ? '' : '/'}${name}`)))).reduce((a, b) => a + b, 0); } catch { return 0; } }
+function format(value: number) { return value < 1024 ? `${value} B` : value < 1048576 ? `${(value / 1024).toFixed(1)} KB` : `${(value / 1048576).toFixed(1)} MB`; }
+function Row({ label, value, tone = colors.text }: { label: string; value: string; tone?: string }) { return <View style={styles.row}><Text style={styles.rowLabel}>{label}</Text><Text style={[styles.rowValue, { color: tone }]}>{value}</Text></View>; }
+function Action({ label, description, onPress }: { label: string; description: string; onPress: () => void }) { return <Pressable style={styles.action} onPress={onPress}><View><Text style={styles.actionTitle}>{label}</Text><Text style={styles.actionDescription}>{description}</Text></View><Text style={styles.chevron}>›</Text></Pressable>; }
+const styles = StyleSheet.create({ back: { color: colors.info, fontWeight: '800' }, overview: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm }, total: { color: colors.text, fontSize: 34, fontWeight: '900' }, totalLabel: { color: colors.muted }, bar: { height: 10, flexDirection: 'row', borderRadius: 5, overflow: 'hidden', marginVertical: spacing.sm }, segment: { minWidth: 4 }, row: { flexDirection: 'row', justifyContent: 'space-between' }, rowLabel: { color: colors.muted }, rowValue: { fontWeight: '800' }, card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.lg }, action: { minHeight: 66, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth }, actionTitle: { color: colors.text, fontWeight: '900' }, actionDescription: { color: colors.muted, fontSize: 12, marginTop: 4 }, chevron: { color: colors.muted, fontSize: 27 }, reset: { height: 50, borderRadius: radius.md, borderColor: '#EF444466', borderWidth: 1, alignItems: 'center', justifyContent: 'center' }, resetText: { color: colors.danger, fontWeight: '900' } });

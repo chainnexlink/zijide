@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -18,7 +18,7 @@ export function ProfileScreen() {
     void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       setEmail(data.user.email || '');
-      const { data: row } = await supabase.from('profiles').select('id,nickname,email,city,country,blood_type,emergency_contact_name,emergency_contact_phone').eq('id', data.user.id).maybeSingle();
+      const { data: row } = await supabase.from('profiles').select('id,nickname,avatar_url,email,city,country,blood_type,emergency_contact_name,emergency_contact_phone').eq('id', data.user.id).maybeSingle();
       setProfile(row as ProfileRow | null);
     });
   }, []);
@@ -26,7 +26,7 @@ export function ProfileScreen() {
   return (
     <Screen title="我的" subtitle="个人安全与设备设置">
       <View style={styles.identity}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{(profile?.nickname || email || 'W').slice(0, 1).toUpperCase()}</Text></View>
+        {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.avatarText}>{(profile?.nickname || email || 'W').slice(0, 1).toUpperCase()}</Text></View>}
         <View style={styles.identityText}>
           <Text style={styles.name}>{profile?.nickname || 'WarRescue 用户'}</Text>
           <Text style={styles.email}>{email}</Text>
@@ -43,6 +43,10 @@ export function ProfileScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>安全服务</Text>
+        <Menu label="编辑个人资料" description="头像、昵称、性别、生日和常驻城市" onPress={() => navigation.navigate('ProfileEdit')} />
+        <Menu label="通知设置" description="推送、短信、邮件、声音和免打扰" onPress={() => navigation.navigate('NotificationSettings')} />
+        <Menu label="地图设置" description="地图类型、路线偏好、图层和单位" onPress={() => navigation.navigate('MapSettings')} />
+        <Menu label="存储设置" description="缓存、离线包和本地数据" onPress={() => navigation.navigate('StorageSettings')} />
         <Menu label="紧急医疗资料" description="血型、病史、用药和紧急联系人" onPress={() => navigation.navigate('EmergencyProfile')} />
         <Menu label="SOS 历史" description="查看求救状态与救援阶段" onPress={() => navigation.navigate('SOSHistory')} />
         <Menu label="家庭守护" description="创建或加入家庭、位置和SOS联动" onPress={() => navigation.navigate('Family')} />

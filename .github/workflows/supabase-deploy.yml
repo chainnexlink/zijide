@@ -58,6 +58,7 @@ jobs:
           # 预警 AI / 定时
           set_secret MEOO_PROJECT_API_KEY "${{ secrets.MEOO_PROJECT_API_KEY }}"
           set_secret CRON_SECRET "${{ secrets.CRON_SECRET }}"
+          set_secret GOOGLE_MAPS_KEY "${{ secrets.GOOGLE_MAPS_KEY }}"
           # iOS 推送 APNs
           set_secret APNS_KEY_ID "${{ secrets.APNS_KEY_ID }}"
           set_secret APNS_TEAM_ID "${{ secrets.APNS_TEAM_ID }}"
@@ -70,6 +71,8 @@ jobs:
           set_secret TWILIO_FROM_NUMBER "${{ secrets.TWILIO_FROM_NUMBER }}"
           set_secret TWILIO_KEY_SID "${{ secrets.TWILIO_KEY_SID }}"
           set_secret TWILIO_KEY_SECRET "${{ secrets.TWILIO_KEY_SECRET }}"
+          set_secret RESEND_API_KEY "${{ secrets.RESEND_API_KEY }}"
+          set_secret EMAIL_FROM "${{ secrets.EMAIL_FROM }}"
           # 苹果内购权威验签 App Store Server API
           set_secret APPSTORE_ISSUER_ID "${{ secrets.APPSTORE_ISSUER_ID }}"
           set_secret APPSTORE_KEY_ID "${{ secrets.APPSTORE_KEY_ID }}"

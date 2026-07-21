@@ -20,6 +20,13 @@ import { AlertSettingsScreen } from '../screens/AlertSettingsScreen';
 import { ShelterDetailScreen } from '../screens/ShelterDetailScreen';
 import { FamilyScreen } from '../screens/FamilyScreen';
 import { MutualAidScreen } from '../screens/MutualAidScreen';
+import { RoutePlanScreen } from '../screens/RoutePlanScreen';
+import { ProfileEditScreen } from '../screens/ProfileEditScreen';
+import { CitySelectScreen } from '../screens/CitySelectScreen';
+import { NotificationSettingsScreen } from '../screens/NotificationSettingsScreen';
+import { MapSettingsScreen } from '../screens/MapSettingsScreen';
+import { OfflineMapsScreen } from '../screens/OfflineMapsScreen';
+import { StorageSettingsScreen } from '../screens/StorageSettingsScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -43,6 +50,13 @@ export type RootStackParams = {
   ShelterDetail: { shelterId: string; distance?: number | null };
   Family: undefined;
   MutualAid: undefined;
+  RoutePlan: { latitude: number; longitude: number; name: string };
+  ProfileEdit: undefined;
+  CitySelect: undefined;
+  NotificationSettings: undefined;
+  MapSettings: undefined;
+  OfflineMaps: undefined;
+  StorageSettings: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -79,6 +93,13 @@ export function RootNavigator() {
       <Stack.Screen name="ShelterDetail" component={ShelterDetailScreen} />
       <Stack.Screen name="Family" component={FamilyScreen} />
       <Stack.Screen name="MutualAid" component={MutualAidScreen} />
+      <Stack.Screen name="RoutePlan" component={RoutePlanScreen} />
+      <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <Stack.Screen name="CitySelect" component={CitySelectScreen} />
+      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+      <Stack.Screen name="MapSettings" component={MapSettingsScreen} />
+      <Stack.Screen name="OfflineMaps" component={OfflineMapsScreen} />
+      <Stack.Screen name="StorageSettings" component={StorageSettingsScreen} />
     </>}
   </Stack.Navigator>;
 }

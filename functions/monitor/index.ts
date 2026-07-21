@@ -1,4 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendSms } from '../_shared/twilio.ts';
+import { sendEmail } from '../_shared/email.ts';
 
 interface AlertSource {
   id: string;
@@ -265,8 +267,20 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
         .select('id, email, phone')
         .in('id', paidUserIds);
 
+      const { data: deliverySettings } = await supabaseAdmin
+        .from('user_alert_settings')
+        .select('user_id,email_enabled,sms_enabled')
+        .in('user_id', paidUserIds);
+      const settingsByUser = new Map((deliverySettings || []).map((item: any) => [item.user_id, item]));
+
       if (profiles) {
         for (const profile of profiles) {
+          const delivery: string[] = [];
+          const settings: any = settingsByUser.get(profile.id);
+          const subject = `⚠️ WarRescue紧急预警: ${alert.title}`;
+          const message = `${alert.title}\n${alert.description || ''}`;
+          if (settings?.email_enabled && profile.email) { const result = await sendEmail(profile.email, subject, message); if (result.ok) delivery.push('email'); }
+          if (settings?.sms_enabled && profile.phone) { const result = await sendSms(profile.phone, message); if (result.ok) delivery.push('sms'); }
           // Insert enhanced notification record for email/SMS delivery
           await supabaseAdmin.from('notifications').insert({
             user_id: profile.id,
@@ -278,7 +292,7 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
               severity: 'red',
               email: profile.email,
               phone: profile.phone,
-              delivery: ['email', 'sms'],
+              delivery,
             },
           });
         }

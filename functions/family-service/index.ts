@@ -235,7 +235,7 @@ async function joinFamily(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,profiles(nickname,avatar_url,city,country)')
+      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,battery_level,safety_status,profiles(nickname,avatar_url,city,country)')
       .eq('family_id', family.id);
 
     await notifyFamilyMembers(supabaseAdmin, family.id, userId, 'new_member');
@@ -347,7 +347,7 @@ async function getFamily(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,profiles(nickname,avatar_url,city,country)')
+      .select('id,user_id,family_id,role,is_online,last_seen_at,latitude,longitude,battery_level,safety_status,profiles(nickname,avatar_url,city,country)')
       .eq('family_id', member.family_id);
 
     return new Response(JSON.stringify({
@@ -407,7 +407,7 @@ async function updateSettings(supabaseAdmin: any, req: Request) {
 async function updateLocation(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
-    const { userId, latitude, longitude, accuracy } = body;
+    const { userId, latitude, longitude, accuracy, batteryLevel, safetyStatus } = body;
 
     const { data: member } = await supabaseAdmin
       .from('family_members')
@@ -440,6 +440,8 @@ async function updateLocation(supabaseAdmin: any, req: Request) {
       .update({
         latitude,
         longitude,
+        battery_level: Number.isFinite(Number(batteryLevel)) ? Math.max(0, Math.min(100, Math.round(Number(batteryLevel)))) : null,
+        safety_status: ['safe', 'attention', 'danger', 'unknown'].includes(safetyStatus) ? safetyStatus : 'unknown',
         last_seen_at: new Date().toISOString(),
         is_online: true,
       })
@@ -505,7 +507,7 @@ async function getFamilyLocations(supabaseAdmin: any, req: Request) {
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
-      .select('user_id, latitude, longitude, last_seen_at, is_online, profiles(nickname, avatar_url)')
+      .select('user_id, latitude, longitude, last_seen_at, is_online, battery_level, safety_status, profiles(nickname, avatar_url)')
       .eq('family_id', member.family_id)
       .neq('user_id', userId);
 
@@ -519,6 +521,8 @@ async function getFamilyLocations(supabaseAdmin: any, req: Request) {
         longitude: m.longitude,
         lastSeen: m.last_seen_at,
         isOnline: m.is_online,
+        batteryLevel: m.battery_level,
+        safetyStatus: m.safety_status,
       }));
 
     return new Response(JSON.stringify({

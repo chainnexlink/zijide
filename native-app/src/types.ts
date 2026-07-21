@@ -42,6 +42,7 @@ export type ShelterRow = {
 export type ProfileRow = {
   id: string;
   nickname: string | null;
+  avatar_url?: string | null;
   email: string | null;
   city: string | null;
   country: string | null;
