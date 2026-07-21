@@ -1,0 +1,33 @@
+name: Assign TestFlight Build and Invite Tester
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: TestFlight build number
+        required: true
+        type: string
+      tester_email:
+        description: Tester email address
+        required: true
+        type: string
+
+jobs:
+  invite:
+    runs-on: macos-15
+    timeout-minutes: 35
+    env:
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+      APP_STORE_APP_ID: "6774955063"
+      TESTFLIGHT_GROUP_ID: "14d3ff89-d877-4c96-b7bd-af786fbdce52"
+      TESTFLIGHT_BUILD_NUMBER: ${{ inputs.build_number }}
+      TESTER_EMAIL: ${{ inputs.tester_email }}
+      PROCESSING_TIMEOUT_SECONDS: "1800"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for build, assign group, and invite tester
+        run: ruby scripts/testflight_invite.rb
