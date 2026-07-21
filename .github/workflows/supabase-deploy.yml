@@ -54,7 +54,20 @@ jobs:
             --url "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
             --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             --header "Content-Type: application/json" \
-            --data '{"external_phone_enabled":true}' >/dev/null
+              --data '{"external_phone_enabled":true}' >/dev/null
+
+      - name: Audit authentication delivery configuration
+        run: |
+          config=$(curl --fail-with-body --silent --show-error \
+            --url "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN")
+          echo "$config" | jq '{
+            phone_auth_enabled: (.external_phone_enabled // false),
+            sms_provider: (.sms_provider // ""),
+            sms_delivery_configured: ((.sms_provider // "") != ""),
+            smtp_delivery_configured: ((.smtp_host // "") != ""),
+            email_confirmation_required: ((.mailer_autoconfirm // false) | not)
+          }'
 
       - name: Set function secrets (只设置已填写的)
         run: |
