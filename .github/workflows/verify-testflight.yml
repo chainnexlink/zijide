@@ -82,6 +82,33 @@ jobs:
 
           build_id = selected["id"]
           if group_id:
+              requested_group = api("GET", f"/betaGroups/{group_id}").get("data", {})
+              if requested_group.get("attributes", {}).get("isInternalGroup"):
+                  groups_payload = api("GET", "/betaGroups", params={"filter[app]": "6774955063", "limit": "50"})
+                  external_group = next(
+                      (
+                          group for group in groups_payload.get("data", [])
+                          if not group.get("attributes", {}).get("isInternalGroup")
+                      ),
+                      None,
+                  )
+                  if external_group is None:
+                      created_group = api(
+                          "POST",
+                          "/betaGroups",
+                          payload={
+                              "data": {
+                                  "type": "betaGroups",
+                                  "attributes": {"name": "WarRescue External Testers", "isInternalGroup": False},
+                                  "relationships": {"app": {"data": {"type": "apps", "id": "6774955063"}}},
+                              }
+                          },
+                      )
+                      external_group = created_group["data"]
+                      print(f"EXTERNAL_GROUP_CREATED={external_group['id']}")
+                  else:
+                      print(f"EXTERNAL_GROUP_SELECTED={external_group['id']}")
+                  group_id = external_group["id"]
               api(
                   "POST",
                   f"/betaGroups/{group_id}/relationships/builds",
