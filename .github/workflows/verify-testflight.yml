@@ -2,22 +2,41 @@ name: Verify latest TestFlight build
 
 on:
   workflow_dispatch:
+    inputs:
+      build_number:
+        description: Build number to distribute (empty uses latest)
+        required: false
+        type: string
+      tester_email:
+        description: Tester email to invite (empty only verifies)
+        required: false
+        type: string
+      beta_group_id:
+        description: Target TestFlight beta group ID
+        required: false
+        default: "14d3ff89-d877-4c96-b7bd-af786fbdce52"
+        type: string
 
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
-      - name: Query App Store Connect
+      - name: Wait for build, assign group, invite tester, and verify
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          TESTER_EMAIL: ${{ inputs.tester_email }}
+          BETA_GROUP_ID: ${{ inputs.beta_group_id }}
         run: |
           python -m pip install --quiet pyjwt cryptography requests
           python - <<'PY'
           import json, os, time
           import jwt, requests
 
+          root = "https://api.appstoreconnect.apple.com/v1"
           now = int(time.time())
           token = jwt.encode(
               {"iss": os.environ["ASC_ISSUER_ID"], "iat": now, "exp": now + 1200, "aud": "appstoreconnect-v1"},
@@ -25,55 +44,91 @@ jobs:
               algorithm="ES256",
               headers={"kid": os.environ["ASC_KEY_ID"]},
           )
-          response = requests.get(
-              "https://api.appstoreconnect.apple.com/v1/builds",
-              headers={"Authorization": f"Bearer {token}"},
-              params={"filter[app]": "6774955063", "sort": "-uploadedDate", "limit": "3", "include": "preReleaseVersion"},
-              timeout=30,
-          )
-          response.raise_for_status()
-          payload = response.json()
-          versions = {item["id"]: item["attributes"].get("version") for item in payload.get("included", []) if item.get("type") == "preReleaseVersions"}
-          output = []
-          for item in payload.get("data", []):
-              relation = item.get("relationships", {}).get("preReleaseVersion", {}).get("data") or {}
-              attrs = item.get("attributes", {})
-              output.append({
-                  "version": versions.get(relation.get("id")),
-                  "build": attrs.get("version"),
-                  "processingState": attrs.get("processingState"),
-                  "uploadedDate": attrs.get("uploadedDate"),
-              })
-          print(json.dumps(output, ensure_ascii=False))
-          if payload.get("data"):
-              latest_id = payload["data"][0]["id"]
-              groups_response = requests.get(
-                  "https://api.appstoreconnect.apple.com/v1/betaGroups",
-                  headers={"Authorization": f"Bearer {token}"},
-                  params={
-                      "filter[builds]": latest_id,
-                      "include": "betaTesters",
-                      "limit": "50",
-                      "limit[betaTesters]": "50",
-                  },
-                  timeout=30,
+          headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+          build_number = os.environ.get("BUILD_NUMBER", "").strip()
+          tester_email = os.environ.get("TESTER_EMAIL", "").strip()
+          group_id = os.environ.get("BETA_GROUP_ID", "").strip()
+
+          def api(method, path, *, params=None, payload=None, allow_conflict=False):
+              response = requests.request(method, root + path, headers=headers, params=params, json=payload, timeout=30)
+              if allow_conflict and response.status_code == 409:
+                  return None
+              response.raise_for_status()
+              return response.json() if response.content else None
+
+          deadline = time.time() + 1800
+          selected = None
+          while time.time() < deadline:
+              params = {"filter[app]": "6774955063", "sort": "-uploadedDate", "limit": "3", "include": "preReleaseVersion"}
+              if build_number:
+                  params["filter[version]"] = build_number
+                  params["limit"] = "1"
+              payload = api("GET", "/builds", params=params)
+              selected = next(iter(payload.get("data", [])), None)
+              if selected:
+                  state = selected.get("attributes", {}).get("processingState")
+                  print(f"BUILD={selected.get('attributes', {}).get('version')} PROCESSING_STATE={state}")
+                  if state == "VALID":
+                      break
+                  if state in {"FAILED", "INVALID"}:
+                      raise RuntimeError(f"Apple processing failed with state {state}")
+              else:
+                  print(f"Build {build_number or 'latest'} is not visible yet")
+              time.sleep(30)
+          else:
+              raise TimeoutError(f"Timed out waiting for build {build_number or 'latest'}")
+
+          build_id = selected["id"]
+          if group_id:
+              api(
+                  "POST",
+                  f"/betaGroups/{group_id}/relationships/builds",
+                  payload={"data": [{"type": "builds", "id": build_id}]},
+                  allow_conflict=True,
               )
-              groups_response.raise_for_status()
-              groups_payload = groups_response.json()
-              included_testers = {
-                  tester["id"]: tester.get("attributes", {}).get("email")
-                  for tester in groups_payload.get("included", [])
-                  if tester.get("type") == "betaTesters"
-              }
-              distribution = []
-              for group in groups_payload.get("data", []):
-                  tester_links = group.get("relationships", {}).get("betaTesters", {}).get("data", [])
-                  distribution.append({
-                      "group": group.get("attributes", {}).get("name"),
-                      "targetTesterIncluded": any(
-                          included_testers.get(link.get("id")) == "717082194@qq.com"
-                          for link in tester_links
-                      ),
-                  })
-              print("DISTRIBUTION=" + json.dumps(distribution, ensure_ascii=False))
+              print(f"BUILD_ASSIGNED_TO_GROUP={group_id}")
+
+          if tester_email:
+              tester_payload = api("GET", "/betaTesters", params={"filter[email]": tester_email, "limit": "1"})
+              tester = next(iter(tester_payload.get("data", [])), None)
+              if tester:
+                  api(
+                      "POST",
+                      f"/betaTesters/{tester['id']}/relationships/betaGroups",
+                      payload={"data": [{"type": "betaGroups", "id": group_id}]},
+                      allow_conflict=True,
+                  )
+                  print(f"EXISTING_TESTER_ASSIGNED={tester_email}")
+              else:
+                  api(
+                      "POST",
+                      "/betaTesters",
+                      payload={
+                          "data": {
+                              "type": "betaTesters",
+                              "attributes": {"email": tester_email, "firstName": "WarRescue", "lastName": "Tester"},
+                              "relationships": {"betaGroups": {"data": [{"type": "betaGroups", "id": group_id}]}},
+                          }
+                      },
+                  )
+                  print(f"TESTER_INVITED={tester_email}")
+
+          distribution = api(
+              "GET",
+              "/betaGroups",
+              params={"filter[builds]": build_id, "include": "betaTesters", "limit": "50", "limit[betaTesters]": "50"},
+          )
+          tester_emails = {
+              item["id"]: item.get("attributes", {}).get("email")
+              for item in distribution.get("included", [])
+              if item.get("type") == "betaTesters"
+          }
+          result = []
+          for group in distribution.get("data", []):
+              links = group.get("relationships", {}).get("betaTesters", {}).get("data", [])
+              result.append({
+                  "group": group.get("attributes", {}).get("name"),
+                  "targetTesterIncluded": any(tester_emails.get(link.get("id")) == tester_email for link in links),
+              })
+          print("DISTRIBUTION=" + json.dumps(result, ensure_ascii=False))
           PY
