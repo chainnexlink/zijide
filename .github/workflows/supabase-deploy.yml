@@ -71,7 +71,7 @@ jobs:
           set_secret GOOGLE_MAPS_KEY "${{ secrets.GOOGLE_MAPS_KEY }}"
           # iOS 推送 APNs
           set_secret APNS_KEY_ID "${{ secrets.APNS_KEY_ID }}"
-          set_secret APNS_TEAM_ID "${{ secrets.APNS_TEAM_ID }}"
+          set_secret APNS_TEAM_ID "${{ secrets.APNS_TEAM_ID || secrets.APPLE_TEAM_ID }}"
           set_secret APNS_BUNDLE_ID "${{ secrets.APNS_BUNDLE_ID }}"
           set_secret APNS_AUTH_KEY "${{ secrets.APNS_AUTH_KEY }}"
           # 安卓推送 FCM
@@ -84,10 +84,10 @@ jobs:
           set_secret RESEND_API_KEY "${{ secrets.RESEND_API_KEY }}"
           set_secret EMAIL_FROM "${{ secrets.EMAIL_FROM }}"
           # 苹果内购权威验签 App Store Server API
-          set_secret APPSTORE_ISSUER_ID "${{ secrets.APPSTORE_ISSUER_ID }}"
-          set_secret APPSTORE_KEY_ID "${{ secrets.APPSTORE_KEY_ID }}"
-          set_secret APPSTORE_BUNDLE_ID "${{ secrets.APPSTORE_BUNDLE_ID }}"
-          set_secret APPSTORE_PRIVATE_KEY "${{ secrets.APPSTORE_PRIVATE_KEY }}"
+          set_secret APPSTORE_ISSUER_ID "${{ secrets.APPSTORE_ISSUER_ID || secrets.APP_STORE_CONNECT_API_ISSUER_ID }}"
+          set_secret APPSTORE_KEY_ID "${{ secrets.APPSTORE_KEY_ID || secrets.APP_STORE_CONNECT_API_KEY_ID }}"
+          set_secret APPSTORE_BUNDLE_ID "com.warrescue.app"
+          set_secret APPSTORE_PRIVATE_KEY "${{ secrets.APPSTORE_PRIVATE_KEY || secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}"
           # 苹果内购 legacy 收据验签共享密钥（App信息→App专用共享密钥）——
           # 缺它(且缺上面 APPSTORE_*)时 apple-iap 无法验签 → 购买报错(审核 2.1b)
           set_secret APPLE_SHARED_SECRET "${{ secrets.APPLE_SHARED_SECRET }}"
