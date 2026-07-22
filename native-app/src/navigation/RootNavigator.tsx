@@ -39,6 +39,8 @@ import { MonitoredLocationsScreen } from '../screens/MonitoredLocationsScreen';
 import { LanguageScreen } from '../screens/LanguageScreen';
 import { NewsScreen } from '../screens/NewsScreen';
 import { NewsDetailScreen } from '../screens/NewsDetailScreen';
+import { PermissionCenterScreen } from '../screens/PermissionCenterScreen';
+import { HelpSupportScreen } from '../screens/HelpSupportScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -81,17 +83,19 @@ export type RootStackParams = {
   Language: undefined;
   News: undefined;
   NewsDetail: { article: { id: string; title: string; summary: string | null; content: string; category: string; author: string | null; tags: string[]; published_at: string; view_count: number } };
+  PermissionCenter: undefined;
+  HelpSupport: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
 const Stack = createNativeStackNavigator<RootStackParams>();
 
 const icons: Record<string, string> = {
-  Home: '?',
+  Home: '⌂',
   Alerts: '!',
   SOS: 'SOS',
-  Shelters: '?',
-  Profile: '?',
+  Shelters: '⌖',
+  Profile: '●',
 };
 
 export function RootNavigator() {
@@ -137,6 +141,8 @@ export function RootNavigator() {
       <Stack.Screen name="Language" component={LanguageScreen} />
       <Stack.Screen name="News" component={NewsScreen} />
       <Stack.Screen name="NewsDetail" component={NewsDetailScreen} />
+      <Stack.Screen name="PermissionCenter" component={PermissionCenterScreen} />
+      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
       <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
     </>}
   </Stack.Navigator>;
@@ -160,11 +166,11 @@ function MainTabs() {
         ),
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: '??' }} />
-      <Tab.Screen name="Alerts" component={AlertsScreen} options={{ title: '??' }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: '首页' }} />
+      <Tab.Screen name="Alerts" component={AlertsScreen} options={{ title: '预警' }} />
       <Tab.Screen name="SOS" component={SOSScreen} options={{ title: '' }} />
-      <Tab.Screen name="Shelters" component={SheltersScreen} options={{ title: '??' }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: '??' }} />
+      <Tab.Screen name="Shelters" component={SheltersScreen} options={{ title: '避难' }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: '我的' }} />
     </Tab.Navigator>
   );
 }
