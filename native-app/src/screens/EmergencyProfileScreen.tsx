@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Screen } from '../components/Screen';
 import { supabase } from '../lib/supabase';
+import { isValidDate, isValidInternationalPhone } from '../lib/validation';
 import { colors, radius, spacing } from '../theme';
 import type { RootStackParams } from '../navigation/RootNavigator';
 
@@ -48,41 +49,44 @@ export function EmergencyProfileScreen({ navigation }: Props) {
 
   const update = (key: keyof FormState, value: string) => setForm((current) => ({ ...current, [key]: value }));
   const save = async () => {
+    if (form.birth_date && !isValidDate(form.birth_date)) return Alert.alert('出生日期无效', '请使用 YYYY-MM-DD 格式，并填写不晚于今天的真实日期。');
+    if (form.emergency_contact_phone && !isValidInternationalPhone(form.emergency_contact_phone)) return Alert.alert('联系人电话无效', '请输入带国际区号的号码，例如 +8613800000000。');
+    if (form.emergency_contact_phone && !form.emergency_contact_name.trim()) return Alert.alert('请填写紧急联系人姓名');
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
-    const result = auth.user ? await supabase.from('profiles').update({ ...form, birth_date: form.birth_date || null }).eq('id', auth.user.id) : { error: new Error('?????') };
+    const result = auth.user ? await supabase.from('profiles').update({ ...form, birth_date: form.birth_date || null }).eq('id', auth.user.id) : { error: new Error('登录已失效') };
     setSaving(false);
-    if (result.error) Alert.alert('????', result.error.message);
-    else Alert.alert('???', '?????? SOS ????????????');
+    if (result.error) Alert.alert('保存失败', result.error.message);
+    else Alert.alert('已保存', '紧急资料将在 SOS 救援时提供给授权救援人员');
   };
 
   if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
   return (
-    <Screen title="??????" subtitle="???? SOS ??" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>??</Text></Pressable>}>
-      <Text style={styles.notice}>?????????????????????????????????</Text>
-      <Section title="????">
-        <Field label="??" value={form.nickname} onChangeText={(v) => update('nickname', v)} />
-        <Field label="?????YYYY-MM-DD?" value={form.birth_date} onChangeText={(v) => update('birth_date', v)} />
-        <Text style={styles.label}>??</Text>
-        <View style={styles.choiceRow}>{([['male', '?'], ['female', '?'], ['secret', '???']] as const).map(([value, label]) => <Choice key={value} label={label} selected={form.gender === value} onPress={() => update('gender', value)} />)}</View>
-        <Text style={styles.label}>??????</Text>
-        <View style={styles.choiceRow}>{([['zh', '??'], ['en', 'English'], ['ru', '???????'], ['uk', '??????????']] as const).map(([value, label]) => <Choice key={value} label={label} selected={form.language === value} onPress={() => update('language', value)} />)}</View>
+    <Screen title="紧急医疗资料" subtitle="用于真实 SOS 救援" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
+      <Text style={styles.notice}>这些资料只用于紧急救援，请填写真实信息，并保持紧急联系人电话有效。</Text>
+      <Section title="基本信息">
+        <Field label="姓名" value={form.nickname} onChangeText={(v) => update('nickname', v)} />
+        <Field label="出生日期（YYYY-MM-DD）" value={form.birth_date} onChangeText={(v) => update('birth_date', v)} />
+        <Text style={styles.label}>性别</Text>
+        <View style={styles.choiceRow}>{([['male', '男'], ['female', '女'], ['secret', '不公开']] as const).map(([value, label]) => <Choice key={value} label={label} selected={form.gender === value} onPress={() => update('gender', value)} />)}</View>
+        <Text style={styles.label}>救援沟通语言</Text>
+        <View style={styles.choiceRow}>{([['zh', '中文'], ['en', 'English'], ['ru', 'Русский'], ['uk', 'Українська']] as const).map(([value, label]) => <Choice key={value} label={label} selected={form.language === value} onPress={() => update('language', value)} />)}</View>
       </Section>
-      <Section title="??">
-        <View style={styles.bloodGrid}>{bloodTypes.map((type) => <Pressable key={type} style={[styles.blood, form.blood_type === type && styles.bloodActive]} onPress={() => update('blood_type', type)}><Text style={[styles.bloodText, form.blood_type === type && styles.bloodTextActive]}>{type === 'unknown' ? '??' : type}</Text></Pressable>)}</View>
+      <Section title="血型">
+        <View style={styles.bloodGrid}>{bloodTypes.map((type) => <Pressable key={type} style={[styles.blood, form.blood_type === type && styles.bloodActive]} onPress={() => update('blood_type', type)}><Text style={[styles.bloodText, form.blood_type === type && styles.bloodTextActive]}>{type === 'unknown' ? '未知' : type}</Text></Pressable>)}</View>
       </Section>
-      <Section title="????">
-        <Field label="???" value={form.allergies} onChangeText={(v) => update('allergies', v)} />
-        <Field label="????" value={form.medical_history} onChangeText={(v) => update('medical_history', v)} multiline />
-        <Field label="????" value={form.current_medication} onChangeText={(v) => update('current_medication', v)} multiline />
-        <Field label="??????" value={form.medical_notes} onChangeText={(v) => update('medical_notes', v)} multiline />
+      <Section title="医疗信息">
+        <Field label="过敏史" value={form.allergies} onChangeText={(v) => update('allergies', v)} />
+        <Field label="既往病史" value={form.medical_history} onChangeText={(v) => update('medical_history', v)} multiline />
+        <Field label="当前用药" value={form.current_medication} onChangeText={(v) => update('current_medication', v)} multiline />
+        <Field label="其他医疗备注" value={form.medical_notes} onChangeText={(v) => update('medical_notes', v)} multiline />
       </Section>
-      <Section title="?????">
-        <Field label="??" value={form.emergency_contact_name} onChangeText={(v) => update('emergency_contact_name', v)} />
-        <Field label="??" value={form.emergency_contact_relation} onChangeText={(v) => update('emergency_contact_relation', v)} />
-        <Field label="?????????" value={form.emergency_contact_phone} onChangeText={(v) => update('emergency_contact_phone', v)} keyboardType="phone-pad" />
+      <Section title="紧急联系人">
+        <Field label="姓名" value={form.emergency_contact_name} onChangeText={(v) => update('emergency_contact_name', v)} />
+        <Field label="关系" value={form.emergency_contact_relation} onChangeText={(v) => update('emergency_contact_relation', v)} />
+        <Field label="电话（含国家代码）" value={form.emergency_contact_phone} onChangeText={(v) => update('emergency_contact_phone', v.slice(0, 20))} keyboardType="phone-pad" />
       </Section>
-      <Pressable style={styles.save} onPress={save} disabled={saving}>{saving ? <ActivityIndicator color={colors.white} /> : <Text style={styles.saveText}>??????</Text>}</Pressable>
+      <Pressable style={styles.save} onPress={save} disabled={saving}>{saving ? <ActivityIndicator color={colors.white} /> : <Text style={styles.saveText}>保存紧急资料</Text>}</Pressable>
     </Screen>
   );
 }
