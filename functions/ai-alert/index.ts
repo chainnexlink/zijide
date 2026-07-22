@@ -68,8 +68,8 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     let action = url.searchParams.get('action') || '';
 
-    // ???? supabase.functions.invoke ? action ?? body ?
-    // ? URL ?????? body ????? clone() ???? body
+    // 前端通过 supabase.functions.invoke 将 action 放在 body 中
+    // 仅 URL 参数为空时从 body 读取，使用 clone() 保留原始 body
     if (!action && req.method === 'POST') {
       try {
         const clonedBody = await req.clone().json();
@@ -120,8 +120,8 @@ async function collectAlerts(supabaseAdmin: any) {
   const perSource: any[] = [];
 
   if (demoMode) {
-    // ?? ??????? / ????????????????
-    // ???????? ALERT_DEMO_MODE=true ?? ??????????????
+    // ⚠️ 仅用于本地测试 / 应用商店审核演示：生成合成预警。
+    // 生产环境请勿设置 ALERT_DEMO_MODE=true —— 真实预警来自下方真实数据源。
     const demoSources: AlertSource[] = [
       { id: 'demo_ua', name: 'Ukraine Alerts (DEMO)', url: 'https://alerts.com.ua', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Ukraine', reliability: 0.95 },
       { id: 'demo_il', name: 'Israel Alerts (DEMO)', url: 'https://www.oref.org.il', type: 'api', lastChecked: new Date(0).toISOString(), country: 'Israel', reliability: 0.95 },
@@ -135,7 +135,7 @@ async function collectAlerts(supabaseAdmin: any) {
     return new Response(JSON.stringify({ success: true, demoMode: true, collected, new: inserted, timestamp: now.toISOString() }), { headers: corsHeaders });
   }
 
-  // ?????????????????????????
+  // 生产：从真实上游数据源增量采集（自上次抓取时间起）
   const { data: crawlStates } = await supabaseAdmin.from('alert_crawl_state').select('*');
   const stateMap: Record<string, any> = {};
   if (crawlStates) for (const s of crawlStates) stateMap[s.source_name] = s;
@@ -160,7 +160,7 @@ async function collectAlerts(supabaseAdmin: any) {
     }
   }
 
-  // AI ????????? MEOO_PROJECT_API_KEY ????
+  // AI 分析器（仅在配置了 MEOO_PROJECT_API_KEY 时运行）
   if (MEOO_PROJECT_SERVICE_AK) {
     try {
       for (const a of await generateAIAnalyzedAlerts(supabaseAdmin, now)) {
@@ -175,12 +175,12 @@ async function collectAlerts(supabaseAdmin: any) {
   return new Response(JSON.stringify({ success: true, demoMode: false, collected, new: inserted, sources: perSource, timestamp: now.toISOString() }), { headers: corsHeaders });
 }
 
-// ????????? alerts ? CHECK ?????
+// 允许的预警类型（与 alerts 表 CHECK 约束一致）
 const ALLOWED_ALERT_TYPES = ['air_strike', 'artillery', 'conflict', 'curfew', 'chemical', 'other'];
 
-// ????? AlertData ??? alerts ??????
-// ??????? = end_time IS NULL???? Dashboard ? .is('end_time', null) ??????
-// ????????????????? is_active / expires_at ??
+// 将采集到的 AlertData 映射为 alerts 表的真实列。
+// 关键：活跃预警 = end_time IS NULL（与前端 Dashboard 的 .is('end_time', null) 查询一致），
+// 不再使用历史代码里那些根本不存在的 is_active / expires_at 列。
 function mapAlertDataToRow(a: AlertData, now: Date) {
   return {
     alert_type: ALLOWED_ALERT_TYPES.includes(a.type) ? a.type : 'other',
@@ -199,11 +199,11 @@ function mapAlertDataToRow(a: AlertData, now: Date) {
     detection_delay_seconds: 0,
     confidence: a.confidence ?? 0.7,
     start_time: a.createdAt,
-    // end_time ?? = ??
+    // end_time 留空 = 活跃
   };
 }
 
-// ?????????????????????????? null?
+// 去重后插入；新插入成功后写入站内通知。返回插入的行或 null。
 async function insertAlertIfNew(supabaseAdmin: any, row: any, _now: Date) {
   if (!ALLOWED_ALERT_TYPES.includes(row.alert_type)) row.alert_type = 'other';
 
@@ -220,7 +220,7 @@ async function insertAlertIfNew(supabaseAdmin: any, row: any, _now: Date) {
 
   const { data, error } = await supabaseAdmin.from('alerts').insert(row).select().single();
   if (error) {
-    // ????????????????????????
+    // 唯一索引冲突（并发重复）等视为非致命，记录后跳过
     console.error('alert insert failed:', error.message, row.source_id);
     return null;
   }
@@ -248,7 +248,7 @@ async function generateAIAnalyzedAlerts(supabaseAdmin: any, now: Date): Promise<
           model: 'qwen3-vl-plus',
           messages: [{
             role: 'user',
-            content: `Analyze current armed-conflict and security situations worldwide, PRIORITIZING active war zones (the Middle East ? Israel, Palestine, Lebanon, Syria, Jordan, Iraq, Iran, Yemen, Egypt, Turkey, the Gulf states ? plus Ukraine and Sudan), and also covering other global conflict/security hotspots (the Sahel and rest of Africa, South/Southeast Asia, etc.). Focus on conflict/security events (air strikes, shelling, armed clashes, attacks, curfews), NOT natural disasters.
+            content: `Analyze current armed-conflict and security situations worldwide, PRIORITIZING active war zones (the Middle East — Israel, Palestine, Lebanon, Syria, Jordan, Iraq, Iran, Yemen, Egypt, Turkey, the Gulf states — plus Ukraine and Sudan), and also covering other global conflict/security hotspots (the Sahel and rest of Africa, South/Southeast Asia, etc.). Focus on conflict/security events (air strikes, shelling, armed clashes, attacks, curfews), NOT natural disasters.
             Return JSON array with: title, description, type (air_strike/artillery/conflict/curfew/chemical/other),
             severity (red/orange/yellow), country, city, latitude, longitude, confidence (0-1).
             Generate 3-5 alerts, with war zones listed first, across a spread of countries.`
@@ -461,17 +461,17 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
   const targetIds = targets.map((u: any) => u.user_id);
   const notifications = targetIds.map((uid: string) => ({
     user_id: uid,
-    title: `?? ${alert.title}`,
+    title: `🚨 ${alert.title}`,
     body: alert.description,
     type: 'alert',
     data: { alert_id: alert.id },
   }));
   await supabaseAdmin.from('notifications').insert(notifications);
 
-  // ???????????/???????????? APNs/FCM ???????
+  // 真正下发原生推送（关屏/退后台也能收到）；未配置 APNs/FCM 密钥时安全跳过
   try {
     await sendPushToUsers(supabaseAdmin, targetIds, {
-      title: `?? ${alert.title}`,
+      title: `🚨 ${alert.title}`,
       body: alert.description || '',
       data: { alert_id: alert.id, type: 'alert', severity: alert.severity },
       severity: alert.severity,
@@ -485,7 +485,7 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
     const paidIds = new Set((paid || []).map((item: any) => item.user_id));
     for (const settings of targets.filter((item: any) => paidIds.has(item.user_id))) {
       const profile: any = profilesById.get(settings.user_id); const delivered: string[] = [];
-      const subject = `?? WarRescue????: ${alert.title}`; const message = `${alert.title}\n${alert.description || ''}`;
+      const subject = `⚠️ WarRescue紧急预警: ${alert.title}`; const message = `${alert.title}\n${alert.description || ''}`;
       if (settings.email_enabled && profile?.email) { const result = await sendEmail(profile.email, subject, message); if (result.ok) delivered.push('email'); }
       if (settings.sms_enabled && profile?.phone) { const result = await sendSms(profile.phone, message); if (result.ok) delivered.push('sms'); }
       if (delivered.length) await supabaseAdmin.from('notifications').insert({ user_id: settings.user_id, title: subject, body: alert.description, type: 'email_sms', data: { alert_id: alert.id, delivery: delivered } });
@@ -498,7 +498,7 @@ function matchesUserAlertSettings(settings: any, profile: any, extraLocations: a
   if (typeColumn[alert.alert_type] && settings[typeColumn[alert.alert_type]] === false) return false;
   const rank: Record<string, number> = { yellow: 1, orange: 2, red: 3 };
   if ((rank[alert.severity] || 0) < (rank[settings.min_severity || 'yellow'] || 1)) return false;
-  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start, settings.dnd_end)) return false;
+  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start_time, settings.dnd_end_time, settings.timezone_offset_minutes, settings.dnd_repeat, settings.dnd_days)) return false;
   const primary = { city: settings.city || profile?.city, country: settings.country || profile?.country, latitude: settings.last_latitude, longitude: settings.last_longitude, radius_km: settings.monitor_radius_km || 30 };
   return [primary, ...extraLocations].some((location: any) => {
     if (location.latitude != null && location.longitude != null && hasValidCoord(alert.latitude, alert.longitude)) return haversineKm(Number(location.latitude), Number(location.longitude), Number(alert.latitude), Number(alert.longitude)) <= Number(location.radius_km || settings.monitor_radius_km || 30);
@@ -507,26 +507,26 @@ function matchesUserAlertSettings(settings: any, profile: any, extraLocations: a
   });
 }
 
-function isWithinDnd(start?: string, end?: string) { if (!start || !end) return false; const now = new Date(); const minutes = now.getUTCHours() * 60 + now.getUTCMinutes(); const parse = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; }; const from = parse(start); const to = parse(end); return from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to; }
+function isWithinDnd(start?: string, end?: string, offset = 0, repeat = 'daily', days: number[] = []) { if (!start || !end) return false; const local = new Date(Date.now() - Number(offset || 0) * 60000); const day = local.getUTCDay(); if (repeat === 'weekdays' && (day === 0 || day === 6)) return false; if (repeat === 'custom' && !days.includes(day)) return false; const minutes = local.getUTCHours() * 60 + local.getUTCMinutes(); const parse = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; }; const from = parse(start); const to = parse(end); return from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to; }
 
-// ??????????????????? (0,0)?
-// (0,0) ???????????????????????????? 0,0?
-// ??????????????????????????????????
+// 坐标是否“有效”：必须是有限数，且不是 (0,0)。
+// (0,0) 在几内亚湾，绝不会是真实预警点；历史上无经纬度的源被写成 0,0，
+// 会让距离判断误以为“有坐标”，从而绕过国家兜底、导致谁都收不到推送。
 function hasValidCoord(lat: any, lng: any): boolean {
   return typeof lat === 'number' && typeof lng === 'number'
     && Number.isFinite(lat) && Number.isFinite(lng)
     && !(lat === 0 && lng === 0);
 }
 
-// ???????????????????
+// 判断某预警是否与某用户相关（地理过滤）
 function isAlertRelevantToUser(u: any, alert: any): boolean {
   const aLat = alert.latitude, aLng = alert.longitude;
   const userHasCoord = u.last_latitude != null && u.last_longitude != null;
-  // ??????????????????????????
+  // 仅当“用户有坐标”且“预警有有效坐标”时才按距离过滤
   if (userHasCoord && hasValidCoord(aLat, aLng)) {
     return haversineKm(u.last_latitude, u.last_longitude, aLat, aLng) <= (u.monitor_radius_km || 30);
   }
-  // ????? / ????????? ReliefWeb???? Oref ??????? ???????????
+  // 用户无坐标 / 预警无有效坐标（如 ReliefWeb、以色列 Oref 不带经纬度）→ 退回国家匹配，避免漏推
   const country = u.profiles?.country;
   return !!(country && alert.country && country === alert.country);
 }
@@ -540,7 +540,7 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 async function processPendingAlerts(supabaseAdmin: any) {
-  // ???? = end_time IS NULL?????? TTL ???red 2h / orange 4h / yellow 8h?
+  // 活跃预警 = end_time IS NULL。按严重级别 TTL 过期：red 2h / orange 4h / yellow 8h。
   const ttlHours: Record<string, number> = { red: 2, orange: 4, yellow: 8 };
   const nowISO = new Date().toISOString();
   let processed = 0;
@@ -666,7 +666,7 @@ async function verifyAlert(supabaseAdmin: any, req: Request) {
         await supabaseAdmin
           .from('alerts')
           .update({
-            is_verified: verification.verified, // ???alerts ???? is_verified??? verified ????
+            is_verified: verification.verified, // 修复：alerts 表列名是 is_verified（原写 verified 不存在）
             verified_at: verification.verified ? new Date().toISOString() : null,
             verification_confidence: verification.confidence,
             verification_notes: verification.notes
@@ -707,17 +707,17 @@ interface CrawlSource {
   url: string;
   type: 'reliefweb' | 'liveuamap' | 'gdacs' | 'acled' | 'oref' | 'orefLive' | 'ukrainealarm' | 'telegram';
   checkIntervalMinutes: number;
-  priority?: boolean; // true = ?????????????+????????????????????????????????
+  priority?: boolean; // true = 战区实时源：每周期最先抓取+先入库，保证战区预警时效性（付费用户核心），绝不被全球聚合源拖慢
 }
 
 const REALTIME_SOURCES: CrawlSource[] = [
-  // ?? ?????????????priority??????????????????????
-  // Ukraine Alarm ?? API?? UKRAINEALARM_TOKEN????????????????
+  // —— 战区实时源（秒级空袭警报，priority；每周期最先处理，时效性优先于全球覆盖）——
+  // Ukraine Alarm 官方 API：需 UKRAINEALARM_TOKEN（免费申请）；未配置则静默跳过。
   { name: 'Ukraine Alarm (official)', country: 'Ukraine', url: 'https://api.ukrainealarm.com/api/v3/alerts', type: 'ukrainealarm', checkIntervalMinutes: 1, priority: true },
-  // ??? Pikud HaOref ?????? token???????????????????????
+  // 以色列 Pikud HaOref 实时端点：无 token，但需特定请求头；无警报时返回空（已做防御）。
   { name: 'Israel Oref Live', country: 'Israel', url: 'https://www.oref.org.il/WarningMessages/alert/alerts.json', type: 'orefLive', checkIntervalMinutes: 1, priority: true },
   { name: 'Ukraine Live Map', country: 'Ukraine', url: 'https://liveuamap.com/ajax/ukraine-latest', type: 'liveuamap', checkIntervalMinutes: 2, priority: true },
-  // ?? ????????/????????????????????????????
+  // —— 全球聚合源（冲突/安全事件，覆盖广但时效较慢；仅在战区实时源之后处理）——
   { name: 'ReliefWeb API', country: 'Global', url: 'https://api.reliefweb.int/v1/reports?appname=warrescue&filter[field]=date.created&filter[value][from]=', type: 'reliefweb', checkIntervalMinutes: 5 },
   { name: 'GDACS Events', country: 'Global', url: 'https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?fromDate=', type: 'gdacs', checkIntervalMinutes: 10 },
   { name: 'ACLED Conflict Data', country: 'Global', url: 'https://api.acleddata.com/acled/read?event_date=', type: 'acled', checkIntervalMinutes: 30 },
@@ -737,13 +737,13 @@ async function realtimeMonitor(supabaseAdmin: any) {
     for (const s of crawlState) stateMap[s.source_name] = s;
   }
 
-  // ?????priority ?????/???????????????+???
-  // ?????????????????????????
+  // 战区优先：priority 源（乌克兰/以色列实时空袭）每周期最先抓取+入库，
+  // 保证付费用户战区预警时效性，绝不被全球聚合源拖慢。
   const orderedSources = [...REALTIME_SOURCES].sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
 
   for (const source of orderedSources) {
     const lastState = stateMap[source.name];
-    // ???? last_crawl_at???? 1 ?????? 1970 ??????? collect/incrementalCrawl ??
+    // 首次（无 last_crawl_at）只回看 1 小时，避免从 1970 拉全量历史；与 collect/incrementalCrawl 一致
     const lastCrawl = lastState?.last_crawl_at ? new Date(lastState.last_crawl_at) : new Date(now.getTime() - 3600000);
     const minutesSinceLastCrawl = (now.getTime() - lastCrawl.getTime()) / 60000;
 
@@ -825,20 +825,20 @@ async function crawlSource(
     let fetchUrl = source.url;
     const headers: Record<string, string> = { 'Accept': 'application/json', 'User-Agent': 'WarRescue/1.0' };
     if (source.type === 'reliefweb') {
-      fetchUrl += encodeURIComponent(sinceISO) + '&limit=100&sort[]=date.created:desc'; // ????????????
+      fetchUrl += encodeURIComponent(sinceISO) + '&limit=100&sort[]=date.created:desc'; // 全球后调高，减少高峰漏报
     } else if (source.type === 'gdacs') {
       fetchUrl += sinceISO.split('T')[0] + '&toDate=' + now.toISOString().split('T')[0];
     } else if (source.type === 'acled') {
-      fetchUrl += since.toISOString().split('T')[0] + '&event_date_where=%3E&limit=200'; // ????????????
+      fetchUrl += since.toISOString().split('T')[0] + '&event_date_where=%3E&limit=200'; // 全球后调高，减少高峰漏报
     } else if (source.type === 'ukrainealarm') {
       const token = Deno.env.get('UKRAINEALARM_TOKEN') || '';
       if (!token) {
-        // ??? token???????????????????
+        // 未配置 token：静默跳过该源（不报错、不影响其它源）
         return { newItems: 0, inserted: 0, avgDelaySeconds: 0 };
       }
       headers['Authorization'] = token;
     } else if (source.type === 'orefLive') {
-      // Oref ????????????????????
+      // Oref 实时端点需要这些头，否则可能被拒或返回空
       headers['Referer'] = 'https://www.oref.org.il/';
       headers['X-Requested-With'] = 'XMLHttpRequest';
     }
@@ -852,7 +852,7 @@ async function crawlSource(
       throw new Error(`HTTP ${response.status}`);
     }
 
-    // Oref ????????????/?????? json() ??? ? ???????
+    // Oref 实时端点无警报时返回空串/空对象，直接 json() 会抛错 → 用文本防御解析
     let data: any;
     if (source.type === 'orefLive') {
       const txt = (await response.text()).trim();
@@ -874,7 +874,7 @@ async function crawlSource(
       newItems++;
 
       if (item.isRelevant) {
-        // ?????????????????alert_type / start_time / ? is_active?
+        // 通过去重助手插入；列名对齐真实表（alert_type / start_time / 无 is_active）
         const ok = await insertAlertIfNew(supabaseAdmin, {
           alert_type: item.alertType || 'other',
           severity: item.severity || 'yellow',
@@ -908,15 +908,15 @@ async function crawlSource(
   };
 }
 
-// ????????????????/????????????????????/??????????
-// ???? ReliefWeb ???????/?????????????
-// ?ACLED ??????????GDACS ?????????????????
+// 预警覆盖范围：全球，但只收“冲突/安全”事件（排除纯自然灾害），保持“空袭/战区预警”信号纯度。
+// 用于过滤 ReliefWeb 等聚合源：标题/正文命中冲突关键词才纳入。
+// （ACLED 本身即全球冲突数据；GDACS 为自然灾害源，相对降权、不扩量。）
 const CONFLICT_KEYWORDS = [
   'air strike', 'airstrike', 'air raid', 'shelling', 'artillery', 'rocket', 'missile', 'drone',
   'bombing', 'bombard', 'explosion', 'blast', 'attack', 'assault', 'clash', 'armed', 'militant',
   'gunfire', 'gunmen', 'insurgent', 'terror', 'war', 'conflict', 'offensive', 'siege', 'ambush',
   'violence', 'killed', 'casualt', 'evacuat', 'curfew', 'ceasefire', 'hostilit', 'combat', 'unrest',
-  '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '?',
+  '空袭', '炮击', '导弹', '火箭', '袭击', '冲突', '交火', '爆炸', '武装', '戒严', '撤离', '枪',
 ];
 function isSecurityEvent(title: string, body: string): boolean {
   const text = ((title || '') + ' ' + (body || '')).toLowerCase();
@@ -933,7 +933,7 @@ function extractItems(data: any, type: string): any[] {
       for (const r of reports) {
         const fields = r.fields || {};
         const country = fields.country?.[0]?.name || 'Unknown';
-        // ???????????/?????????/???????????????????????????
+        // 全球覆盖，但只收“冲突/安全”事件（按标题/正文关键词判定，排除纯自然灾害），保持战区预警信号纯度
         const isConflictZone = isSecurityEvent(fields.title || '', fields.body || '');
         items.push({
           externalId: `rw_${r.id}`,
@@ -1014,7 +1014,7 @@ function extractItems(data: any, type: string): any[] {
       break;
     }
     case 'ukrainealarm': {
-      // ?? v3?????? + activeAlerts[]???????? ? ?????????? 0,0 ???
+      // 官方 v3：返回各区域 + activeAlerts[]；区域级无经纬度 → 退回国家匹配（已修复 0,0 漏推）
       const regions = Array.isArray(data) ? data : [];
       for (const reg of regions) {
         const active = reg.activeAlerts || reg.alerts || [];
@@ -1042,7 +1042,7 @@ function extractItems(data: any, type: string): any[] {
       break;
     }
     case 'orefLive': {
-      // ??????????? { id, cat, title, data:[??...], desc }????? ? ??????
+      // 实时端点：有警报时返回 { id, cat, title, data:[区域...], desc }；无经纬度 → 退回国家匹配
       const obj = (data && !Array.isArray(data)) ? data : null;
       const areas = obj && Array.isArray(obj.data) ? obj.data : [];
       for (const area of areas) {
