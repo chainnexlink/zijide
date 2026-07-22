@@ -99,7 +99,28 @@ ALTER TABLE public.safety_news ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public reads published safety news" ON public.safety_news;
 CREATE POLICY "Public reads published safety news" ON public.safety_news FOR SELECT USING (is_published = true);
 INSERT INTO public.safety_news (id,title,summary,content,category,author,tags,published_at,view_count) VALUES
-('news-seed001','WarRescue ????????????????????','????????????????','<h2>??????</h2><p>??????????????????????????????????????</p><ol><li>?????????</li><li>?? WarRescue ???????</li><li>?? App ??????????</li></ol>','guide','WarRescue Team',ARRAY['??','??'],'2026-04-13T01:32:51Z',127),
-('news-seed002','?????????????','???????????????','<h2>????</h2><p>????????????????????????????????????????????????????</p>','alert','WarRescue Safety',ARRAY['??','??'],'2026-04-14T01:32:51Z',342),
-('news-seed003','????????????','????????????????','<h2>??????</h2><p>??????????????????????????????? SOS ??????????????</p>','general','WarRescue Team',ARRAY['???','??'],'2026-04-15T01:25:00Z',89)
+('news-seed001','WarRescue 使用指南：如何在空袭预警时快速找到避难所','如何使用避难所导航和离线地图功能','<h2>快速逃生指南</h2><p>当收到红色预警时，请保持冷静，立即查看最近的避难所并选择安全评分较高的路线。</p><ol><li>保持冷静，不要慌乱</li><li>打开 WarRescue 查看最近避难所</li><li>选择 App 内安全路线并开始导航</li></ol>','guide','WarRescue Team',ARRAY['指南','安全'],'2026-04-13T01:32:51Z',127),
+('news-seed002','地区风险等级与行动建议说明','了解红色、橙色和黄色预警的区别','<h2>风险等级</h2><p>红色代表立即避险；橙色代表减少外出并准备转移；黄色代表保持警惕并检查应急物资。信息应以当地官方来源为准。</p>','alert','WarRescue Safety',ARRAY['安全','预警'],'2026-04-14T01:32:51Z',342),
+('news-seed003','家庭位置实时共享功能详解','在紧急情况下快速确认家人安全状态','<h2>家庭位置共享</h2><p>家庭成员可共享位置、电量、在线时间和安全状态。进入危险区或触发 SOS 时，家庭联动会同步相关信息。</p>','general','WarRescue Team',ARRAY['新功能','家庭'],'2026-04-15T01:25:00Z',89)
 ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,summary=EXCLUDED.summary,content=EXCLUDED.content,category=EXCLUDED.category,author=EXCLUDED.author,tags=EXCLUDED.tags,is_published=true,published_at=EXCLUDED.published_at;
+
+-- In-app support requests are private to the submitting user. Staff access is
+-- intentionally handled with the service role rather than a broad user policy.
+CREATE TABLE IF NOT EXISTS public.user_feedback (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category TEXT NOT NULL,
+  content TEXT NOT NULL CHECK (char_length(content) BETWEEN 10 AND 1000),
+  app_version TEXT,
+  platform TEXT,
+  device_model TEXT,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','reviewing','resolved','closed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_user_feedback_user_created ON public.user_feedback(user_id, created_at DESC);
+ALTER TABLE public.user_feedback ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users create own feedback" ON public.user_feedback;
+CREATE POLICY "Users create own feedback" ON public.user_feedback FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users read own feedback" ON public.user_feedback;
+CREATE POLICY "Users read own feedback" ON public.user_feedback FOR SELECT TO authenticated USING (auth.uid() = user_id);
