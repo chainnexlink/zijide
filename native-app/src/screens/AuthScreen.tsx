@@ -11,6 +11,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
+import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -21,6 +24,9 @@ import type { RootStackParams } from '../navigation/RootNavigator';
 
 type AuthMode = 'login' | 'register';
 type AuthMethod = 'phone' | 'email';
+type PhoneLoginMode = 'password' | 'otp';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const friendlyError = (message: string) => {
   const value = message.toLowerCase();
@@ -32,6 +38,7 @@ const friendlyError = (message: string) => {
   if (value.includes('sms service not configured')) return '短信服务暂未配置，请联系管理员';
   if (value.includes('sms send failed')) return '验证码发送失败，请稍后再试';
   if (value.includes('invalid or expired code')) return '验证码错误或已过期';
+  if (value.includes('provider is not enabled') || value.includes('unsupported provider')) return '该登录方式尚未在后台启用，请使用手机或邮箱登录';
   return message;
 };
 
@@ -39,6 +46,7 @@ export function AuthScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
   const [mode, setMode] = useState<AuthMode>('login');
   const [method, setMethod] = useState<AuthMethod>('phone');
+  const [phoneLoginMode, setPhoneLoginMode] = useState<PhoneLoginMode>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -52,6 +60,7 @@ export function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [emailSent, setEmailSent] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
 
   const normalizedPhone = useMemo(() => phone.replace(/\D/g, ''), [phone]);
   const passwordCheck = useMemo(() => checkPassword(password), [password]);
@@ -65,6 +74,10 @@ export function AuthScreen() {
     const timer = setTimeout(() => setCountdown((value) => Math.max(0, value - 1)), 1000);
     return () => clearTimeout(timer);
   }, [countdown]);
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') void AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
+  }, []);
 
   const resetFeedback = () => {
     setMessage('');
@@ -103,8 +116,28 @@ export function AuthScreen() {
       setMessage('请输入有效的国家/地区代码和手机号');
       return;
     }
+    if (mode === 'login' && phoneLoginMode === 'password') {
+      if (!password) {
+        setMessage('请输入密码');
+        return;
+      }
+      setLoading(true);
+      setMessage('');
+      const { error } = await supabase.auth.signInWithPassword({ phone: `${normalizedCountryCode}${normalizedPhone}`, password });
+      setLoading(false);
+      if (error) setMessage(friendlyError(error.message));
+      return;
+    }
     if (!/^\d{6}$/.test(verificationCode)) {
       setMessage('请输入 6 位短信验证码');
+      return;
+    }
+    if (mode === 'register' && !passwordCheck.valid) {
+      setMessage(passwordCheck.message);
+      return;
+    }
+    if (mode === 'register' && password !== confirmPassword) {
+      setMessage('两次输入的密码不一致');
       return;
     }
     if (mode === 'register' && !agreed) {
@@ -127,6 +160,16 @@ export function AuthScreen() {
       return;
     }
 
+    if (mode === 'register') {
+      const passwordResult = await supabase.auth.updateUser({ password });
+      if (passwordResult.error) {
+        setLoading(false);
+        await supabase.auth.signOut();
+        setMessage(friendlyError(passwordResult.error.message));
+        return;
+      }
+    }
+
     const profileResult = await supabase.functions.invoke('subscription', {
       body: {
         action: 'complete-phone-profile',
@@ -138,6 +181,49 @@ export function AuthScreen() {
     if (profileResult.error || !profileResult.data?.success) {
       await supabase.auth.signOut();
       setMessage(friendlyError(profileResult.data?.error || profileResult.error?.message || '账户资料初始化失败'));
+    }
+  };
+
+  const socialLogin = async (provider: 'google' | 'apple') => {
+    setLoading(true);
+    setMessage('');
+    try {
+      if (provider === 'apple') {
+        const bytes = await Crypto.getRandomBytesAsync(32);
+        const rawNonce = Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
+        const nonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+        const credential = await AppleAuthentication.signInAsync({
+          requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
+          nonce,
+        });
+        if (!credential.identityToken) throw new Error('Apple 未返回登录凭证');
+        const result = await supabase.auth.signInWithIdToken({ provider: 'apple', token: credential.identityToken, nonce: rawNonce });
+        if (result.error) throw result.error;
+        if (credential.fullName?.givenName || credential.fullName?.familyName) {
+          const nickname = [credential.fullName.givenName, credential.fullName.familyName].filter(Boolean).join(' ');
+          await supabase.auth.updateUser({ data: { nickname } });
+        }
+      } else {
+        const redirectTo = 'warrescue://auth-callback';
+        const result = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: true } });
+        if (result.error || !result.data.url) throw result.error || new Error('无法创建 Google 登录链接');
+        const browser = await WebBrowser.openAuthSessionAsync(result.data.url, redirectTo);
+        if (browser.type !== 'success') return;
+        const fragment = browser.url.split('#')[1] || browser.url.split('?')[1] || '';
+        const params = new URLSearchParams(fragment);
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        const authError = params.get('error_description');
+        if (authError) throw new Error(decodeURIComponent(authError));
+        if (!accessToken || !refreshToken) throw new Error('Google 登录未返回有效会话');
+        const sessionResult = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        if (sessionResult.error) throw sessionResult.error;
+      }
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code !== 'ERR_REQUEST_CANCELED') setMessage(friendlyError(error instanceof Error ? error.message : '第三方登录失败'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -246,6 +332,7 @@ export function AuthScreen() {
 
             {method === 'phone' ? (
               <>
+                {mode === 'login' ? <View style={styles.loginModeRow}><Pressable onPress={() => { setPhoneLoginMode('password'); resetFeedback(); }}><Text style={[styles.loginModeText, phoneLoginMode === 'password' && styles.loginModeActive]}>密码登录</Text></Pressable><Text style={styles.loginModeDivider}>|</Text><Pressable onPress={() => { setPhoneLoginMode('otp'); resetFeedback(); }}><Text style={[styles.loginModeText, phoneLoginMode === 'otp' && styles.loginModeActive]}>验证码登录</Text></Pressable></View> : null}
                 <View style={styles.phoneRow}>
                   <TextInput
                     style={[styles.input, styles.countryInput]}
@@ -264,7 +351,7 @@ export function AuthScreen() {
                     keyboardType="phone-pad"
                   />
                 </View>
-                <View style={styles.phoneRow}>
+                {mode === 'register' || phoneLoginMode === 'otp' ? <View style={styles.phoneRow}>
                   <TextInput
                     style={[styles.input, styles.phoneInput]}
                     value={verificationCode}
@@ -277,7 +364,14 @@ export function AuthScreen() {
                   <Pressable style={[styles.codeButton, (loading || countdown > 0) && styles.disabled]} onPress={sendPhoneCode} disabled={loading || countdown > 0}>
                     <Text style={styles.codeButtonText}>{countdown > 0 ? `${countdown} 秒` : '获取验证码'}</Text>
                   </Pressable>
-                </View>
+                </View> : null}
+                {mode === 'register' || phoneLoginMode === 'password' ? <>
+                  <View style={styles.passwordWrap}>
+                    <TextInput style={styles.passwordInput} value={password} onChangeText={(value) => setPassword(value.slice(0, 128))} placeholder={mode === 'register' ? '设置密码（至少8位，包含字母和数字）' : '密码'} placeholderTextColor={colors.muted} secureTextEntry={!passwordVisible} autoCapitalize="none" autoCorrect={false} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} />
+                    <Pressable style={styles.passwordToggle} onPress={() => setPasswordVisible((value) => !value)}><Text style={styles.passwordToggleText}>{passwordVisible ? '隐藏' : '显示'}</Text></Pressable>
+                  </View>
+                  {mode === 'register' ? <><Text style={[styles.passwordHint, passwordCheck.valid && styles.passwordHintValid]}>密码强度：{passwordCheck.label} · {passwordCheck.message}</Text><TextInput style={styles.input} value={confirmPassword} onChangeText={(value) => setConfirmPassword(value.slice(0, 128))} placeholder="再次输入密码" placeholderTextColor={colors.muted} secureTextEntry={!passwordVisible} autoCapitalize="none" autoCorrect={false} /></> : null}
+                </> : null}
               </>
             ) : (
               <>
@@ -321,6 +415,11 @@ export function AuthScreen() {
             <Pressable onPress={switchMode}>
               <Text style={styles.switchText}>{mode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录'}</Text>
             </Pressable>
+            <View style={styles.socialDivider}><View style={styles.socialLine} /><Text style={styles.socialDividerText}>其他登录方式</Text><View style={styles.socialLine} /></View>
+            <View style={styles.socialRow}>
+              {appleAvailable ? <AppleAuthentication.AppleAuthenticationButton buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN} buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE} cornerRadius={12} style={styles.appleButton} onPress={() => void socialLogin('apple')} /> : null}
+              <Pressable style={styles.googleButton} onPress={() => void socialLogin('google')} disabled={loading}><Text style={styles.googleText}>G  使用 Google 登录</Text></Pressable>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -371,4 +470,15 @@ const styles = StyleSheet.create({
   switchText: { color: colors.info, textAlign: 'center', fontWeight: '700' },
   forgotText: { color: colors.muted, textAlign: 'center', fontWeight: '700' },
   disabled: { opacity: 0.55 },
+  loginModeRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.sm },
+  loginModeText: { color: colors.muted, fontWeight: '700' },
+  loginModeActive: { color: colors.info },
+  loginModeDivider: { color: colors.border },
+  socialDivider: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  socialLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  socialDividerText: { color: colors.muted, fontSize: 12 },
+  socialRow: { gap: spacing.sm },
+  appleButton: { width: '100%', height: 48 },
+  googleButton: { height: 48, borderRadius: radius.md, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center' },
+  googleText: { color: '#1F2937', fontWeight: '800' },
 });
