@@ -49,16 +49,20 @@ platform :ios do
     bundle_id = Spaceship::ConnectAPI::BundleId.find("com.warrescue.app")
     UI.user_error!("Bundle ID com.warrescue.app was not found") unless bundle_id
 
-    bundle_id.update_capability(
-      Spaceship::ConnectAPI::BundleIdCapability::Type::APPLE_ID_AUTH,
-      enabled: true,
-      settings: [{
+    capability_type = Spaceship::ConnectAPI::BundleIdCapability::Type::APPLE_ID_AUTH
+    capability = bundle_id.get_capabilities.find { |item| item.is_type?(capability_type) }
+
+    unless capability
+      bundle_id.create_capability(
+        capability_type,
+        settings: [{
         key: Spaceship::ConnectAPI::BundleIdCapability::Settings::APPLE_ID_AUTH_APP_CONSENT,
         options: [{
           key: Spaceship::ConnectAPI::BundleIdCapability::Options::PRIMARY_APP_CONSENT
         }]
-      }]
-    )
+        }]
+      )
+    end
     UI.success("Sign in with Apple capability is enabled for com.warrescue.app")
   end
 
