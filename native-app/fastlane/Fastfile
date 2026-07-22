@@ -36,12 +36,39 @@ platform :ios do
     )
   end
 
+  private_lane :enable_required_capabilities do
+    require 'spaceship'
+
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_API_ISSUER_ID"),
+      filepath: ENV.fetch("API_KEY_PATH")
+    )
+    Spaceship::ConnectAPI.token = token
+
+    bundle_id = Spaceship::ConnectAPI::BundleId.find("com.warrescue.app")
+    UI.user_error!("Bundle ID com.warrescue.app was not found") unless bundle_id
+
+    bundle_id.update_capability(
+      Spaceship::ConnectAPI::BundleIdCapability::Type::APPLE_ID_AUTH,
+      enabled: true,
+      settings: [{
+        key: Spaceship::ConnectAPI::BundleIdCapability::Settings::APPLE_ID_AUTH_APP_CONSENT,
+        options: [{
+          key: Spaceship::ConnectAPI::BundleIdCapability::Options::PRIMARY_APP_CONSENT
+        }]
+      }]
+    )
+    UI.success("Sign in with Apple capability is enabled for com.warrescue.app")
+  end
+
   private_lane :prepare_signing do |options|
     api_key = options.fetch(:api_key)
     keychain_path = ENV.fetch("KEYCHAIN_PATH")
     keychain_password = ENV.fetch("KEYCHAIN_PASSWORD")
 
     revoke_orphaned_distribution_certificates
+    enable_required_capabilities
 
     get_certificates(
       api_key: api_key,
