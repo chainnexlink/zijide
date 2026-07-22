@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { useAlertLocationSync, usePushRegistration } from '../hooks/useDeviceFeatures';
+import { useAlertLocationSync, useBackgroundSafetyMonitoring, usePushRegistration } from '../hooks/useDeviceFeatures';
 import { useSession } from '../hooks/useSession';
 import { AlertsScreen } from '../screens/AlertsScreen';
 import { AuthScreen } from '../screens/AuthScreen';
@@ -41,6 +41,9 @@ import { NewsScreen } from '../screens/NewsScreen';
 import { NewsDetailScreen } from '../screens/NewsDetailScreen';
 import { PermissionCenterScreen } from '../screens/PermissionCenterScreen';
 import { HelpSupportScreen } from '../screens/HelpSupportScreen';
+import { AppSecurityScreen } from '../screens/AppSecurityScreen';
+import { DataPrivacyScreen } from '../screens/DataPrivacyScreen';
+import { UpdateCenterScreen } from '../screens/UpdateCenterScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -85,6 +88,9 @@ export type RootStackParams = {
   NewsDetail: { article: { id: string; title: string; summary: string | null; content: string; category: string; author: string | null; tags: string[]; published_at: string; view_count: number } };
   PermissionCenter: undefined;
   HelpSupport: undefined;
+  AppSecurity: undefined;
+  DataPrivacy: undefined;
+  UpdateCenter: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -102,6 +108,7 @@ export function RootNavigator() {
   const { session, loading } = useSession();
   usePushRegistration(Boolean(session));
   useAlertLocationSync(Boolean(session));
+  useBackgroundSafetyMonitoring(Boolean(session));
 
   if (loading) {
     return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
@@ -143,6 +150,9 @@ export function RootNavigator() {
       <Stack.Screen name="NewsDetail" component={NewsDetailScreen} />
       <Stack.Screen name="PermissionCenter" component={PermissionCenterScreen} />
       <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+      <Stack.Screen name="AppSecurity" component={AppSecurityScreen} />
+      <Stack.Screen name="DataPrivacy" component={DataPrivacyScreen} />
+      <Stack.Screen name="UpdateCenter" component={UpdateCenterScreen} />
       <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
     </>}
   </Stack.Navigator>;
