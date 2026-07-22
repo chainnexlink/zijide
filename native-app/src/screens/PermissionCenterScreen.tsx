@@ -25,6 +25,7 @@ const permissionLabel = (status: PermissionState) => {
 export function PermissionCenterScreen({ navigation }: Props) {
   const [notification, setNotification] = useState<PermissionState>('undetermined');
   const [location, setLocation] = useState<PermissionState>('undetermined');
+  const [backgroundLocation, setBackgroundLocation] = useState<PermissionState>('undetermined');
   const [backend, setBackend] = useState<'checking' | 'online' | 'offline'>('checking');
   const [pushRegistered, setPushRegistered] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -32,13 +33,15 @@ export function PermissionCenterScreen({ navigation }: Props) {
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
-    const [notificationPermission, locationPermission, auth] = await Promise.all([
+    const [notificationPermission, locationPermission, backgroundPermission, auth] = await Promise.all([
       Notifications.getPermissionsAsync().catch(() => null),
       Location.getForegroundPermissionsAsync().catch(() => null),
+      Location.getBackgroundPermissionsAsync().catch(() => null),
       supabase.auth.getUser(),
     ]);
     setNotification((notificationPermission?.status || 'unavailable') as PermissionState);
     setLocation((locationPermission?.status || 'unavailable') as PermissionState);
+    setBackgroundLocation((backgroundPermission?.status || 'unavailable') as PermissionState);
 
     if (!auth.data.user) {
       setBackend('offline');
@@ -48,7 +51,7 @@ export function PermissionCenterScreen({ navigation }: Props) {
     }
     const [health, token] = await Promise.all([
       supabase.from('profiles').select('id').eq('id', auth.data.user.id).maybeSingle(),
-      supabase.from('device_tokens').select('id').eq('user_id', auth.data.user.id).eq('is_active', true).limit(1),
+      supabase.from('device_tokens').select('id').eq('user_id', auth.data.user.id).eq('enabled', true).limit(1),
     ]);
     setBackend(health.error ? 'offline' : 'online');
     setPushRegistered(!token.error && Boolean(token.data?.length));
@@ -67,12 +70,21 @@ export function PermissionCenterScreen({ navigation }: Props) {
     setLocation(result.status as PermissionState);
   };
 
+  const requestBackgroundLocation = async () => {
+    const foreground = await Location.requestForegroundPermissionsAsync();
+    setLocation(foreground.status as PermissionState);
+    if (foreground.status !== 'granted') return;
+    const result = await Location.requestBackgroundPermissionsAsync();
+    setBackgroundLocation(result.status as PermissionState);
+  };
+
   const diagnostics = [
     `WarRescue ${version}`,
     `平台: ${Platform.OS} ${Platform.Version}`,
     `设备: ${Device.modelName || Device.deviceName || '未知'}`,
     `通知权限: ${permissionLabel(notification)}`,
     `定位权限: ${permissionLabel(location)}`,
+    `后台定位: ${permissionLabel(backgroundLocation)}`,
     `推送设备: ${pushRegistered ? '已注册' : '未注册'}`,
     `后台连接: ${backend === 'online' ? '正常' : backend === 'offline' ? '异常' : '检查中'}`,
   ].join('\n');
@@ -89,6 +101,7 @@ export function PermissionCenterScreen({ navigation }: Props) {
         <Text style={styles.title}>系统权限</Text>
         <PermissionRow label="推送通知" description="接收风险预警、SOS 和家庭联动消息" value={permissionLabel(notification)} granted={notification === 'granted'} onRequest={() => void requestNotification()} />
         <PermissionRow label="精确定位" description="查找附近危险、避难所和安全路线" value={permissionLabel(location)} granted={location === 'granted'} onRequest={() => void requestLocation()} />
+        <PermissionRow label="后台定位" description="仅在开启后台安全监控时低频更新附近风险与家庭安全位置" value={permissionLabel(backgroundLocation)} granted={backgroundLocation === 'granted'} onRequest={() => void requestBackgroundLocation()} />
         <Pressable style={styles.settingsButton} onPress={() => void Linking.openSettings()}><Text style={styles.settingsText}>打开系统设置</Text></Pressable>
         <Text style={styles.note}>WarRescue 会在使用相关功能时说明权限用途。拒绝权限后仍可使用不依赖该权限的功能。</Text>
       </View>

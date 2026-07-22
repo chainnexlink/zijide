@@ -3,13 +3,22 @@ import 'react-native-url-polyfill/auto';
 
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
-import { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { colors } from './src/theme';
 import { supabase } from './src/lib/supabase';
+import { AppErrorBoundary } from './src/components/AppErrorBoundary';
+import { ConnectivityBanner } from './src/components/ConnectivityBanner';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import { BIOMETRIC_LOCK_KEY } from './src/screens/AppSecurityScreen';
+
+const ONBOARDING_KEY = 'onboarding-completed-v1';
 
 const navigationTheme = {
   ...DarkTheme,
@@ -35,12 +44,62 @@ export default function App() {
     const subscription = Linking.addEventListener('url', (event) => { void handleUrl(event); });
     return () => subscription.remove();
   }, []);
-  return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme} linking={{ prefixes: ['warrescue://'], config: { screens: { PasswordReset: 'reset-password' } } }}>
-        <StatusBar style="light" />
-        <RootNavigator />
-      </NavigationContainer>
-    </SafeAreaProvider>
-  );
+  return <AppErrorBoundary><SafeAreaProvider><AppAccessGate /></SafeAreaProvider></AppErrorBoundary>;
 }
+
+function AppAccessGate() {
+  const [ready, setReady] = useState(false);
+  const [onboarded, setOnboarded] = useState(false);
+  const [unlocked, setUnlocked] = useState(true);
+  const [unlocking, setUnlocking] = useState(false);
+  const backgroundAt = useRef<number | null>(null);
+
+  const authenticate = useCallback(async () => {
+    setUnlocking(true);
+    const result = await LocalAuthentication.authenticateAsync({ promptMessage: '解锁 WarRescue', cancelLabel: '取消', disableDeviceFallback: false });
+    setUnlocked(result.success);
+    setUnlocking(false);
+  }, []);
+
+  useEffect(() => { void (async () => {
+    const [seen, lock] = await Promise.all([AsyncStorage.getItem(ONBOARDING_KEY), AsyncStorage.getItem(BIOMETRIC_LOCK_KEY)]);
+    setOnboarded(seen === 'true');
+    if (lock === 'true') { setUnlocked(false); await authenticate(); }
+    setReady(true);
+  })(); }, [authenticate]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') backgroundAt.current = Date.now();
+      if (state === 'active' && backgroundAt.current && Date.now() - backgroundAt.current > 15_000) {
+        void AsyncStorage.getItem(BIOMETRIC_LOCK_KEY).then((lock) => { if (lock === 'true') { setUnlocked(false); void authenticate(); } });
+        backgroundAt.current = null;
+      }
+    });
+    return () => subscription.remove();
+  }, [authenticate]);
+
+  const completeOnboarding = async () => { await AsyncStorage.setItem(ONBOARDING_KEY, 'true'); setOnboarded(true); };
+
+  if (!ready) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
+  if (!onboarded) return <OnboardingScreen onComplete={() => void completeOnboarding()} />;
+  if (!unlocked) return <View style={styles.locked}><Text style={styles.lockMark}>WR</Text><Text style={styles.lockTitle}>WarRescue 已锁定</Text><Text style={styles.lockBody}>验证设备生物识别后查看安全信息。</Text><Pressable style={styles.unlock} onPress={() => void authenticate()} disabled={unlocking}>{unlocking ? <ActivityIndicator color={colors.white} /> : <Text style={styles.unlockText}>解锁 App</Text>}</Pressable><Pressable onPress={() => void supabase.auth.signOut()}><Text style={styles.signOut}>退出登录</Text></Pressable></View>;
+  return <>
+    <NavigationContainer theme={navigationTheme} linking={{ prefixes: ['warrescue://'], config: { screens: { PasswordReset: 'reset-password' } } }}>
+      <StatusBar style="light" />
+      <RootNavigator />
+    </NavigationContainer>
+    <ConnectivityBanner />
+  </>;
+}
+
+const styles = StyleSheet.create({
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  locked: { flex: 1, padding: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  lockMark: { width: 76, height: 76, borderRadius: 24, backgroundColor: colors.danger, color: colors.white, lineHeight: 76, textAlign: 'center', fontSize: 24, fontWeight: '900' },
+  lockTitle: { color: colors.text, fontSize: 25, fontWeight: '900', marginTop: 22 },
+  lockBody: { color: colors.muted, marginTop: 8, textAlign: 'center' },
+  unlock: { width: '100%', height: 52, borderRadius: 16, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', marginTop: 22 },
+  unlockText: { color: colors.white, fontWeight: '900' },
+  signOut: { color: colors.muted, fontWeight: '800', marginTop: 18 },
+});

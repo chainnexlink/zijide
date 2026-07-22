@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Screen } from '../components/Screen';
 import { supabase } from '../lib/supabase';
+import { isValidDate, isValidInternationalPhone } from '../lib/validation';
 import { colors, radius, spacing } from '../theme';
 import type { RootStackParams } from '../navigation/RootNavigator';
 
@@ -48,6 +49,9 @@ export function EmergencyProfileScreen({ navigation }: Props) {
 
   const update = (key: keyof FormState, value: string) => setForm((current) => ({ ...current, [key]: value }));
   const save = async () => {
+    if (form.birth_date && !isValidDate(form.birth_date)) return Alert.alert('出生日期无效', '请使用 YYYY-MM-DD 格式，并填写不晚于今天的真实日期。');
+    if (form.emergency_contact_phone && !isValidInternationalPhone(form.emergency_contact_phone)) return Alert.alert('联系人电话无效', '请输入带国际区号的号码，例如 +8613800000000。');
+    if (form.emergency_contact_phone && !form.emergency_contact_name.trim()) return Alert.alert('请填写紧急联系人姓名');
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
     const result = auth.user ? await supabase.from('profiles').update({ ...form, birth_date: form.birth_date || null }).eq('id', auth.user.id) : { error: new Error('登录已失效') };
@@ -80,7 +84,7 @@ export function EmergencyProfileScreen({ navigation }: Props) {
       <Section title="紧急联系人">
         <Field label="姓名" value={form.emergency_contact_name} onChangeText={(v) => update('emergency_contact_name', v)} />
         <Field label="关系" value={form.emergency_contact_relation} onChangeText={(v) => update('emergency_contact_relation', v)} />
-        <Field label="电话（含国家代码）" value={form.emergency_contact_phone} onChangeText={(v) => update('emergency_contact_phone', v)} keyboardType="phone-pad" />
+        <Field label="电话（含国家代码）" value={form.emergency_contact_phone} onChangeText={(v) => update('emergency_contact_phone', v.slice(0, 20))} keyboardType="phone-pad" />
       </Section>
       <Pressable style={styles.save} onPress={save} disabled={saving}>{saving ? <ActivityIndicator color={colors.white} /> : <Text style={styles.saveText}>保存紧急资料</Text>}</Pressable>
     </Screen>

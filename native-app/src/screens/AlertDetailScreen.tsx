@@ -20,15 +20,21 @@ const advice: Record<string, string[]> = {
 export function AlertDetailScreen({ route, navigation }: Props) {
   const [alert, setAlert] = useState<AlertRow | null>(null);
   const [shelters, setShelters] = useState<ShelterRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   useEffect(() => { void (async () => {
-    const { data } = await supabase.from('alerts').select('*').eq('id', route.params.alertId).maybeSingle();
+    const { data, error } = await supabase.from('alerts').select('*').eq('id', route.params.alertId).maybeSingle();
+    if (error) setLoadError(error.message);
+    else if (!data) setLoadError('该预警已删除或当前账号无权查看');
     setAlert(data as AlertRow | null);
     if (data?.city) {
       const nearby = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').eq('city', data.city).neq('status', 'closed').limit(3);
       setShelters((nearby.data || []) as ShelterRow[]);
     }
+    setLoading(false);
   })(); }, [route.params.alertId]);
-  if (!alert) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
+  if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
+  if (!alert) return <Screen title="预警详情" subtitle="无法加载" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}><View style={styles.card}><Text style={styles.section}>预警不可用</Text><Text style={styles.description}>{loadError || '请检查网络后重试'}</Text></View></Screen>;
   const tone = alert.severity === 'red' ? colors.danger : alert.severity === 'orange' ? colors.warning : '#EAB308';
   const steps = advice[alert.alert_type] || ['立即远离危险区域', '关注当地官方通知', '准备前往最近的开放避难所'];
   return <Screen title="预警详情" subtitle={alert.is_verified ? '已核验信息' : '待进一步核验'} action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>

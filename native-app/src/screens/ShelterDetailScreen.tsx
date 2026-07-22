@@ -10,8 +10,11 @@ import { NativeGoogleMap } from '../components/NativeGoogleMap';
 type Props = NativeStackScreenProps<RootStackParams, 'ShelterDetail'>;
 export function ShelterDetailScreen({ route, navigation }: Props) {
   const [shelter, setShelter] = useState<ShelterRow | null>(null);
-  useEffect(() => { void supabase.from('shelters').select('*').eq('id', route.params.shelterId).maybeSingle().then(({ data }) => setShelter(data as ShelterRow | null)); }, [route.params.shelterId]);
-  if (!shelter) return <View style={styles.loading}><ActivityIndicator color={colors.safe} size="large" /></View>;
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  useEffect(() => { void supabase.from('shelters').select('*').eq('id', route.params.shelterId).maybeSingle().then(({ data, error }) => { setShelter(data as ShelterRow | null); setLoadError(error?.message || (!data ? '该避难所记录已删除或不可用' : '')); setLoading(false); }); }, [route.params.shelterId]);
+  if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.safe} size="large" /></View>;
+  if (!shelter) return <Screen title="避难所详情" subtitle="无法加载" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}><View style={styles.card}><Text style={styles.section}>避难所不可用</Text><Text style={styles.address}>{loadError || '请检查网络后重试'}</Text></View></Screen>;
   const status = ({ open: '开放', crowded: '拥挤', full: '已满', closed: '关闭' } as Record<string, string>)[shelter.status || ''] || '状态未知';
   const navigate = (mode: 'walking' | 'driving') => void Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${shelter.latitude},${shelter.longitude}&travelmode=${mode}`);
   return <Screen title="避难所详情" subtitle={status} action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>

@@ -8,6 +8,8 @@ ALTER TABLE public.user_alert_settings ADD COLUMN IF NOT EXISTS critical_alerts_
 ALTER TABLE public.user_alert_settings ADD COLUMN IF NOT EXISTS precise_location_enabled boolean DEFAULT true;
 ALTER TABLE public.user_alert_settings ADD COLUMN IF NOT EXISTS background_monitor_enabled boolean DEFAULT true;
 ALTER TABLE public.user_alert_settings ADD COLUMN IF NOT EXISTS dnd_repeat text DEFAULT 'daily';
+ALTER TABLE public.user_alert_settings ADD COLUMN IF NOT EXISTS dnd_days smallint[] DEFAULT ARRAY[1,2,3,4,5]::smallint[];
+ALTER TABLE public.user_alert_settings ADD COLUMN IF NOT EXISTS timezone_offset_minutes integer DEFAULT 0 CHECK (timezone_offset_minutes BETWEEN -840 AND 840);
 
 ALTER TABLE public.family_members ADD COLUMN IF NOT EXISTS battery_level integer CHECK (battery_level BETWEEN 0 AND 100);
 ALTER TABLE public.family_members ADD COLUMN IF NOT EXISTS safety_status text DEFAULT 'unknown' CHECK (safety_status IN ('safe','attention','danger','unknown'));

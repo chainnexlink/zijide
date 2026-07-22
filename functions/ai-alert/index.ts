@@ -498,7 +498,7 @@ function matchesUserAlertSettings(settings: any, profile: any, extraLocations: a
   if (typeColumn[alert.alert_type] && settings[typeColumn[alert.alert_type]] === false) return false;
   const rank: Record<string, number> = { yellow: 1, orange: 2, red: 3 };
   if ((rank[alert.severity] || 0) < (rank[settings.min_severity || 'yellow'] || 1)) return false;
-  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start, settings.dnd_end)) return false;
+  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start_time, settings.dnd_end_time, settings.timezone_offset_minutes, settings.dnd_repeat, settings.dnd_days)) return false;
   const primary = { city: settings.city || profile?.city, country: settings.country || profile?.country, latitude: settings.last_latitude, longitude: settings.last_longitude, radius_km: settings.monitor_radius_km || 30 };
   return [primary, ...extraLocations].some((location: any) => {
     if (location.latitude != null && location.longitude != null && hasValidCoord(alert.latitude, alert.longitude)) return haversineKm(Number(location.latitude), Number(location.longitude), Number(alert.latitude), Number(alert.longitude)) <= Number(location.radius_km || settings.monitor_radius_km || 30);
@@ -507,7 +507,7 @@ function matchesUserAlertSettings(settings: any, profile: any, extraLocations: a
   });
 }
 
-function isWithinDnd(start?: string, end?: string) { if (!start || !end) return false; const now = new Date(); const minutes = now.getUTCHours() * 60 + now.getUTCMinutes(); const parse = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; }; const from = parse(start); const to = parse(end); return from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to; }
+function isWithinDnd(start?: string, end?: string, offset = 0, repeat = 'daily', days: number[] = []) { if (!start || !end) return false; const local = new Date(Date.now() - Number(offset || 0) * 60000); const day = local.getUTCDay(); if (repeat === 'weekdays' && (day === 0 || day === 6)) return false; if (repeat === 'custom' && !days.includes(day)) return false; const minutes = local.getUTCHours() * 60 + local.getUTCMinutes(); const parse = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; }; const from = parse(start); const to = parse(end); return from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to; }
 
 // 坐标是否“有效”：必须是有限数，且不是 (0,0)。
 // (0,0) 在几内亚湾，绝不会是真实预警点；历史上无经纬度的源被写成 0,0，
