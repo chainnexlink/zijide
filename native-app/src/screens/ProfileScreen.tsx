@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Screen } from '../components/Screen';
@@ -19,13 +19,16 @@ export function ProfileScreen() {
   const [notificationStatus, setNotificationStatus] = useState('检查中');
   const [locationStatus, setLocationStatus] = useState('检查中');
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       setEmail(data.user.email || '');
       const { data: row } = await supabase.from('profiles').select('id,nickname,avatar_url,email,city,country,blood_type,emergency_contact_name,emergency_contact_phone').eq('id', data.user.id).maybeSingle();
       setProfile(row as ProfileRow | null);
     });
+  }, []));
+
+  useEffect(() => {
     void Promise.all([Notifications.getPermissionsAsync(), Location.getForegroundPermissionsAsync()]).then(([notification, location]) => {
       setNotificationStatus(notification.status === 'granted' ? '已允许' : notification.status === 'denied' ? '已拒绝' : '未授权');
       setLocationStatus(location.status === 'granted' ? '定位已允许' : location.status === 'denied' ? '定位已拒绝' : '定位未授权');
@@ -66,6 +69,7 @@ export function ProfileScreen() {
         <Menu label="存储设置" description="缓存、离线包和本地数据" onPress={() => navigation.navigate('StorageSettings')} />
         <Menu label="语言 / Language" description="9种预警与紧急信息语言" onPress={() => navigation.navigate('Language')} />
         <Menu label="权限与诊断" description="通知、定位、推送注册和后台连接状态" onPress={() => navigation.navigate('PermissionCenter')} />
+        <Menu label="App 安全锁" description="Face ID、Touch ID 或设备生物识别保护" onPress={() => navigation.navigate('AppSecurity')} />
         <Menu label="紧急医疗资料" description="血型、病史、用药和紧急联系人" onPress={() => navigation.navigate('EmergencyProfile')} />
         <Menu label="SOS 历史" description="查看求救状态与救援阶段" onPress={() => navigation.navigate('SOSHistory')} />
         <Menu label="家庭守护" description="创建或加入家庭、位置和SOS联动" onPress={() => navigation.navigate('Family')} />
@@ -77,6 +81,8 @@ export function ProfileScreen() {
         <Menu label="安全资讯文章" description="避险指南、功能说明与风险知识" onPress={() => navigation.navigate('News')} />
         <Menu label="关于 WarRescue" description="使命、版本与重要说明" onPress={() => navigation.navigate('About')} />
         <Menu label="帮助与反馈" description="常见问题、后台反馈与客服联系" onPress={() => navigation.navigate('HelpSupport')} />
+        <Menu label="数据与隐私" description="导出个人数据、反馈记录和账号管理" onPress={() => navigation.navigate('DataPrivacy')} />
+        <Menu label="版本与更新" description="检查 App Store 和 TestFlight 更新" onPress={() => navigation.navigate('UpdateCenter')} />
         <Menu label="账号安全" description="修改密码、退出设备和注销账号" onPress={() => navigation.navigate('AccountSecurity')} />
         <Menu label="用户协议" description="查看服务使用规则" onPress={() => navigation.navigate('LegalDocument', { kind: 'terms' })} />
         <Menu label="隐私政策" description="查看信息收集与使用说明" onPress={() => navigation.navigate('LegalDocument', { kind: 'privacy' })} />
