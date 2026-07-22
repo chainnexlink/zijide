@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
 
 import { supabase } from '../lib/supabase';
+import { configureBackgroundLocation } from '../lib/backgroundLocation';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -63,5 +64,18 @@ export function useAlertLocationSync(enabled: boolean) {
     void sync().catch((error) => console.warn('Alert location sync failed', error));
     const timer = setInterval(() => void sync().catch(() => undefined), 15 * 60 * 1000);
     return () => { cancelled = true; clearInterval(timer); };
+  }, [enabled]);
+}
+
+export function useBackgroundSafetyMonitoring(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled || !Device.isDevice) return;
+    let cancelled = false;
+    void supabase.auth.getUser().then(async ({ data: auth }) => {
+      if (!auth.user || cancelled) return;
+      const { data: settings } = await supabase.from('user_alert_settings').select('background_monitor_enabled').eq('user_id', auth.user.id).maybeSingle();
+      if (!cancelled) await configureBackgroundLocation(settings?.background_monitor_enabled === true);
+    }).catch((error) => console.warn('Background monitoring setup failed', error));
+    return () => { cancelled = true; };
   }, [enabled]);
 }
