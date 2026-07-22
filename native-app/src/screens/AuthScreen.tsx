@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { supabase } from '../lib/supabase';
+import { checkPassword } from '../lib/password';
 import { colors, radius, spacing } from '../theme';
 import type { RootStackParams } from '../navigation/RootNavigator';
 
@@ -23,14 +24,14 @@ type AuthMethod = 'phone' | 'email';
 
 const friendlyError = (message: string) => {
   const value = message.toLowerCase();
-  if (value.includes('invalid login credentials')) return '????????';
-  if (value.includes('email not confirmed')) return '??????????????';
-  if (value.includes('user already registered')) return '?????????????';
-  if (value.includes('password should be')) return '?????? 6 ?';
-  if (value.includes('rate limit')) return '????????????';
-  if (value.includes('sms service not configured')) return '???????????????';
-  if (value.includes('sms send failed')) return '?????????????';
-  if (value.includes('invalid or expired code')) return '?????????';
+  if (value.includes('invalid login credentials')) return '邮箱或密码不正确';
+  if (value.includes('email not confirmed')) return '请先打开验证邮件完成邮箱验证';
+  if (value.includes('user already registered')) return '该邮箱已经注册，请直接登录';
+  if (value.includes('password should be')) return '密码至少需要8位，并同时包含字母和数字';
+  if (value.includes('rate limit')) return '操作过于频繁，请稍后再试';
+  if (value.includes('sms service not configured')) return '短信服务暂未配置，请联系管理员';
+  if (value.includes('sms send failed')) return '验证码发送失败，请稍后再试';
+  if (value.includes('invalid or expired code')) return '验证码错误或已过期';
   return message;
 };
 
@@ -40,6 +41,8 @@ export function AuthScreen() {
   const [method, setMethod] = useState<AuthMethod>('phone');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [countryCode, setCountryCode] = useState('+86');
   const [phone, setPhone] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -51,6 +54,7 @@ export function AuthScreen() {
   const [emailSent, setEmailSent] = useState(false);
 
   const normalizedPhone = useMemo(() => phone.replace(/\D/g, ''), [phone]);
+  const passwordCheck = useMemo(() => checkPassword(password), [password]);
   const normalizedCountryCode = useMemo(() => {
     const digits = countryCode.replace(/\D/g, '');
     return digits ? `+${digits}` : '';
@@ -69,7 +73,7 @@ export function AuthScreen() {
 
   const sendPhoneCode = async () => {
     if (!normalizedCountryCode || normalizedPhone.length < 6) {
-      setMessage('????????/????????');
+      setMessage('请输入有效的国家/地区代码和手机号');
       return;
     }
 
@@ -79,7 +83,7 @@ export function AuthScreen() {
     const { error } = await supabase.auth.signInWithOtp({
       phone: fullPhone,
       options: {
-        shouldCreateUser: true,
+        shouldCreateUser: mode === 'register',
         data: mode === 'register' ? { invite_code: inviteCode.trim() || undefined } : undefined,
       },
     });
@@ -91,20 +95,20 @@ export function AuthScreen() {
     }
 
     setCountdown(60);
-    setMessage(`??????? ${normalizedCountryCode} ${normalizedPhone}`);
+    setMessage(`验证码已发送至 ${normalizedCountryCode} ${normalizedPhone}`);
   };
 
   const submitPhone = async () => {
     if (!normalizedCountryCode || normalizedPhone.length < 6) {
-      setMessage('????????/????????');
+      setMessage('请输入有效的国家/地区代码和手机号');
       return;
     }
     if (!/^\d{6}$/.test(verificationCode)) {
-      setMessage('??? 6 ??????');
+      setMessage('请输入 6 位短信验证码');
       return;
     }
     if (mode === 'register' && !agreed) {
-      setMessage('??????????????????');
+      setMessage('注册前请阅读并同意用户协议与隐私政策');
       return;
     }
 
@@ -119,7 +123,7 @@ export function AuthScreen() {
 
     if (error || !data.session) {
       setLoading(false);
-      setMessage(friendlyError(error?.message || '???????'));
+      setMessage(friendlyError(error?.message || '验证码验证失败'));
       return;
     }
 
@@ -133,22 +137,26 @@ export function AuthScreen() {
     setLoading(false);
     if (profileResult.error || !profileResult.data?.success) {
       await supabase.auth.signOut();
-      setMessage(friendlyError(profileResult.data?.error || profileResult.error?.message || '?????????'));
+      setMessage(friendlyError(profileResult.data?.error || profileResult.error?.message || '账户资料初始化失败'));
     }
   };
 
   const submitEmail = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
-      setMessage('?????????');
+      setMessage('请输入有效邮箱地址');
       return;
     }
-    if (password.length < 6) {
-      setMessage('?????? 6 ?');
+    if (mode === 'register' && !passwordCheck.valid) {
+      setMessage(passwordCheck.message);
+      return;
+    }
+    if (mode === 'register' && password !== confirmPassword) {
+      setMessage('两次输入的密码不一致');
       return;
     }
     if (mode === 'register' && !agreed) {
-      setMessage('??????????????????');
+      setMessage('注册前请阅读并同意用户协议与隐私政策');
       return;
     }
 
@@ -157,6 +165,11 @@ export function AuthScreen() {
     setEmailSent(false);
 
     if (mode === 'login') {
+      if (!password) {
+        setLoading(false);
+        setMessage('请输入密码');
+        return;
+      }
       const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
       setLoading(false);
       if (error) setMessage(friendlyError(error.message));
@@ -175,37 +188,38 @@ export function AuthScreen() {
     }
     if (!data.session) {
       setEmailSent(true);
-      setMessage(`???????? ${cleanEmail}??????????????`);
+      setMessage(`验证邮件已发送至 ${cleanEmail}，请打开邮件完成验证后再登录`);
     }
   };
 
   const resendEmail = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
-      setMessage('???????????');
+      setMessage('请输入注册时使用的邮箱');
       return;
     }
     setLoading(true);
     const { error } = await supabase.auth.resend({ type: 'signup', email: cleanEmail });
     setLoading(false);
-    setMessage(error ? friendlyError(error.message) : '?????????????????????');
+    setMessage(error ? friendlyError(error.message) : '验证邮件已重新发送，请检查收件箱和垃圾邮件');
   };
 
   const resetPassword = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
-      setMessage('????????????');
+      setMessage('请先输入注册时使用的邮箱');
       return;
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, { redirectTo: 'warrescue://reset-password' });
     setLoading(false);
-    setMessage(error ? friendlyError(error.message) : '?????????????????????');
+    setMessage(error ? friendlyError(error.message) : '密码重置邮件已发送，请检查收件箱和垃圾邮件');
   };
 
   const switchMode = () => {
     setMode((value) => (value === 'login' ? 'register' : 'login'));
     setVerificationCode('');
+    setConfirmPassword('');
     resetFeedback();
   };
 
@@ -216,17 +230,17 @@ export function AuthScreen() {
           <View style={styles.brand}>
             <View style={styles.mark}><Text style={styles.markText}>WR</Text></View>
             <Text style={styles.name}>WarRescue</Text>
-            <Text style={styles.slogan}>???????????? App</Text>
+            <Text style={styles.slogan}>真正为紧急时刻设计的移动 App</Text>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{mode === 'login' ? '????' : '????'}</Text>
+            <Text style={styles.cardTitle}>{mode === 'login' ? '欢迎回来' : '创建账号'}</Text>
             <View style={styles.segment}>
               <Pressable style={[styles.segmentItem, method === 'phone' && styles.segmentActive]} onPress={() => { setMethod('phone'); resetFeedback(); }}>
-                <Text style={[styles.segmentText, method === 'phone' && styles.segmentTextActive]}>?????</Text>
+                <Text style={[styles.segmentText, method === 'phone' && styles.segmentTextActive]}>手机验证码</Text>
               </Pressable>
               <Pressable style={[styles.segmentItem, method === 'email' && styles.segmentActive]} onPress={() => { setMethod('email'); resetFeedback(); }}>
-                <Text style={[styles.segmentText, method === 'email' && styles.segmentTextActive]}>????</Text>
+                <Text style={[styles.segmentText, method === 'email' && styles.segmentTextActive]}>邮箱密码</Text>
               </Pressable>
             </View>
 
@@ -245,7 +259,7 @@ export function AuthScreen() {
                     style={[styles.input, styles.phoneInput]}
                     value={phone}
                     onChangeText={setPhone}
-                    placeholder="???"
+                    placeholder="手机号"
                     placeholderTextColor={colors.muted}
                     keyboardType="phone-pad"
                   />
@@ -255,34 +269,41 @@ export function AuthScreen() {
                     style={[styles.input, styles.phoneInput]}
                     value={verificationCode}
                     onChangeText={(value) => setVerificationCode(value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="6 ????"
+                    placeholder="6 位验证码"
                     placeholderTextColor={colors.muted}
                     keyboardType="number-pad"
                     maxLength={6}
                   />
                   <Pressable style={[styles.codeButton, (loading || countdown > 0) && styles.disabled]} onPress={sendPhoneCode} disabled={loading || countdown > 0}>
-                    <Text style={styles.codeButtonText}>{countdown > 0 ? `${countdown} ?` : '?????'}</Text>
+                    <Text style={styles.codeButtonText}>{countdown > 0 ? `${countdown} 秒` : '获取验证码'}</Text>
                   </Pressable>
                 </View>
               </>
             ) : (
               <>
-                <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="??" placeholderTextColor={colors.muted} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-                <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="????? 6 ??" placeholderTextColor={colors.muted} secureTextEntry autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+                <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="邮箱" placeholderTextColor={colors.muted} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+                <View style={styles.passwordWrap}>
+                  <TextInput style={styles.passwordInput} value={password} onChangeText={(value) => setPassword(value.slice(0, 128))} placeholder={mode === 'login' ? '密码' : '密码（至少8位，包含字母和数字）'} placeholderTextColor={colors.muted} secureTextEntry={!passwordVisible} autoCapitalize="none" autoCorrect={false} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} textContentType={mode === 'login' ? 'password' : 'newPassword'} />
+                  <Pressable style={styles.passwordToggle} onPress={() => setPasswordVisible((value) => !value)}><Text style={styles.passwordToggleText}>{passwordVisible ? '隐藏' : '显示'}</Text></Pressable>
+                </View>
+                {mode === 'register' ? <>
+                  <Text style={[styles.passwordHint, passwordCheck.valid && styles.passwordHintValid]}>密码强度：{passwordCheck.label} · {passwordCheck.message}</Text>
+                  <TextInput style={styles.input} value={confirmPassword} onChangeText={(value) => setConfirmPassword(value.slice(0, 128))} placeholder="再次输入密码" placeholderTextColor={colors.muted} secureTextEntry={!passwordVisible} autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" />
+                </> : null}
               </>
             )}
 
             {mode === 'register' ? (
               <>
-                <TextInput style={styles.input} value={inviteCode} onChangeText={setInviteCode} placeholder="???????" placeholderTextColor={colors.muted} autoCapitalize="characters" />
+                <TextInput style={styles.input} value={inviteCode} onChangeText={setInviteCode} placeholder="邀请码（选填）" placeholderTextColor={colors.muted} autoCapitalize="characters" />
                 <View style={styles.agreement}>
                   <Pressable onPress={() => setAgreed((value) => !value)}>
-                  <View style={[styles.checkbox, agreed && styles.checkboxChecked]}><Text style={styles.checkmark}>{agreed ? '?' : ''}</Text></View>
+                  <View style={[styles.checkbox, agreed && styles.checkboxChecked]}><Text style={styles.checkmark}>{agreed ? '✓' : ''}</Text></View>
                   </Pressable>
-                  <Text style={styles.agreementText}>???????</Text>
-                  <Pressable onPress={() => navigation.navigate('LegalDocument', { kind: 'terms' })}><Text style={styles.legalLink}>??????</Text></Pressable>
-                  <Text style={styles.agreementText}>?</Text>
-                  <Pressable onPress={() => navigation.navigate('LegalDocument', { kind: 'privacy' })}><Text style={styles.legalLink}>??????</Text></Pressable>
+                  <Text style={styles.agreementText}>我已阅读并同意</Text>
+                  <Pressable onPress={() => navigation.navigate('LegalDocument', { kind: 'terms' })}><Text style={styles.legalLink}>《用户协议》</Text></Pressable>
+                  <Text style={styles.agreementText}>和</Text>
+                  <Pressable onPress={() => navigation.navigate('LegalDocument', { kind: 'privacy' })}><Text style={styles.legalLink}>《隐私政策》</Text></Pressable>
                 </View>
               </>
             ) : null}
@@ -290,15 +311,15 @@ export function AuthScreen() {
             {message ? <Text style={[styles.message, emailSent && styles.success]}>{message}</Text> : null}
             {emailSent ? (
               <Pressable style={styles.secondary} onPress={resendEmail} disabled={loading}>
-                <Text style={styles.secondaryText}>????????</Text>
+                <Text style={styles.secondaryText}>重新发送验证邮件</Text>
               </Pressable>
             ) : null}
             <Pressable style={[styles.primary, loading && styles.disabled]} onPress={method === 'phone' ? submitPhone : submitEmail} disabled={loading}>
-              {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.primaryText}>{mode === 'login' ? '??' : '??'}</Text>}
+              {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.primaryText}>{mode === 'login' ? '登录' : '注册'}</Text>}
             </Pressable>
-            {mode === 'login' && method === 'email' ? <Pressable onPress={resetPassword} disabled={loading}><Text style={styles.forgotText}>???????????</Text></Pressable> : null}
+            {mode === 'login' && method === 'email' ? <Pressable onPress={resetPassword} disabled={loading}><Text style={styles.forgotText}>忘记密码？发送重置邮件</Text></Pressable> : null}
             <Pressable onPress={switchMode}>
-              <Text style={styles.switchText}>{mode === 'login' ? '?????????' : '?????????'}</Text>
+              <Text style={styles.switchText}>{mode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录'}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -324,6 +345,12 @@ const styles = StyleSheet.create({
   segmentText: { color: colors.muted, fontWeight: '700' },
   segmentTextActive: { color: colors.text },
   input: { height: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, color: colors.text, backgroundColor: colors.background, paddingHorizontal: spacing.md, fontSize: 16 },
+  passwordWrap: { height: 52, flexDirection: 'row', alignItems: 'center', borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
+  passwordInput: { flex: 1, height: 50, color: colors.text, paddingHorizontal: spacing.md, fontSize: 16 },
+  passwordToggle: { height: 50, justifyContent: 'center', paddingHorizontal: spacing.md },
+  passwordToggleText: { color: colors.info, fontWeight: '800' },
+  passwordHint: { color: colors.warning, fontSize: 12, lineHeight: 18 },
+  passwordHintValid: { color: colors.safe },
   phoneRow: { flexDirection: 'row', gap: spacing.sm },
   countryInput: { width: 82 },
   phoneInput: { flex: 1 },
