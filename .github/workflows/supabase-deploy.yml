@@ -54,7 +54,7 @@ jobs:
             --url "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
             --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             --header "Content-Type: application/json" \
-              --data '{"external_phone_enabled":true}' >/dev/null
+            --data '{"external_phone_enabled":true,"password_min_length":8}' >/dev/null
 
       - name: Audit authentication delivery configuration
         run: |

@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { supabase } from '../lib/supabase';
+import { checkPassword } from '../lib/password';
 import { colors, radius, spacing } from '../theme';
 import type { RootStackParams } from '../navigation/RootNavigator';
 
@@ -26,7 +27,7 @@ const friendlyError = (message: string) => {
   if (value.includes('invalid login credentials')) return '邮箱或密码不正确';
   if (value.includes('email not confirmed')) return '请先打开验证邮件完成邮箱验证';
   if (value.includes('user already registered')) return '该邮箱已经注册，请直接登录';
-  if (value.includes('password should be')) return '密码至少需要 6 位';
+  if (value.includes('password should be')) return '密码至少需要8位，并同时包含字母和数字';
   if (value.includes('rate limit')) return '操作过于频繁，请稍后再试';
   if (value.includes('sms service not configured')) return '短信服务暂未配置，请联系管理员';
   if (value.includes('sms send failed')) return '验证码发送失败，请稍后再试';
@@ -40,6 +41,8 @@ export function AuthScreen() {
   const [method, setMethod] = useState<AuthMethod>('phone');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [countryCode, setCountryCode] = useState('+86');
   const [phone, setPhone] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -51,6 +54,7 @@ export function AuthScreen() {
   const [emailSent, setEmailSent] = useState(false);
 
   const normalizedPhone = useMemo(() => phone.replace(/\D/g, ''), [phone]);
+  const passwordCheck = useMemo(() => checkPassword(password), [password]);
   const normalizedCountryCode = useMemo(() => {
     const digits = countryCode.replace(/\D/g, '');
     return digits ? `+${digits}` : '';
@@ -79,7 +83,7 @@ export function AuthScreen() {
     const { error } = await supabase.auth.signInWithOtp({
       phone: fullPhone,
       options: {
-        shouldCreateUser: true,
+        shouldCreateUser: mode === 'register',
         data: mode === 'register' ? { invite_code: inviteCode.trim() || undefined } : undefined,
       },
     });
@@ -143,8 +147,12 @@ export function AuthScreen() {
       setMessage('请输入有效邮箱地址');
       return;
     }
-    if (password.length < 6) {
-      setMessage('密码至少需要 6 位');
+    if (mode === 'register' && !passwordCheck.valid) {
+      setMessage(passwordCheck.message);
+      return;
+    }
+    if (mode === 'register' && password !== confirmPassword) {
+      setMessage('两次输入的密码不一致');
       return;
     }
     if (mode === 'register' && !agreed) {
@@ -157,6 +165,11 @@ export function AuthScreen() {
     setEmailSent(false);
 
     if (mode === 'login') {
+      if (!password) {
+        setLoading(false);
+        setMessage('请输入密码');
+        return;
+      }
       const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
       setLoading(false);
       if (error) setMessage(friendlyError(error.message));
@@ -206,6 +219,7 @@ export function AuthScreen() {
   const switchMode = () => {
     setMode((value) => (value === 'login' ? 'register' : 'login'));
     setVerificationCode('');
+    setConfirmPassword('');
     resetFeedback();
   };
 
@@ -268,7 +282,14 @@ export function AuthScreen() {
             ) : (
               <>
                 <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="邮箱" placeholderTextColor={colors.muted} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-                <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="密码（至少 6 位）" placeholderTextColor={colors.muted} secureTextEntry autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+                <View style={styles.passwordWrap}>
+                  <TextInput style={styles.passwordInput} value={password} onChangeText={(value) => setPassword(value.slice(0, 128))} placeholder={mode === 'login' ? '密码' : '密码（至少8位，包含字母和数字）'} placeholderTextColor={colors.muted} secureTextEntry={!passwordVisible} autoCapitalize="none" autoCorrect={false} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} textContentType={mode === 'login' ? 'password' : 'newPassword'} />
+                  <Pressable style={styles.passwordToggle} onPress={() => setPasswordVisible((value) => !value)}><Text style={styles.passwordToggleText}>{passwordVisible ? '隐藏' : '显示'}</Text></Pressable>
+                </View>
+                {mode === 'register' ? <>
+                  <Text style={[styles.passwordHint, passwordCheck.valid && styles.passwordHintValid]}>密码强度：{passwordCheck.label} · {passwordCheck.message}</Text>
+                  <TextInput style={styles.input} value={confirmPassword} onChangeText={(value) => setConfirmPassword(value.slice(0, 128))} placeholder="再次输入密码" placeholderTextColor={colors.muted} secureTextEntry={!passwordVisible} autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" />
+                </> : null}
               </>
             )}
 
@@ -324,6 +345,12 @@ const styles = StyleSheet.create({
   segmentText: { color: colors.muted, fontWeight: '700' },
   segmentTextActive: { color: colors.text },
   input: { height: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, color: colors.text, backgroundColor: colors.background, paddingHorizontal: spacing.md, fontSize: 16 },
+  passwordWrap: { height: 52, flexDirection: 'row', alignItems: 'center', borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
+  passwordInput: { flex: 1, height: 50, color: colors.text, paddingHorizontal: spacing.md, fontSize: 16 },
+  passwordToggle: { height: 50, justifyContent: 'center', paddingHorizontal: spacing.md },
+  passwordToggleText: { color: colors.info, fontWeight: '800' },
+  passwordHint: { color: colors.warning, fontSize: 12, lineHeight: 18 },
+  passwordHintValid: { color: colors.safe },
   phoneRow: { flexDirection: 'row', gap: spacing.sm },
   countryInput: { width: 82 },
   phoneInput: { flex: 1 },

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import Constants from 'expo-constants';
+import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -13,6 +16,8 @@ export function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [email, setEmail] = useState('');
+  const [notificationStatus, setNotificationStatus] = useState('检查中');
+  const [locationStatus, setLocationStatus] = useState('检查中');
 
   useEffect(() => {
     void supabase.auth.getUser().then(async ({ data }) => {
@@ -21,7 +26,19 @@ export function ProfileScreen() {
       const { data: row } = await supabase.from('profiles').select('id,nickname,avatar_url,email,city,country,blood_type,emergency_contact_name,emergency_contact_phone').eq('id', data.user.id).maybeSingle();
       setProfile(row as ProfileRow | null);
     });
+    void Promise.all([Notifications.getPermissionsAsync(), Location.getForegroundPermissionsAsync()]).then(([notification, location]) => {
+      setNotificationStatus(notification.status === 'granted' ? '已允许' : notification.status === 'denied' ? '已拒绝' : '未授权');
+      setLocationStatus(location.status === 'granted' ? '定位已允许' : location.status === 'denied' ? '定位已拒绝' : '定位未授权');
+    }).catch(() => {
+      setNotificationStatus('无法读取');
+      setLocationStatus('无法读取');
+    });
   }, []);
+
+  const confirmLogout = () => Alert.alert('退出登录', '退出后本机将停止同步账号预警、家庭状态和 SOS 记录，确定退出吗？', [
+    { text: '取消', style: 'cancel' },
+    { text: '退出登录', style: 'destructive', onPress: () => void supabase.auth.signOut() },
+  ]);
 
   return (
     <Screen title="我的" subtitle="个人安全与设备设置">
@@ -48,6 +65,7 @@ export function ProfileScreen() {
         <Menu label="地图设置" description="地图类型、路线偏好、图层和单位" onPress={() => navigation.navigate('MapSettings')} />
         <Menu label="存储设置" description="缓存、离线包和本地数据" onPress={() => navigation.navigate('StorageSettings')} />
         <Menu label="语言 / Language" description="9种预警与紧急信息语言" onPress={() => navigation.navigate('Language')} />
+        <Menu label="权限与诊断" description="通知、定位、推送注册和后台连接状态" onPress={() => navigation.navigate('PermissionCenter')} />
         <Menu label="紧急医疗资料" description="血型、病史、用药和紧急联系人" onPress={() => navigation.navigate('EmergencyProfile')} />
         <Menu label="SOS 历史" description="查看求救状态与救援阶段" onPress={() => navigation.navigate('SOSHistory')} />
         <Menu label="家庭守护" description="创建或加入家庭、位置和SOS联动" onPress={() => navigation.navigate('Family')} />
@@ -58,6 +76,7 @@ export function ProfileScreen() {
         <Menu label="公告与安全资讯" description="平台通知和重要安全说明" onPress={() => navigation.navigate('Announcements')} />
         <Menu label="安全资讯文章" description="避险指南、功能说明与风险知识" onPress={() => navigation.navigate('News')} />
         <Menu label="关于 WarRescue" description="使命、版本与重要说明" onPress={() => navigation.navigate('About')} />
+        <Menu label="帮助与反馈" description="常见问题、后台反馈与客服联系" onPress={() => navigation.navigate('HelpSupport')} />
         <Menu label="账号安全" description="修改密码、退出设备和注销账号" onPress={() => navigation.navigate('AccountSecurity')} />
         <Menu label="用户协议" description="查看服务使用规则" onPress={() => navigation.navigate('LegalDocument', { kind: 'terms' })} />
         <Menu label="隐私政策" description="查看信息收集与使用说明" onPress={() => navigation.navigate('LegalDocument', { kind: 'privacy' })} />
@@ -65,12 +84,12 @@ export function ProfileScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>App 状态</Text>
-        <Row label="推送通知" value="已启用" tone={colors.safe} />
-        <Row label="安全监测" value="运行中" tone={colors.safe} />
-        <Row label="版本" value="1.0.0 Native" />
+        <Row label="推送通知" value={notificationStatus} tone={notificationStatus === '已允许' ? colors.safe : colors.warning} />
+        <Row label="安全监测" value={locationStatus} tone={locationStatus === '定位已允许' ? colors.safe : colors.warning} />
+        <Row label="版本" value={`${Constants.expoConfig?.version || '1.1.0'} Native`} />
       </View>
 
-      <Pressable style={styles.logout} onPress={() => void supabase.auth.signOut()}>
+      <Pressable style={styles.logout} onPress={confirmLogout}>
         <Text style={styles.logoutText}>退出登录</Text>
       </Pressable>
     </Screen>

@@ -39,6 +39,8 @@ import { MonitoredLocationsScreen } from '../screens/MonitoredLocationsScreen';
 import { LanguageScreen } from '../screens/LanguageScreen';
 import { NewsScreen } from '../screens/NewsScreen';
 import { NewsDetailScreen } from '../screens/NewsDetailScreen';
+import { PermissionCenterScreen } from '../screens/PermissionCenterScreen';
+import { HelpSupportScreen } from '../screens/HelpSupportScreen';
 import { colors } from '../theme';
 
 type TabParams = {
@@ -81,6 +83,8 @@ export type RootStackParams = {
   Language: undefined;
   News: undefined;
   NewsDetail: { article: { id: string; title: string; summary: string | null; content: string; category: string; author: string | null; tags: string[]; published_at: string; view_count: number } };
+  PermissionCenter: undefined;
+  HelpSupport: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -137,6 +141,8 @@ export function RootNavigator() {
       <Stack.Screen name="Language" component={LanguageScreen} />
       <Stack.Screen name="News" component={NewsScreen} />
       <Stack.Screen name="NewsDetail" component={NewsDetailScreen} />
+      <Stack.Screen name="PermissionCenter" component={PermissionCenterScreen} />
+      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
       <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
     </>}
   </Stack.Navigator>;
