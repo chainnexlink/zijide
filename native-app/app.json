@@ -10,11 +10,15 @@
     "ios": {
       "bundleIdentifier": "com.warrescue.app",
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "infoPlist": {
         "UIBackgroundModes": [
-          "remote-notification"
+          "remote-notification",
+          "location"
         ],
         "NSLocationWhenInUseUsageDescription": "WarRescue uses your location to show nearby threats, shelters, and emergency routes.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "WarRescue uses background location, when you enable safety monitoring, to update nearby alerts and family safety status.",
+        "NSFaceIDUsageDescription": "Use Face ID to unlock and protect your WarRescue safety information.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -27,6 +31,9 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
         "POST_NOTIFICATIONS",
         "VIBRATE"
       ]
@@ -35,7 +42,10 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "WarRescue uses your location to find nearby shelters and threats."
+          "locationWhenInUsePermission": "WarRescue uses your location to find nearby shelters and threats.",
+          "locationAlwaysAndWhenInUsePermission": "WarRescue uses background location only when safety monitoring is enabled.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
         }
       ],
       [
@@ -54,6 +64,9 @@
         }
       ],
       "expo-secure-store",
+      "expo-apple-authentication",
+      "expo-web-browser",
+      "expo-local-authentication",
       "expo-sharing",
       "expo-iap"
     ]
