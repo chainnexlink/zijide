@@ -48,8 +48,8 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     let action = url.searchParams.get('action') || '';
 
-    // ???? supabase.functions.invoke ? action ?? body ?
-    // ? URL ?????? body ????? clone() ???? body
+    // 前端通过 supabase.functions.invoke 将 action 放在 body 中
+    // 仅 URL 参数为空时从 body 读取，使用 clone() 保留原始 body
     if (!action && req.method === 'POST') {
       try {
         const clonedBody = await req.clone().json();
@@ -85,14 +85,14 @@ async function collectAlerts(supabaseAdmin: any) {
   const now = new Date();
   const demoMode = (Deno.env.get('ALERT_DEMO_MODE') || '').toLowerCase() === 'true';
 
-  // monitor ?? ai-alert ????????????? DEMO ??????????????
-  // ???????????????/????
+  // monitor 已被 ai-alert 取代为生产采集器。这里仅在 DEMO 模式下生成合成数据用于测试，
+  // 生产模式直接返回空，避免写入假/坏数据。
   if (!demoMode) {
     return new Response(JSON.stringify({
       success: true,
       collected: 0,
       new: 0,
-      note: 'monitor ????????????? ai-alert?action=collect / realtime_monitor?',
+      note: 'monitor 仅用于演示；生产采集请调用 ai-alert（action=collect / realtime_monitor）',
       timestamp: now.toISOString(),
     }), { headers: corsHeaders });
   }
@@ -110,7 +110,7 @@ async function collectAlerts(supabaseAdmin: any) {
       const { data: existing } = await supabaseAdmin
         .from('alerts').select('id').eq('source_url', alert.sourceUrl).maybeSingle();
       if (existing) continue;
-      // ????????alert_type / start_time??? = end_time ?????? is_active/expires_at
+      // 列名对齐真实表：alert_type / start_time；活跃 = end_time 留空；不使用 is_active/expires_at
       const { data, error } = await supabaseAdmin.from('alerts').insert({
         alert_type: alert.type,
         severity: alert.severity,
@@ -249,7 +249,7 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
   if (matchedSettings.length > 0) {
     const notifications = matchedSettings.map((settings: any) => ({
       user_id: settings.user_id,
-      title: `?? ${alert.title}`,
+      title: `🚨 ${alert.title}`,
       body: alert.description,
       type: 'alert',
       data: { alert_id: alert.id },
@@ -274,14 +274,14 @@ async function notifySubscribers(supabaseAdmin: any, alert: any) {
         for (const profile of profiles.filter((item: any) => paidUserIds.has(item.id) && settingsByUser.has(item.id))) {
           const delivery: string[] = [];
           const settings: any = settingsByUser.get(profile.id);
-          const subject = `?? WarRescue????: ${alert.title}`;
+          const subject = `⚠️ WarRescue紧急预警: ${alert.title}`;
           const message = `${alert.title}\n${alert.description || ''}`;
           if (settings?.email_enabled && profile.email) { const result = await sendEmail(profile.email, subject, message); if (result.ok) delivery.push('email'); }
           if (settings?.sms_enabled && profile.phone) { const result = await sendSms(profile.phone, message); if (result.ok) delivery.push('sms'); }
           // Insert enhanced notification record for email/SMS delivery
           await supabaseAdmin.from('notifications').insert({
             user_id: profile.id,
-            title: `?? URGENT: ${alert.title}`,
+            title: `⚠️ URGENT: ${alert.title}`,
             body: alert.description,
             type: 'email_sms',
             data: {
@@ -303,7 +303,7 @@ function matchesAlert(settings: any, profile: any, extraLocations: any[], alert:
   if (typeColumn[alert.alert_type] && settings[typeColumn[alert.alert_type]] === false) return false;
   const rank: Record<string, number> = { yellow: 1, orange: 2, red: 3 };
   if ((rank[alert.severity] || 0) < (rank[settings.min_severity || 'yellow'] || 1)) return false;
-  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start, settings.dnd_end)) return false;
+  if (settings.dnd_enabled && alert.severity !== 'red' && isWithinDnd(settings.dnd_start_time, settings.dnd_end_time, settings.timezone_offset_minutes, settings.dnd_repeat, settings.dnd_days)) return false;
   const primary = { city: settings.city || profile?.city, country: settings.country || profile?.country, latitude: null, longitude: null, radius_km: settings.monitor_radius_km || 30 };
   const locations = [primary, ...extraLocations];
   return locations.some((location: any) => {
@@ -313,9 +313,13 @@ function matchesAlert(settings: any, profile: any, extraLocations: any[], alert:
   });
 }
 
-function isWithinDnd(start?: string, end?: string) {
+function isWithinDnd(start?: string, end?: string, offset = 0, repeat = 'daily', days: number[] = []) {
   if (!start || !end) return false;
-  const minutes = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
+  const local = new Date(Date.now() - Number(offset || 0) * 60000);
+  const day = local.getUTCDay();
+  if (repeat === 'weekdays' && (day === 0 || day === 6)) return false;
+  if (repeat === 'custom' && !days.includes(day)) return false;
+  const minutes = local.getUTCHours() * 60 + local.getUTCMinutes();
   const parse = (value: string) => { const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute; };
   const from = parse(start); const to = parse(end);
   return from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to;
@@ -324,7 +328,7 @@ function isWithinDnd(start?: string, end?: string) {
 function distanceKm(a: any, b: any) { const rad = (value: number) => value * Math.PI / 180; const dLat = rad(Number(b.latitude) - Number(a.latitude)); const dLng = rad(Number(b.longitude) - Number(a.longitude)); const value = Math.sin(dLat / 2) ** 2 + Math.cos(rad(Number(a.latitude))) * Math.cos(rad(Number(b.latitude))) * Math.sin(dLng / 2) ** 2; return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value)); }
 
 async function processPendingAlerts(supabaseAdmin: any) {
-  // ???? = end_time IS NULL?????? TTL ???red 2h / orange 4h / yellow 8h?
+  // 活跃预警 = end_time IS NULL；按严重级别 TTL 过期（red 2h / orange 4h / yellow 8h）
   const ttlHours: Record<string, number> = { red: 2, orange: 4, yellow: 8 };
   const nowISO = new Date().toISOString();
   let processed = 0;
