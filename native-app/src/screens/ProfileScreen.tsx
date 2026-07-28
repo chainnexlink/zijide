@@ -65,6 +65,7 @@ export function ProfileScreen() {
         <Text style={styles.cardTitle}>安全服务</Text>
         <Menu label="编辑个人资料" description="头像、昵称、性别、生日和常驻城市" onPress={() => navigation.navigate('ProfileEdit')} />
         <Menu label="通知设置" description="推送、短信、邮件、声音和免打扰" onPress={() => navigation.navigate('NotificationSettings')} />
+        <Menu label="通知中心" description="查看预警、SOS、客服回复并管理已读状态" onPress={() => navigation.navigate('Notifications')} />
         <Menu label="地图设置" description="地图类型、路线偏好、图层和单位" onPress={() => navigation.navigate('MapSettings')} />
         <Menu label="存储设置" description="缓存、离线包和本地数据" onPress={() => navigation.navigate('StorageSettings')} />
         <Menu label="语言 / Language" description="9种预警与紧急信息语言" onPress={() => navigation.navigate('Language')} />

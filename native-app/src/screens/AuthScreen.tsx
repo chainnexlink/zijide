@@ -11,9 +11,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as AppleAuthentication from 'expo-apple-authentication';
-import * as Crypto from 'expo-crypto';
-import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -26,8 +23,6 @@ type AuthMode = 'login' | 'register';
 type AuthMethod = 'phone' | 'email';
 type PhoneLoginMode = 'password' | 'otp';
 
-WebBrowser.maybeCompleteAuthSession();
-
 const friendlyError = (message: string) => {
   const value = message.toLowerCase();
   if (value.includes('invalid login credentials')) return '邮箱或密码不正确';
@@ -38,6 +33,10 @@ const friendlyError = (message: string) => {
   if (value.includes('sms service not configured')) return '短信服务暂未配置，请联系管理员';
   if (value.includes('sms send failed')) return '验证码发送失败，请稍后再试';
   if (value.includes('invalid or expired code')) return '验证码错误或已过期';
+  if (value.includes('signups not allowed for otp') || value.includes('phone account not found')) return '该手机号尚未注册，请点击“立即注册”创建账号';
+  if (value.includes('phone number already registered')) return '该手机号已经注册，请返回登录';
+  if (value.includes('linked to an email account')) return '该手机号已绑定邮箱账号，请使用邮箱登录';
+  if (value.includes('please wait 60 seconds')) return '验证码发送过于频繁，请等待60秒后重试';
   if (value.includes('provider is not enabled') || value.includes('unsupported provider')) return '该登录方式尚未在后台启用，请使用手机或邮箱登录';
   return message;
 };
@@ -60,7 +59,6 @@ export function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [emailSent, setEmailSent] = useState(false);
-  const [appleAvailable, setAppleAvailable] = useState(false);
 
   const normalizedPhone = useMemo(() => phone.replace(/\D/g, ''), [phone]);
   const passwordCheck = useMemo(() => checkPassword(password), [password]);
@@ -75,10 +73,6 @@ export function AuthScreen() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  useEffect(() => {
-    if (Platform.OS === 'ios') void AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
-  }, []);
-
   const resetFeedback = () => {
     setMessage('');
     setEmailSent(false);
@@ -92,18 +86,18 @@ export function AuthScreen() {
 
     setLoading(true);
     setMessage('');
-    const fullPhone = `${normalizedCountryCode}${normalizedPhone}`;
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: fullPhone,
-      options: {
-        shouldCreateUser: mode === 'register',
-        data: mode === 'register' ? { invite_code: inviteCode.trim() || undefined } : undefined,
+    const { data, error } = await supabase.functions.invoke('subscription', {
+      body: {
+        action: 'send-sms-code',
+        phone: normalizedPhone,
+        countryCode: normalizedCountryCode,
+        purpose: mode === 'register' ? 'register' : 'login',
       },
     });
     setLoading(false);
 
-    if (error) {
-      setMessage(friendlyError(error.message));
+    if (error || !data?.success) {
+      setMessage(friendlyError(data?.error || error?.message || '验证码发送失败'));
       return;
     }
 
@@ -147,16 +141,27 @@ export function AuthScreen() {
 
     setLoading(true);
     setMessage('');
-    const fullPhone = `${normalizedCountryCode}${normalizedPhone}`;
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone: fullPhone,
-      token: verificationCode,
-      type: 'sms',
+    const verifyResult = await supabase.functions.invoke('subscription', {
+      body: {
+        action: 'verify-sms-code',
+        phone: normalizedPhone,
+        countryCode: normalizedCountryCode,
+        code: verificationCode,
+        purpose: mode === 'register' ? 'register' : 'login',
+        inviteCode: mode === 'register' ? inviteCode.trim() : undefined,
+        deviceId: `${Platform.OS}-native-app`,
+      },
     });
-
-    if (error || !data.session) {
+    const tokenHash = verifyResult.data?.auth?.tokenHash;
+    if (verifyResult.error || verifyResult.data?.error || !tokenHash) {
       setLoading(false);
-      setMessage(friendlyError(error?.message || '验证码验证失败'));
+      setMessage(friendlyError(verifyResult.data?.error || verifyResult.error?.message || '验证码验证失败'));
+      return;
+    }
+    const { error: sessionError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' });
+    if (sessionError) {
+      setLoading(false);
+      setMessage(friendlyError(sessionError.message));
       return;
     }
 
@@ -181,49 +186,6 @@ export function AuthScreen() {
     if (profileResult.error || !profileResult.data?.success) {
       await supabase.auth.signOut();
       setMessage(friendlyError(profileResult.data?.error || profileResult.error?.message || '账户资料初始化失败'));
-    }
-  };
-
-  const socialLogin = async (provider: 'google' | 'apple') => {
-    setLoading(true);
-    setMessage('');
-    try {
-      if (provider === 'apple') {
-        const bytes = await Crypto.getRandomBytesAsync(32);
-        const rawNonce = Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
-        const nonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
-        const credential = await AppleAuthentication.signInAsync({
-          requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
-          nonce,
-        });
-        if (!credential.identityToken) throw new Error('Apple 未返回登录凭证');
-        const result = await supabase.auth.signInWithIdToken({ provider: 'apple', token: credential.identityToken, nonce: rawNonce });
-        if (result.error) throw result.error;
-        if (credential.fullName?.givenName || credential.fullName?.familyName) {
-          const nickname = [credential.fullName.givenName, credential.fullName.familyName].filter(Boolean).join(' ');
-          await supabase.auth.updateUser({ data: { nickname } });
-        }
-      } else {
-        const redirectTo = 'warrescue://auth-callback';
-        const result = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: true } });
-        if (result.error || !result.data.url) throw result.error || new Error('无法创建 Google 登录链接');
-        const browser = await WebBrowser.openAuthSessionAsync(result.data.url, redirectTo);
-        if (browser.type !== 'success') return;
-        const fragment = browser.url.split('#')[1] || browser.url.split('?')[1] || '';
-        const params = new URLSearchParams(fragment);
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        const authError = params.get('error_description');
-        if (authError) throw new Error(decodeURIComponent(authError));
-        if (!accessToken || !refreshToken) throw new Error('Google 登录未返回有效会话');
-        const sessionResult = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-        if (sessionResult.error) throw sessionResult.error;
-      }
-    } catch (error) {
-      const code = (error as { code?: string }).code;
-      if (code !== 'ERR_REQUEST_CANCELED') setMessage(friendlyError(error instanceof Error ? error.message : '第三方登录失败'));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -265,7 +227,10 @@ export function AuthScreen() {
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
-      options: { data: { invite_code: inviteCode.trim() || undefined } },
+      options: {
+        emailRedirectTo: 'warrescue://auth-callback',
+        data: { invite_code: inviteCode.trim() || undefined },
+      },
     });
     setLoading(false);
     if (error) {
@@ -285,7 +250,11 @@ export function AuthScreen() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.resend({ type: 'signup', email: cleanEmail });
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: cleanEmail,
+      options: { emailRedirectTo: 'warrescue://auth-callback' },
+    });
     setLoading(false);
     setMessage(error ? friendlyError(error.message) : '验证邮件已重新发送，请检查收件箱和垃圾邮件');
   };
@@ -415,11 +384,6 @@ export function AuthScreen() {
             <Pressable onPress={switchMode}>
               <Text style={styles.switchText}>{mode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录'}</Text>
             </Pressable>
-            <View style={styles.socialDivider}><View style={styles.socialLine} /><Text style={styles.socialDividerText}>其他登录方式</Text><View style={styles.socialLine} /></View>
-            <View style={styles.socialRow}>
-              {appleAvailable ? <AppleAuthentication.AppleAuthenticationButton buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN} buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE} cornerRadius={12} style={styles.appleButton} onPress={() => void socialLogin('apple')} /> : null}
-              <Pressable style={styles.googleButton} onPress={() => void socialLogin('google')} disabled={loading}><Text style={styles.googleText}>G  使用 Google 登录</Text></Pressable>
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

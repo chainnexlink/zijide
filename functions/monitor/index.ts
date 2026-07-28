@@ -57,6 +57,20 @@ Deno.serve(async (req) => {
       } catch {}
     }
     if (!action) action = 'collect';
+    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+    const cronSecret = req.headers.get('x-cron-secret') || '';
+    const isCron = !!cronSecret && cronSecret === (Deno.env.get('CRON_SECRET') || '___no_cron_secret___');
+    let role: string | null = null;
+    if (!isCron && token) {
+      const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+      if (user) {
+        const { data: staff } = await supabaseAdmin.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
+        role = staff?.role || null;
+      }
+    }
+    if (!isCron && (!role || (action !== 'stats' && role === 'viewer'))) {
+      return new Response(JSON.stringify({ error: token ? 'Forbidden' : 'Unauthorized' }), { status: token ? 403 : 401, headers: corsHeaders });
+    }
 
     switch (action) {
       case 'collect':

@@ -22,12 +22,35 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { userIds, all, title, body, data, severity } = await req.json();
-    if (!title) {
-      return new Response(JSON.stringify({ error: 'title required' }), { status: 400, headers: corsHeaders });
+    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+    const serviceToken = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    if (!token) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    if (token !== serviceToken) {
+      const { data: { user } } = await admin.auth.getUser(token);
+      if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+      const { data: staff } = await admin.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
+      if (!staff || staff.role === 'viewer') {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+      }
     }
 
-    let targets: string[] = Array.isArray(userIds) ? userIds : [];
+    const { userIds, all, title, body, data, severity } = await req.json();
+    if (typeof title !== 'string' || !title.trim() || title.length > 120) {
+      return new Response(JSON.stringify({ error: 'title required' }), { status: 400, headers: corsHeaders });
+    }
+    if (body != null && (typeof body !== 'string' || body.length > 1000)) {
+      return new Response(JSON.stringify({ error: 'invalid body' }), { status: 400, headers: corsHeaders });
+    }
+    if (data != null && (typeof data !== 'object' || JSON.stringify(data).length > 4096)) {
+      return new Response(JSON.stringify({ error: 'invalid data' }), { status: 400, headers: corsHeaders });
+    }
+    if (severity != null && !['red', 'orange', 'yellow'].includes(severity)) {
+      return new Response(JSON.stringify({ error: 'invalid severity' }), { status: 400, headers: corsHeaders });
+    }
+
+    let targets: string[] = Array.isArray(userIds)
+      ? [...new Set(userIds.filter((id: unknown) => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id)))].slice(0, 1000) as string[]
+      : [];
     if (all === true) {
       const { data: subs } = await admin
         .from('user_alert_settings')
@@ -35,9 +58,12 @@ Deno.serve(async (req) => {
         .eq('push_enabled', true);
       targets = (subs || []).map((s: any) => s.user_id);
     }
+    if (!all && !targets.length) {
+      return new Response(JSON.stringify({ error: 'valid userIds required' }), { status: 400, headers: corsHeaders });
+    }
 
     const result = await sendPushToUsers(admin, targets, {
-      title,
+      title: title.trim(),
       body: body || '',
       data: data || {},
       severity,

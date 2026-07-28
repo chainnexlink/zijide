@@ -8,6 +8,7 @@ import { colors, radius, spacing } from '../theme';
 import type { AlertRow, ShelterRow } from '../types';
 import type { RootStackParams } from '../navigation/RootNavigator';
 import { NativeGoogleMap } from '../components/NativeGoogleMap';
+import { readOfflineCollection } from '../lib/offlinePacks';
 
 type Props = NativeStackScreenProps<RootStackParams, 'AlertDetail'>;
 const advice: Record<string, string[]> = {
@@ -22,14 +23,26 @@ export function AlertDetailScreen({ route, navigation }: Props) {
   const [shelters, setShelters] = useState<ShelterRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [offline, setOffline] = useState(false);
   useEffect(() => { void (async () => {
     const { data, error } = await supabase.from('alerts').select('*').eq('id', route.params.alertId).maybeSingle();
-    if (error) setLoadError(error.message);
-    else if (!data) setLoadError('该预警已删除或当前账号无权查看');
-    setAlert(data as AlertRow | null);
-    if (data?.city) {
-      const nearby = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').eq('city', data.city).neq('status', 'closed').limit(3);
-      setShelters((nearby.data || []) as ShelterRow[]);
+    let current = data as AlertRow | null;
+    if (error) {
+      current = (await readOfflineCollection<AlertRow>('alerts')).find((item) => item.id === route.params.alertId) || null;
+      setOffline(Boolean(current));
+      if (!current) setLoadError(error.message);
+    } else if (!data) {
+      setLoadError('该预警已删除或当前账号无权查看');
+    }
+    setAlert(current);
+    if (current?.city) {
+      const nearby = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').eq('city', current.city).neq('status', 'closed').limit(3);
+      if (nearby.error) {
+        const cached = await readOfflineCollection<ShelterRow>('shelters');
+        setShelters(cached.filter((item) => item.city === current?.city && item.status !== 'closed').slice(0, 3));
+      } else {
+        setShelters((nearby.data || []) as ShelterRow[]);
+      }
     }
     setLoading(false);
   })(); }, [route.params.alertId]);
@@ -37,7 +50,7 @@ export function AlertDetailScreen({ route, navigation }: Props) {
   if (!alert) return <Screen title="预警详情" subtitle="无法加载" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}><View style={styles.card}><Text style={styles.section}>预警不可用</Text><Text style={styles.description}>{loadError || '请检查网络后重试'}</Text></View></Screen>;
   const tone = alert.severity === 'red' ? colors.danger : alert.severity === 'orange' ? colors.warning : '#EAB308';
   const steps = advice[alert.alert_type] || ['立即远离危险区域', '关注当地官方通知', '准备前往最近的开放避难所'];
-  return <Screen title="预警详情" subtitle={alert.is_verified ? '已核验信息' : '待进一步核验'} action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
+  return <Screen title="预警详情" subtitle={offline ? '离线缓存 · 状态可能已变化' : alert.is_verified ? '已核验信息' : '待进一步核验'} action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
     <View style={[styles.banner, { borderColor: tone }]}><Text style={[styles.level, { color: tone }]}>{alert.severity.toUpperCase()} · {alert.alert_type}</Text><Text style={styles.alertTitle}>{alert.title}</Text><Text style={styles.location}>{[alert.city, alert.country].filter(Boolean).join(' · ') || '位置待确认'}</Text></View>
     <View style={styles.card}><Text style={styles.section}>事件信息</Text><Row label="开始时间" value={format(alert.start_time || alert.created_at)} /><Row label="结束时间" value={alert.end_time ? format(alert.end_time) : '尚未解除'} /><Row label="影响半径" value={alert.affected_radius_km ? `${alert.affected_radius_km} km` : '待确认'} /><Row label="来源" value={alert.source || '公开安全信息源'} />{alert.description ? <Text style={styles.description}>{alert.description}</Text> : null}{alert.source_url ? <Pressable onPress={() => void Linking.openURL(alert.source_url!)}><Text style={styles.link}>查看原始信息源</Text></Pressable> : null}</View>
     {alert.latitude != null && alert.longitude != null ? <><NativeGoogleMap center={{ latitude: Number(alert.latitude), longitude: Number(alert.longitude) }} markers={[{ id: alert.id, latitude: Number(alert.latitude), longitude: Number(alert.longitude), title: alert.title, color: tone }]} radiusMeters={(alert.affected_radius_km || 2) * 1000} radiusColor={tone} zoom={Math.max(0.04, (alert.affected_radius_km || 2) / 35)} /><Pressable onPress={() => void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${alert.latitude},${alert.longitude}`)}><Text style={styles.link}>在 Google Maps 中查看影响区域</Text></Pressable></> : <View style={styles.map}><Text style={styles.mapText}>预警区域坐标待确认</Text></View>}

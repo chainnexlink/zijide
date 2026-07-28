@@ -78,6 +78,22 @@ Deno.serve(async (req) => {
     }
     if (!action) action = 'collect';
 
+    const cronSecret = req.headers.get('x-cron-secret') || '';
+    const isCron = !!cronSecret && cronSecret === (Deno.env.get('CRON_SECRET') || '___no_cron_secret___');
+    let adminRole: string | null = null;
+    if (!isCron) {
+      const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+      const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+      if (user) {
+        const { data: admin } = await supabaseAdmin.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
+        adminRole = admin?.role || null;
+      }
+    }
+    const readOnlyAction = ['stats', 'time_analysis'].includes(action);
+    if (!isCron && (!adminRole || (!readOnlyAction && adminRole === 'viewer'))) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+    }
+
     switch (action) {
       case 'collect':
         return await collectAlerts(supabaseAdmin);
@@ -97,6 +113,8 @@ Deno.serve(async (req) => {
         return await getMonitoringStats(supabaseAdmin);
       case 'verify':
         return await verifyAlert(supabaseAdmin, req);
+      case 'publish':
+        return await publishVerifiedAlert(supabaseAdmin, req);
       default:
         return new Response(JSON.stringify({ error: 'Unknown action' }), {
           status: 400,
@@ -160,17 +178,7 @@ async function collectAlerts(supabaseAdmin: any) {
     }
   }
 
-  // AI 分析器（仅在配置了 MEOO_PROJECT_API_KEY 时运行）
-  if (MEOO_PROJECT_SERVICE_AK) {
-    try {
-      for (const a of await generateAIAnalyzedAlerts(supabaseAdmin, now)) {
-        collected++;
-        if (await insertAlertIfNew(supabaseAdmin, mapAlertDataToRow(a, now), now)) inserted++;
-      }
-    } catch (e) {
-      console.error('AI analyzer failed:', e);
-    }
-  }
+  // AI 只能分析已有、可追溯来源的事件，禁止凭模型输出创建生产预警。
 
   return new Response(JSON.stringify({ success: true, demoMode: false, collected, new: inserted, sources: perSource, timestamp: now.toISOString() }), { headers: corsHeaders });
 }
@@ -182,6 +190,7 @@ const ALLOWED_ALERT_TYPES = ['air_strike', 'artillery', 'conflict', 'curfew', 'c
 // 关键：活跃预警 = end_time IS NULL（与前端 Dashboard 的 .is('end_time', null) 查询一致），
 // 不再使用历史代码里那些根本不存在的 is_active / expires_at 列。
 function mapAlertDataToRow(a: AlertData, now: Date) {
+  const trustedOfficialSource = ['Ukraine Alarm (official)', 'Israel Oref Live'].includes(a.source);
   return {
     alert_type: ALLOWED_ALERT_TYPES.includes(a.type) ? a.type : 'other',
     severity: ['red', 'orange', 'yellow'].includes(a.severity) ? a.severity : 'yellow',
@@ -198,6 +207,9 @@ function mapAlertDataToRow(a: AlertData, now: Date) {
     detected_at: now.toISOString(),
     detection_delay_seconds: 0,
     confidence: a.confidence ?? 0.7,
+    is_verified: trustedOfficialSource,
+    verified_at: trustedOfficialSource ? now.toISOString() : null,
+    verification_notes: trustedOfficialSource ? 'Automatically verified from allow-listed official feed' : 'Awaiting human verification',
     start_time: a.createdAt,
     // end_time 留空 = 活跃
   };
@@ -224,12 +236,43 @@ async function insertAlertIfNew(supabaseAdmin: any, row: any, _now: Date) {
     console.error('alert insert failed:', error.message, row.source_id);
     return null;
   }
-  try {
-    await notifySubscribers(supabaseAdmin, data);
-  } catch (e) {
-    console.error('notifySubscribers failed:', e);
+  if (data.is_verified) {
+    try {
+      await notifySubscribers(supabaseAdmin, data);
+      await supabaseAdmin.from('alerts').update({ notification_sent_at: new Date().toISOString() }).eq('id', data.id);
+    } catch (e) {
+      console.error('notifySubscribers failed:', e);
+    }
   }
   return data;
+}
+
+async function publishVerifiedAlert(supabaseAdmin: any, req: Request) {
+  const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+  const { data: admin } = await supabaseAdmin.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
+  if (!admin || admin.role === 'viewer') return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+  const { alertId, verified = true } = await req.json();
+  const { data: alert } = await supabaseAdmin.from('alerts').select('*').eq('id', alertId).maybeSingle();
+  if (!alert) return new Response(JSON.stringify({ error: 'Alert not found' }), { status: 404, headers: corsHeaders });
+  const verifiedAt = verified ? new Date().toISOString() : null;
+  const { error: updateError } = await supabaseAdmin.from('alerts').update({ is_verified: verified, verified_at: verifiedAt }).eq('id', alertId);
+  if (updateError) return new Response(JSON.stringify({ error: updateError.message }), { status: 500, headers: corsHeaders });
+  if (verified && !alert.notification_sent_at) {
+    const claimedAt = new Date().toISOString();
+    const { data: claimed } = await supabaseAdmin.from('alerts').update({ notification_sent_at: claimedAt })
+      .eq('id', alertId).is('notification_sent_at', null).select('id').maybeSingle();
+    if (claimed) {
+      try {
+        await notifySubscribers(supabaseAdmin, { ...alert, is_verified: true, verified_at: verifiedAt });
+      } catch (error) {
+        await supabaseAdmin.from('alerts').update({ notification_sent_at: null }).eq('id', alertId).eq('notification_sent_at', claimedAt);
+        throw error;
+      }
+    }
+  }
+  return new Response(JSON.stringify({ success: true, verified }), { headers: corsHeaders });
 }
 
 async function generateAIAnalyzedAlerts(supabaseAdmin: any, now: Date): Promise<AlertData[]> {
@@ -666,16 +709,15 @@ async function verifyAlert(supabaseAdmin: any, req: Request) {
         await supabaseAdmin
           .from('alerts')
           .update({
-            is_verified: verification.verified, // 修复：alerts 表列名是 is_verified（原写 verified 不存在）
-            verified_at: verification.verified ? new Date().toISOString() : null,
             verification_confidence: verification.confidence,
-            verification_notes: verification.notes
+            verification_notes: `AI recommendation only; human approval required. ${verification.notes || ''}`
           })
           .eq('id', alertId);
 
         return new Response(JSON.stringify({
           success: true,
           verification,
+          requiresHumanApproval: true,
           timestamp: new Date().toISOString(),
         }), { headers: corsHeaders });
       } catch (parseError) {

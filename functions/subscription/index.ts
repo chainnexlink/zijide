@@ -35,7 +35,9 @@ function generateInviteCode(): string {
 }
 
 function generateSMSCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const value = new Uint32Array(1);
+  crypto.getRandomValues(value);
+  return String(100000 + (value[0] % 900000));
 }
 
 Deno.serve(async (req) => {
@@ -64,6 +66,8 @@ Deno.serve(async (req) => {
         return await sendSMSCode(supabaseAdmin, req);
       case 'verify-sms-code':
         return await verifySMSCode(supabaseAdmin, req);
+      case 'verify-phone-change':
+        return await verifyPhoneChange(supabaseAdmin, req);
       case 'complete-phone-profile':
         return await completePhoneProfile(supabaseAdmin, req);
       case 'get-plans':
@@ -72,8 +76,6 @@ Deno.serve(async (req) => {
         return await getSubscriptionStatus(supabaseAdmin, req);
       case 'check-invite-discount':
         return await checkInviteDiscount(supabaseAdmin, req);
-      case 'create-guest':
-        return await createGuest(supabaseAdmin, req);
       default:
         return new Response(JSON.stringify({ error: 'Unknown action' }), {
           status: 400,
@@ -89,16 +91,36 @@ Deno.serve(async (req) => {
 });
 
 async function sendSMSCode(supabaseAdmin: any, req: Request) {
-  const { phone, countryCode = '+86' } = await req.json();
-
-  if (!phone) {
-    return new Response(JSON.stringify({ error: 'Phone number required' }), {
-      status: 400,
-      headers: corsHeaders,
-    });
+  const { phone, countryCode = '+86', purpose } = await req.json();
+  const normalizedCountryCode = `+${String(countryCode).replace(/\D/g, '')}`;
+  const normalizedPhone = String(phone || '').replace(/\D/g, '');
+  const fullPhone = `${normalizedCountryCode}${normalizedPhone}`;
+  if (!/^\+\d{7,15}$/.test(fullPhone)) {
+    return new Response(JSON.stringify({ error: 'Valid international phone number required' }), { status: 400, headers: corsHeaders });
+  }
+  if (!['login', 'register', 'change-phone'].includes(String(purpose || ''))) {
+    return new Response(JSON.stringify({ error: 'SMS purpose must be login, register, or change-phone' }), { status: 400, headers: corsHeaders });
   }
 
-  const fullPhone = `${countryCode}${phone}`;
+  if (purpose === 'change-phone') {
+    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+    const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    }
+  } else {
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('phone', fullPhone)
+      .maybeSingle();
+    if (purpose === 'login' && !existingProfile) {
+      return new Response(JSON.stringify({ error: 'Phone account not found; register first' }), { status: 404, headers: corsHeaders });
+    }
+    if (purpose === 'register' && existingProfile) {
+      return new Response(JSON.stringify({ error: 'Phone number already registered; sign in instead' }), { status: 409, headers: corsHeaders });
+    }
+  }
 
   const { data: recentCodes } = await supabaseAdmin
     .from('sms_codes')
@@ -118,17 +140,21 @@ async function sendSMSCode(supabaseAdmin: any, req: Request) {
 
   const code = generateSMSCode();
 
-  await supabaseAdmin.from('sms_codes').insert({
+  const { data: insertedCode, error: insertError } = await supabaseAdmin.from('sms_codes').insert({
     phone: fullPhone,
-    country_code: countryCode,
+    country_code: normalizedCountryCode,
     code,
+    purpose,
+    attempt_count: 0,
     expires_at: new Date(Date.now() + 600000).toISOString()
-  });
+  }).select('id').single();
+  if (insertError) return new Response(JSON.stringify({ error: 'Unable to create verification code' }), { status: 500, headers: corsHeaders });
 
   // 真发短信。此前只入库+打日志——用户永远收不到码，注册/登录闭环从这里就断了。
   // 验证码不进日志（OTP 属敏感信息）。
   const sms = await sendSms(fullPhone, `【WarRescue】验证码 ${code}，10分钟内有效。Your verification code is ${code}, valid for 10 minutes.`);
   if (!sms.ok) {
+    if (insertedCode?.id) await supabaseAdmin.from('sms_codes').delete().eq('id', insertedCode.id);
     console.error(`SMS send to ${fullPhone.slice(0, 6)}**** failed:`, sms.error);
     return new Response(JSON.stringify({
       success: false,
@@ -144,29 +170,29 @@ async function sendSMSCode(supabaseAdmin: any, req: Request) {
 }
 
 async function verifySMSCode(supabaseAdmin: any, req: Request) {
-  const { phone, countryCode = '+86', code, inviteCode, deviceId } = await req.json();
-
-  if (!phone || !code) {
-    return new Response(JSON.stringify({ error: 'Phone and code required' }), {
-      status: 400,
-      headers: corsHeaders,
-    });
+  const { phone, countryCode = '+86', code, inviteCode, deviceId, purpose } = await req.json();
+  const normalizedCountryCode = `+${String(countryCode).replace(/\D/g, '')}`;
+  const normalizedPhone = String(phone || '').replace(/\D/g, '');
+  const fullPhone = `${normalizedCountryCode}${normalizedPhone}`;
+  if (!/^\+\d{7,15}$/.test(fullPhone) || !/^\d{6}$/.test(String(code || ''))) {
+    return new Response(JSON.stringify({ error: 'Phone and 6-digit code required' }), { status: 400, headers: corsHeaders });
+  }
+  if (!['login', 'register'].includes(String(purpose || ''))) {
+    return new Response(JSON.stringify({ error: 'SMS purpose must be login or register' }), { status: 400, headers: corsHeaders });
   }
 
-  const fullPhone = `${countryCode}${phone}`;
-
-  const { data: smsRecord } = await supabaseAdmin
+  const { data: latestCode } = await supabaseAdmin
     .from('sms_codes')
     .select('*')
     .eq('phone', fullPhone)
-    .eq('code', code)
+    .eq('purpose', purpose)
     .eq('used', false)
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-
-  if (!smsRecord) {
+  if (!latestCode || latestCode.attempt_count >= 5 || latestCode.code !== String(code)) {
+    if (latestCode) await supabaseAdmin.from('sms_codes').update({ attempt_count: Number(latestCode.attempt_count || 0) + 1 }).eq('id', latestCode.id);
     return new Response(JSON.stringify({ error: 'Invalid or expired code' }), {
       status: 400,
       headers: corsHeaders,
@@ -175,8 +201,8 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
 
   await supabaseAdmin
     .from('sms_codes')
-    .update({ used: true })
-    .eq('id', smsRecord.id);
+    .delete()
+    .eq('id', latestCode.id);
 
   let { data: existingUser } = await supabaseAdmin
     .from('profiles')
@@ -184,15 +210,19 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
     .eq('phone', fullPhone)
     .maybeSingle();
 
-  const isNewUser = !existingUser;
+  if (purpose === 'login' && !existingUser) {
+    return new Response(JSON.stringify({ error: 'Phone account not found; register first' }), { status: 404, headers: corsHeaders });
+  }
+  if (purpose === 'register' && existingUser) {
+    return new Response(JSON.stringify({ error: 'Phone number already registered; sign in instead' }), { status: 409, headers: corsHeaders });
+  }
 
-  // 会话引导：验证码通过后给手机用户配「合成邮箱 + 一次性密码」，让前端能
-  // signInWithPassword 建立真正的 Supabase 会话。此前验证成功只返回资料、
-  // 不给任何凭证 → 前端 navigate 后被路由守卫弹回登录页 = 永远登录不进去。
-  // 密码每次短信登录轮换（真正的凭证是短信验证码，这只是会话载体）。
+  const isNewUser = purpose === 'register';
+
+  // 手机验证码验证成功后，用不发送邮件的 magic-link token 建立 Supabase
+  // 会话。它不会轮换或覆盖用户设置的密码。
   const authEmail = `p${fullPhone.replace(/\D/g, '')}@phone.warrescue.app`;
-  const oneTimePassword = crypto.randomUUID() + crypto.randomUUID().slice(0, 8);
-  let sessionAuth: { email: string; otp: string } | null = { email: authEmail, otp: oneTimePassword };
+  let authUserId = existingUser?.id || null;
 
   if (!existingUser) {
     const userInviteCode = generateInviteCode();
@@ -203,10 +233,10 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
       phone_confirm: true,
       email: authEmail,
       email_confirm: true,
-      password: oneTimePassword,
+      password: crypto.randomUUID() + crypto.randomUUID().slice(0, 8),
       user_metadata: {
         phone: fullPhone,
-        invite_code: userInviteCode,
+        invite_code: inviteCode || undefined,
         device_id: deviceId
       }
     });
@@ -217,6 +247,7 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
         headers: corsHeaders,
       });
     }
+    authUserId = newUser.user.id;
 
     await supabaseAdmin.from('profiles').insert({
       id: newUser.user.id,
@@ -235,47 +266,25 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
       trial_ends_at: trialEndsAt
     };
 
-    if (inviteCode) {
-      const { data: inviter } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('invite_code', inviteCode)
-        .maybeSingle();
-
-      if (inviter) {
-        await supabaseAdmin.from('invites').insert({
-          inviter_id: inviter.id,
-          invited_phone: fullPhone,
-          invite_code: inviteCode,
-          status: 'registered',
-          registered_at: new Date().toISOString(),
-          reward_amount: 0.5
-        });
-      }
-    }
   } else {
     await supabaseAdmin
       .from('profiles')
       .update({ device_id: deviceId })
       .eq('id', existingUser.id);
 
-    // 老用户：轮换一次性密码以建立会话。只对手机注册用户（无真实邮箱）操作，
-    // 绝不覆盖「邮箱注册」账户的密码（混合账户请走邮箱登录）。
     const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(existingUser.id);
     const hasRealEmail = !!authUser?.user?.email && !authUser.user.email.endsWith('@phone.warrescue.app');
     if (hasRealEmail) {
-      sessionAuth = null;
-    } else {
-      const { error: rotateErr } = await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
-        email: authEmail,
-        email_confirm: true,
-        password: oneTimePassword,
-      });
-      if (rotateErr) {
-        console.error('Session bootstrap rotate failed:', rotateErr.message);
-        sessionAuth = null;
-      }
+      return new Response(JSON.stringify({ error: 'This phone is linked to an email account; use email login' }), { status: 409, headers: corsHeaders });
     }
+  }
+
+  if (!authUserId) return new Response(JSON.stringify({ error: 'Unable to resolve phone account' }), { status: 500, headers: corsHeaders });
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({ type: 'magiclink', email: authEmail });
+  const tokenHash = linkData?.properties?.hashed_token;
+  if (linkError || !tokenHash) {
+    console.error('Phone session link failed:', linkError?.message);
+    return new Response(JSON.stringify({ error: 'Unable to create verified session' }), { status: 500, headers: corsHeaders });
   }
 
   return new Response(JSON.stringify({
@@ -283,8 +292,33 @@ async function verifySMSCode(supabaseAdmin: any, req: Request) {
     user: existingUser,
     isNewUser,
     trialEndsAt: existingUser.trial_ends_at,
-    auth: sessionAuth
+    auth: { tokenHash, type: 'magiclink' }
   }), { headers: corsHeaders });
+}
+
+async function verifyPhoneChange(supabaseAdmin: any, req: Request) {
+  const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+  const { phone, code } = await req.json();
+  const fullPhone = `+${String(phone || '').replace(/\D/g, '')}`;
+  if (!/^\+\d{7,15}$/.test(fullPhone) || !/^\d{6}$/.test(String(code || ''))) {
+    return new Response(JSON.stringify({ error: 'Phone and 6-digit code required' }), { status: 400, headers: corsHeaders });
+  }
+  const { data: latestCode } = await supabaseAdmin.from('sms_codes').select('*').eq('phone', fullPhone).eq('purpose', 'change-phone')
+    .eq('used', false).gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (!latestCode || latestCode.attempt_count >= 5 || latestCode.code !== String(code)) {
+    if (latestCode) await supabaseAdmin.from('sms_codes').update({ attempt_count: Number(latestCode.attempt_count || 0) + 1 }).eq('id', latestCode.id);
+    return new Response(JSON.stringify({ error: 'Invalid or expired code' }), { status: 400, headers: corsHeaders });
+  }
+  const { data: owner } = await supabaseAdmin.from('profiles').select('id').eq('phone', fullPhone).neq('id', user.id).maybeSingle();
+  if (owner) return new Response(JSON.stringify({ error: 'Phone number is already in use' }), { status: 409, headers: corsHeaders });
+  const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(user.id, { phone: fullPhone, phone_confirm: true });
+  if (authError) return new Response(JSON.stringify({ error: authError.message }), { status: 500, headers: corsHeaders });
+  const { error: profileError } = await supabaseAdmin.from('profiles').update({ phone: fullPhone }).eq('id', user.id);
+  if (profileError) return new Response(JSON.stringify({ error: profileError.message }), { status: 500, headers: corsHeaders });
+  await supabaseAdmin.from('sms_codes').delete().eq('id', latestCode.id);
+  return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
 }
 
 async function completePhoneProfile(supabaseAdmin: any, req: Request) {
@@ -326,22 +360,11 @@ async function completePhoneProfile(supabaseAdmin: any, req: Request) {
     }
     profile = inserted;
 
-    if (inviteCode) {
-      const { data: inviter } = await supabaseAdmin.from('profiles').select('id').eq('invite_code', inviteCode).maybeSingle();
-      if (inviter && inviter.id !== user.id) {
-        await supabaseAdmin.from('invites').insert({
-          inviter_id: inviter.id,
-          invited_phone: user.phone,
-          invite_code: inviteCode,
-          status: 'registered',
-          registered_at: new Date().toISOString(),
-          reward_amount: 0.5,
-        });
-      }
-    }
   } else {
     await supabaseAdmin.from('profiles').update({ phone: user.phone, device_id: deviceId }).eq('id', user.id);
   }
+
+  if (inviteCode) await supabaseAdmin.rpc('apply_referral', { p_referee: user.id, p_code: inviteCode });
 
   return new Response(JSON.stringify({ success: true, profile }), { headers: corsHeaders });
 }
@@ -370,19 +393,25 @@ async function getSubscriptionStatus(supabaseAdmin: any, req: Request) {
     });
   }
 
-  const { data: profile } = await supabaseAdmin
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
     .select('trial_ends_at')
     .eq('id', user.id)
     .maybeSingle();
 
-  const { data: subscription } = await supabaseAdmin
+  const { data: subscription, error: subscriptionError } = await supabaseAdmin
     .from('subscriptions')
     .select('*')
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('expires_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (profileError || subscriptionError) {
+    return new Response(JSON.stringify({ error: 'Subscription status unavailable' }), {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
 
   if (!subscription) {
     const trialEndsAt = profile?.trial_ends_at;
@@ -396,16 +425,23 @@ async function getSubscriptionStatus(supabaseAdmin: any, req: Request) {
     }), { headers: corsHeaders });
   }
 
-  const daysUntilExpiry = Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const isExpiringSoon = daysUntilExpiry <= 7;
+  const expiryMs = new Date(subscription.expires_at).getTime();
+  const daysUntilExpiry = Math.ceil((expiryMs - Date.now()) / (1000 * 60 * 60 * 24));
+  const isExpired = !Number.isFinite(expiryMs) || expiryMs <= Date.now() || ['expired', 'refunded', 'revoked'].includes(subscription.status);
+  const isExpiringSoon = !isExpired && daysUntilExpiry <= 7;
 
   let status = subscription.status;
-  if (status === 'active' && isExpiringSoon) {
+  if (isExpired) {
+    status = 'expired';
+    if (subscription.status !== 'expired') {
+      await supabaseAdmin.from('subscriptions').update({ status: 'expired', updated_at: new Date().toISOString() }).eq('id', subscription.id);
+    }
+  } else if (status === 'active' && isExpiringSoon) {
     status = 'expiring';
   }
 
   return new Response(JSON.stringify({
-    hasSubscription: true,
+    hasSubscription: !isExpired,
     planId: subscription.plan_id,
     status: status,
     daysUntilExpiry: Math.max(0, daysUntilExpiry),

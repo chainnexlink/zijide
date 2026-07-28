@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
 async function subscribe(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
-    const { radiusKm = 1 } = body;
+    const radiusKm = Math.min(100, Math.max(1, Math.round(Number(body.radiusKm) || 1)));
     const userId = actingUserId(principal, body.userId);
     if (!userId) return unauthorized('no user');
 
@@ -251,8 +251,9 @@ async function getNearbySOS(supabaseAdmin: any, req: Request, principal: any) {
 
     const { data: activeSOS } = await supabaseAdmin
       .from('sos_records')
-      .select('*, profiles(nickname)')
+      .select('id,status,stage,trigger_method,latitude,longitude,address,created_at')
       .eq('status', 'active')
+      .neq('user_id', userId)
       .order('created_at', { ascending: false });
 
     const nearbySOS = (activeSOS || [])
@@ -270,14 +271,14 @@ async function getNearbySOS(supabaseAdmin: any, req: Request, principal: any) {
 
     const { data: myResponses } = await supabaseAdmin
       .from('mutual_aid_responses')
-      .select('sos_id, status')
+      .select('sos_id, status, completion_requested_at')
       .eq('responder_id', userId)
       .in('status', ['responding', 'arrived']);
 
     return new Response(JSON.stringify({
       success: true,
       sos: nearbySOS,
-      myResponses: myResponses || [],
+      myResponses: (myResponses || []).map((item: any) => ({ ...item, status: item.completion_requested_at ? 'awaiting_confirmation' : item.status })),
       radius: subscription.radius_km,
     }), { headers: corsHeaders });
   } catch (error: any) {
@@ -294,6 +295,15 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
     const { sosId } = body;
     const userId = actingUserId(principal, body.userId);
     if (!userId) return unauthorized('no user');
+
+    const { data: subscription } = await supabaseAdmin
+      .from('mutual_aid_subscriptions')
+      .select('is_active')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (!subscription?.is_active) {
+      return new Response(JSON.stringify({ error: 'Active mutual-aid subscription required' }), { status: 403, headers: corsHeaders });
+    }
 
     const { data: existingResponse } = await supabaseAdmin
       .from('mutual_aid_responses')
@@ -312,7 +322,7 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
     // 只能响应仍处于 active 的求救（防止对已结束/取消的 SOS 刷“响应”分）
     const { data: sosActive } = await supabaseAdmin
       .from('sos_records')
-      .select('status')
+      .select('status,user_id')
       .eq('id', sosId)
       .maybeSingle();
     if (!sosActive || sosActive.status !== 'active') {
@@ -320,6 +330,9 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
         status: 400,
         headers: corsHeaders,
       });
+    }
+    if (sosActive.user_id === userId) {
+      return new Response(JSON.stringify({ error: 'You cannot respond to your own SOS' }), { status: 400, headers: corsHeaders });
     }
 
     const { data: response, error } = await supabaseAdmin
@@ -334,8 +347,6 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.response, '互助响应奖励', sosId);
-
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
       .select('user_id')
@@ -348,14 +359,15 @@ async function respondToSOS(supabaseAdmin: any, req: Request, principal: any) {
         title: '🤝 Help is on the way',
         body: 'Someone is responding to your SOS',
         type: 'sos_response',
-        data: { sos_id: sosId, responder_id: userId },
+        data: { sos_id: sosId },
       });
     }
 
     return new Response(JSON.stringify({
       success: true,
       response,
-      pointsEarned: REWARD_POINTS.response,
+      pointsEarned: 0,
+      pointsPending: REWARD_POINTS.response,
     }), { headers: corsHeaders });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -389,9 +401,12 @@ async function markArrived(supabaseAdmin: any, req: Request, principal: any) {
     // GPS 到场核实：响应者当前坐标须在求救点 300m 内（SOS 有坐标时强制），杜绝“没到场就领到达分”
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
-      .select('latitude, longitude')
+      .select('latitude, longitude, status')
       .eq('id', sosId)
       .maybeSingle();
+    if (!sos || sos.status !== 'active') {
+      return new Response(JSON.stringify({ error: 'SOS is no longer active' }), { status: 409, headers: corsHeaders });
+    }
     const ARRIVAL_RADIUS_KM = 0.3;
     if (sos && sos.latitude != null && sos.longitude != null) {
       if (latitude == null || longitude == null) {
@@ -417,12 +432,11 @@ async function markArrived(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.arrival, '互助到场奖励', sosId);
-
     return new Response(JSON.stringify({
       success: true,
       response,
-      pointsEarned: REWARD_POINTS.arrival,
+      pointsEarned: 0,
+      pointsPending: REWARD_POINTS.response + REWARD_POINTS.arrival + REWARD_POINTS.completion,
     }), { headers: corsHeaders });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -442,7 +456,7 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
     // 必须先“到达”才能“完成”（防止跳过到达直接领完成分）
     const { data: existing } = await supabaseAdmin
       .from('mutual_aid_responses')
-      .select('id, status')
+      .select('id, status, completion_requested_at')
       .eq('sos_id', sosId)
       .eq('responder_id', userId)
       .maybeSingle();
@@ -452,20 +466,25 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
     if (existing.status !== 'arrived') {
       return new Response(JSON.stringify({ error: 'Must mark arrival before completion' }), { status: 400, headers: corsHeaders });
     }
+    if (existing.completion_requested_at) {
+      return new Response(JSON.stringify({ error: 'Completion confirmation is already pending' }), { status: 409, headers: corsHeaders });
+    }
+
+    const { data: activeSos } = await supabaseAdmin.from('sos_records').select('status').eq('id', sosId).maybeSingle();
+    if (!activeSos || activeSos.status !== 'active') {
+      return new Response(JSON.stringify({ error: 'SOS is no longer active' }), { status: 409, headers: corsHeaders });
+    }
 
     const { data: response, error } = await supabaseAdmin
       .from('mutual_aid_responses')
       .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
+        completion_requested_at: new Date().toISOString(),
       })
       .eq('id', existing.id)
       .select()
       .single();
 
     if (error) throw error;
-
-    await addRewardPoints(supabaseAdmin, userId, REWARD_POINTS.completion, '互助完成奖励', sosId);
 
     const { data: sos } = await supabaseAdmin
       .from('sos_records')
@@ -476,9 +495,9 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
     if (sos) {
       await supabaseAdmin.from('notifications').insert({
         user_id: sos.user_id,
-        title: '✅ Rescue completed',
-        body: 'Your SOS has been resolved',
-        type: 'sos_completed',
+        title: '✅ Helper requests completion confirmation',
+        body: 'A nearby helper marked the assistance complete. Confirm that you are safe to close the SOS and release points.',
+        type: 'sos_completion_requested',
         data: { sos_id: sosId },
       });
     }
@@ -486,7 +505,9 @@ async function markCompleted(supabaseAdmin: any, req: Request, principal: any) {
     return new Response(JSON.stringify({
       success: true,
       response,
-      pointsEarned: REWARD_POINTS.completion,
+      pointsEarned: 0,
+      pointsPending: REWARD_POINTS.response + REWARD_POINTS.arrival + REWARD_POINTS.completion,
+      confirmationRequired: true,
     }), { headers: corsHeaders });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -505,7 +526,7 @@ async function cancelResponse(supabaseAdmin: any, req: Request, principal: any) 
 
     await supabaseAdmin
       .from('mutual_aid_responses')
-      .update({ status: 'cancelled' })
+      .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), completion_requested_at: null })
       .eq('sos_id', sosId)
       .eq('responder_id', userId);
 
@@ -531,7 +552,7 @@ async function getResponses(supabaseAdmin: any, req: Request, principal: any) {
 
     const { data: responses } = await supabaseAdmin
       .from('mutual_aid_responses')
-      .select('*, sos_records(*)')
+      .select('id,sos_id,status,responded_at,arrived_at,completed_at,completion_requested_at,reward_granted_at,sos_records(id,status,stage,trigger_method,latitude,longitude,address,created_at)')
       .eq('responder_id', userId)
       .order('responded_at', { ascending: false });
 
@@ -596,7 +617,6 @@ async function getLeaderboard(supabaseAdmin: any, req: Request, _principal: any)
 
     const leaderboard = (topResponders || []).map((r: any, index: number) => ({
       rank: index + 1,
-      userId: r.user_id,
       nickname: r.profiles?.nickname || 'Anonymous',
       avatar: r.profiles?.avatar_url,
       points: r.total_rewards,
@@ -611,41 +631,6 @@ async function getLeaderboard(supabaseAdmin: any, req: Request, _principal: any)
       status: 500,
       headers: corsHeaders,
     });
-  }
-}
-
-async function addRewardPoints(
-  supabaseAdmin: any,
-  userId: string,
-  points: number,
-  reason = '互助救援奖励',
-  referenceId?: string,
-) {
-  // 1) 互助排行榜累计分（get-leaderboard 读 mutual_aid_subscriptions.total_rewards）
-  const { data: subscription } = await supabaseAdmin
-    .from('mutual_aid_subscriptions')
-    .select('total_rewards')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (subscription) {
-    await supabaseAdmin
-      .from('mutual_aid_subscriptions')
-      .update({ total_rewards: (subscription.total_rewards || 0) + points })
-      .eq('user_id', userId);
-  }
-
-  // 2) 统一积分钱包（/points 显示 + 可抵扣订阅）。原子入账，避免读-改-写竞态；
-  //    之前漏了这一步 —— 互助积分发了却进不了钱包。
-  const { error: walletErr } = await supabaseAdmin.rpc('credit_user_points', {
-    p_user_id: userId,
-    p_amount: points,
-    p_type: 'earn_rescue',
-    p_reason: reason,
-    p_reference_id: referenceId ?? null,
-  });
-  if (walletErr) {
-    console.error('credit_user_points failed:', walletErr);
   }
 }
 

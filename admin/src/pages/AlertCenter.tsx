@@ -28,7 +28,8 @@ export default function AlertCenterPage({ sub }: { sub: string }) {
   };
 
   const toggleVerify = async (id: string, v: boolean) => {
-    await supabase.from('alerts').update({ is_verified: v, verified_at: v ? new Date().toISOString() : null }).eq('id', id);
+    const { error } = await supabase.functions.invoke('ai-alert', { body: { action: 'publish', alertId: id, verified: v } });
+    if (error) { showToast('操作失败: ' + error.message); return; }
     showToast(v ? '已验证' : '已取消验证');
     loadData();
   };

@@ -261,8 +261,11 @@ export default function Subscription() {
         } catch (e) { /* 签券失败按原价 */ }
       }
 
-      // Initiate Apple IAP purchase（带券或原价）
-      const result = await purchaseProduct(productId, offer);
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) throw new Error(language === 'zh' ? '登录已失效，请重新登录' : 'Session expired. Please sign in again.');
+
+      // Initiate Apple IAP purchase（所有交易都绑定当前账号，带券或原价）
+      const result = await purchaseProduct(productId, offer, auth.user.id);
 
       if (!result.success) {
         if (result.error === 'cancelled') {

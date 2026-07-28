@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAdmin, fmt, SearchBar, Btn, DetailRow } from '../App';
 
 export default function FamilyMgmtPage({ sub }: { sub: string }) {
-  const { supabase, showToast } = useAdmin();
+  const { supabase, showToast, currentAdmin } = useAdmin();
   const [groups, setGroups] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
@@ -18,9 +18,13 @@ export default function FamilyMgmtPage({ sub }: { sub: string }) {
   };
 
   const delGroup = async (id: string) => {
-    if (!confirm('删除家庭组将移除所有成员，确定?')) return;
+    const reason = prompt('删除家庭组将移除所有成员，请填写原因：');
+    if (!reason?.trim()) return;
+    const affected = members.filter(m => m.family_id === id);
+    if (affected.length) await supabase.from('notifications').insert(affected.map(m => ({ user_id:m.user_id,title:'家庭组已由管理员解散',body:reason.trim(),type:'family_dissolved',data:{family_id:id} })));
     await supabase.from('family_members').delete().eq('family_id', id);
     await supabase.from('family_groups').delete().eq('id', id);
+    await supabase.from('admin_audit_logs').insert({ admin_id:currentAdmin?.id,action:'delete',entity_type:'family_group',entity_id:id,reason:reason.trim(),details:{member_count:affected.length} });
     showToast('已删除'); load();
   };
 

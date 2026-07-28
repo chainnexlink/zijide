@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
@@ -23,6 +23,9 @@ export function HelpSupportScreen({ navigation }: Props) {
   const [content, setContent] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const loadHistory = async () => { const { data, error } = await supabase.from('user_feedback').select('id,category,content,status,admin_reply,responded_at,created_at').order('created_at', { ascending: false }).limit(20); if (error) Alert.alert('反馈记录加载失败', '请检查网络后重试。'); else setHistory(data || []); };
+  useEffect(() => { void loadHistory(); }, []);
 
   const submit = async () => {
     const clean = content.trim();
@@ -40,6 +43,7 @@ export function HelpSupportScreen({ navigation }: Props) {
     setBusy(false);
     if (error) return Alert.alert('提交失败', '反馈暂时未能同步，请检查网络后重试。');
     setContent('');
+    await loadHistory();
     Alert.alert('提交成功', '反馈已安全同步到后台。紧急情况请直接联系当地紧急服务。');
   };
 
@@ -48,6 +52,12 @@ export function HelpSupportScreen({ navigation }: Props) {
       <View style={styles.card}>
         <Text style={styles.title}>常见问题</Text>
         {faqs.map(([question, answer], index) => <Pressable key={question} style={styles.faq} onPress={() => setOpenFaq(openFaq === index ? null : index)}><View style={styles.faqHeader}><Text style={styles.question}>{question}</Text><Text style={styles.chevron}>{openFaq === index ? '−' : '+'}</Text></View>{openFaq === index ? <Text style={styles.answer}>{answer}</Text> : null}</Pressable>)}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.title}>我的反馈</Text>
+        {history.map((item) => <View key={item.id} style={styles.feedback}><View style={styles.faqHeader}><Text style={styles.question}>{item.category}</Text><Text style={item.status === 'resolved' ? styles.resolved : styles.pending}>{item.status === 'resolved' ? '已回复' : '处理中'}</Text></View><Text style={styles.answer}>{item.content}</Text>{item.admin_reply ? <View style={styles.reply}><Text style={styles.replyLabel}>客服回复</Text><Text style={styles.answer}>{item.admin_reply}</Text></View> : null}<Text style={styles.counter}>{new Date(item.created_at).toLocaleString('zh-CN')}</Text></View>)}
+        {!history.length ? <Text style={styles.body}>暂无提交记录</Text> : null}
       </View>
 
       <View style={styles.card}>
@@ -100,4 +110,9 @@ const styles = StyleSheet.create({
   body: { color: colors.muted, lineHeight: 20 },
   contact: { height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.info, alignItems: 'center', justifyContent: 'center' },
   contactText: { color: colors.info, fontWeight: '800' },
+  feedback: { paddingVertical: spacing.sm, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, gap: spacing.sm },
+  pending: { color: colors.warning, fontSize: 12, fontWeight: '800' },
+  resolved: { color: colors.safe, fontSize: 12, fontWeight: '800' },
+  reply: { backgroundColor: colors.surfaceRaised, borderRadius: radius.sm, padding: spacing.md, gap: spacing.xs },
+  replyLabel: { color: colors.info, fontWeight: '800', fontSize: 12 },
 });

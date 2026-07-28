@@ -53,7 +53,7 @@ jobs:
             --url "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
             --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN")
           allow=$(echo "$current" | jq -r '.uri_allow_list // ""')
-          for uri in 'warrescue://reset-password' 'warrescue://auth-callback' 'https://warrescue.app/**'; do
+          for uri in 'warrescue://reset-password' 'warrescue://auth-callback' 'https://waralarms.com/**'; do
             if ! printf '%s' "$allow" | tr ',' '\n' | grep -Fxq "$uri"; then
               allow="${allow:+$allow,}$uri"
             fi

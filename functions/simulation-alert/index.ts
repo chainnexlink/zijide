@@ -148,6 +148,21 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body: SimulationAlertRequest = await req.json();
+    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+    const { data: { user } } = await supabase.auth.getUser(token);
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    if (body.user_id && body.user_id !== user.id) {
+      return new Response(JSON.stringify({ error: 'Cannot act as another user' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    body.user_id = user.id;
     const { action } = body;
 
     switch (action) {

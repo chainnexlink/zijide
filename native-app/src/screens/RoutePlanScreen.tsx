@@ -12,8 +12,44 @@ type Props = NativeStackScreenProps<RootStackParams, 'RoutePlan'>;
 type Route = { id: string; summary: string; coordinates: Array<{ latitude: number; longitude: number }>; distanceText: string; durationText: string; safetyScore: number; dangerWarnings: Array<{ id: string; title: string; severity: string }> };
 export function RoutePlanScreen({ route, navigation }: Props) {
   const destination = route.params; const [origin, setOrigin] = useState<{ latitude: number; longitude: number } | null>(null); const [routes, setRoutes] = useState<Route[]>([]); const [selectedId, setSelectedId] = useState(''); const [mode, setMode] = useState<'walking' | 'driving'>('walking'); const [loading, setLoading] = useState(true);
-  const plan = async (currentOrigin: { latitude: number; longitude: number }, travelMode = mode) => { setLoading(true); const cached = JSON.parse(await AsyncStorage.getItem('map-preferences') || '{}'); const language = await AsyncStorage.getItem('app-language') || 'zh'; const avoid = [cached.avoid_highways && 'highways', cached.avoid_tolls && 'tolls', cached.avoid_ferries && 'ferries'].filter(Boolean); const { data, error } = await supabase.functions.invoke('route-service', { body: { origin: currentOrigin, destination, mode: travelMode, avoid, language } }); setLoading(false); if (error || !data?.success) return Alert.alert('路线规划失败', data?.error || error?.message || '请检查网络'); setRoutes(data.routes || []); const preferred = cached.route_preference === 'fastest' ? data.fastestId : cached.route_preference === 'shortest' ? data.shortestId : data.safestId; setSelectedId(preferred || data.safestId || data.fastestId || data.routes?.[0]?.id || ''); };
-  useEffect(() => { void (async () => { const permission = await Location.requestForegroundPermissionsAsync(); if (permission.status !== 'granted') { setLoading(false); return Alert.alert('需要定位', '路线规划需要当前位置'); } const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }); const point = { latitude: location.coords.latitude, longitude: location.coords.longitude }; setOrigin(point); await plan(point); })(); }, []);
+  const plan = async (currentOrigin: { latitude: number; longitude: number }, travelMode = mode) => {
+    setLoading(true);
+    try {
+      let cached: Record<string, unknown> = {};
+      const stored = await AsyncStorage.getItem('map-preferences');
+      if (stored) {
+        try { cached = JSON.parse(stored); }
+        catch { await AsyncStorage.removeItem('map-preferences'); }
+      }
+      const language = await AsyncStorage.getItem('app-language') || 'zh';
+      const avoid = [cached.avoid_highways && 'highways', cached.avoid_tolls && 'tolls', cached.avoid_ferries && 'ferries'].filter(Boolean);
+      const { data, error } = await supabase.functions.invoke('route-service', { body: { origin: currentOrigin, destination, mode: travelMode, avoid, language } });
+      if (error || !data?.success) return Alert.alert('路线规划失败', data?.error || error?.message || '请检查网络');
+      setRoutes(data.routes || []);
+      const preferred = cached.route_preference === 'fastest' ? data.fastestId : cached.route_preference === 'shortest' ? data.shortestId : data.safestId;
+      setSelectedId(preferred || data.safestId || data.fastestId || data.routes?.[0]?.id || '');
+    } catch (error) {
+      Alert.alert('路线规划失败', error instanceof Error ? error.message : '请检查网络后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { void (async () => {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status !== 'granted') {
+        setLoading(false);
+        return Alert.alert('需要定位', '路线规划需要当前位置');
+      }
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const point = { latitude: location.coords.latitude, longitude: location.coords.longitude };
+      setOrigin(point);
+      await plan(point);
+    } catch (error) {
+      setLoading(false);
+      Alert.alert('无法取得当前位置', error instanceof Error ? error.message : '请检查定位服务后重试');
+    }
+  })(); }, []);
   const selected = useMemo(() => routes.find((item) => item.id === selectedId) || routes[0], [routes, selectedId]);
   const changeMode = async (value: 'walking' | 'driving') => { setMode(value); if (origin) await plan(origin, value); };
   const openNavigation = () => void Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=${mode}`);

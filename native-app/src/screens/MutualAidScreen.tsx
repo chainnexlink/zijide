@@ -15,11 +15,38 @@ type Leader = { rank: number; nickname: string; points: number };
 export function MutualAidScreen({ navigation }: Props) {
   const [position, setPosition] = useState<Position | null>(null); const [nearby, setNearby] = useState<NearbySOS[]>([]); const [responses, setResponses] = useState<Record<string, string>>({}); const [stats, setStats] = useState<AidStats>({ totalResponses: 0, completed: 0, totalPoints: 0, isSubscribed: false }); const [leaders, setLeaders] = useState<Leader[]>([]); const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false);
   const invoke = useCallback(async (action: string, body: Record<string, unknown> = {}) => supabase.functions.invoke('mutual-aid', { body: { action, ...body } }), []);
-  const locate = useCallback(async () => { const permission = await Location.requestForegroundPermissionsAsync(); if (permission.status !== 'granted') return null; const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }); const value = { latitude: current.coords.latitude, longitude: current.coords.longitude }; setPosition(value); return value; }, []);
-  const load = useCallback(async () => { const [statsResult, leadersResult] = await Promise.all([invoke('get-stats'), invoke('get-leaderboard')]); if (statsResult.data?.stats) setStats(statsResult.data.stats); if (leadersResult.data?.leaderboard) setLeaders(leadersResult.data.leaderboard); const pos = position || await locate(); if ((statsResult.data?.stats?.isSubscribed || stats.isSubscribed) && pos) { const result = await invoke('get-nearby-sos', pos); if (result.data?.success) { setNearby(result.data.sos || []); setResponses(Object.fromEntries((result.data.myResponses || []).map((item: { sos_id: string; status: string }) => [item.sos_id, item.status]))); } } else setNearby([]); setLoading(false); }, [invoke, locate, position, stats.isSubscribed]);
+  const locate = useCallback(async () => {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status !== 'granted') return null;
+      const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const value = { latitude: current.coords.latitude, longitude: current.coords.longitude };
+      setPosition(value);
+      return value;
+    } catch {
+      return null;
+    }
+  }, []);
+  const load = useCallback(async () => {
+    try {
+      const [statsResult, leadersResult] = await Promise.all([invoke('get-stats'), invoke('get-leaderboard')]);
+      if (statsResult.data?.stats) setStats(statsResult.data.stats);
+      if (leadersResult.data?.leaderboard) setLeaders(leadersResult.data.leaderboard);
+      const pos = position || await locate();
+      if ((statsResult.data?.stats?.isSubscribed || stats.isSubscribed) && pos) {
+        const result = await invoke('get-nearby-sos', pos);
+        if (result.data?.success) {
+          setNearby(result.data.sos || []);
+          setResponses(Object.fromEntries((result.data.myResponses || []).map((item: { sos_id: string; status: string }) => [item.sos_id, item.status])));
+        }
+      } else setNearby([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [invoke, locate, position, stats.isSubscribed]);
   useEffect(() => { void load(); const timer = setInterval(() => void load(), 30000); return () => clearInterval(timer); }, [load]);
   const setSubscribed = async (enabled: boolean) => { setBusy(true); const result = await invoke(enabled ? 'subscribe' : 'unsubscribe', { radiusKm: 1 }); setBusy(false); if (result.error || result.data?.error) Alert.alert('设置失败', result.data?.error || result.error?.message); else { setStats((current) => ({ ...current, isSubscribed: enabled })); await load(); } };
-  const action = async (sos: NearbySOS, next: 'respond' | 'arrive' | 'complete' | 'cancel-response') => { setBusy(true); let extra: Record<string, unknown> = {}; if (next === 'arrive') { const current = await locate(); if (!current) { setBusy(false); return Alert.alert('需要定位', '到场确认必须验证你在求救地点300米范围内'); } extra = current; } const result = await invoke(next, { sosId: sos.id, ...extra }); setBusy(false); if (result.error || result.data?.error || !result.data?.success) Alert.alert('操作失败', result.data?.error || result.error?.message || '请稍后再试'); else { if (result.data.pointsEarned) Alert.alert('操作成功', `获得 ${result.data.pointsEarned} 互助积分`); await load(); } };
+  const action = async (sos: NearbySOS, next: 'respond' | 'arrive' | 'complete' | 'cancel-response') => { setBusy(true); let extra: Record<string, unknown> = {}; if (next === 'arrive') { const current = await locate(); if (!current) { setBusy(false); return Alert.alert('需要定位', '到场确认必须验证你在求救地点300米范围内'); } extra = current; } const result = await invoke(next, { sosId: sos.id, ...extra }); setBusy(false); if (result.error || result.data?.error || !result.data?.success) Alert.alert('操作失败', result.data?.error || result.error?.message || '请稍后再试'); else { if (result.data.confirmationRequired) Alert.alert('等待确认', '已通知求助者确认安全；确认后将一次性发放80积分。'); else if (result.data.pointsEarned) Alert.alert('操作成功', `获得 ${result.data.pointsEarned} 互助积分`); await load(); } };
   const activeCount = useMemo(() => nearby.length, [nearby]);
   if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.warning} size="large" /></View>;
   return <Screen title="1公里互助" subtitle="附近SOS与平台救援并行" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>} refreshing={busy} onRefresh={() => void load()}>

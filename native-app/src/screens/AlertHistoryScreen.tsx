@@ -24,7 +24,7 @@ export function AlertHistoryScreen({ navigation }: Props) {
   const load = useCallback(async (nextPage = 0) => {
     setLoading(true);
     const since = new Date(Date.now() - days * 86400000).toISOString();
-    let query = supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,is_active').gte('created_at', since).order('created_at', { ascending: false }).range(nextPage * PAGE_SIZE, nextPage * PAGE_SIZE + PAGE_SIZE - 1);
+    let query = supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,start_time,end_time,is_verified').eq('is_verified', true).gte('created_at', since).order('created_at', { ascending: false }).range(nextPage * PAGE_SIZE, nextPage * PAGE_SIZE + PAGE_SIZE - 1);
     if (severity !== 'all') query = query.eq('severity', severity);
     const { data, error } = await query;
     if (error) {

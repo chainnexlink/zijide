@@ -54,7 +54,7 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
   const triggerAI = async () => {
     setAiLoading(true);
     try {
-      const { error } = await (supabase as any).functions.invoke('ai-alert', { body: { action: 'stats' } });
+      const { error } = await (supabase as any).functions.invoke('ai-alert', { body: { action: 'analyze' } });
       if (error) throw error;
       showToast('AI检测已触发');
     } catch (e: any) { showToast('失败: ' + (e.message || '未知错误')); }
@@ -67,9 +67,9 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
 
   if (sub === 'functions') {
     const functions = [
-      { name: 'ai-alert', desc: 'AI预警检测与分析 - 24/7监控200+全球数据源', actions: ['check', 'analyze'] },
-      { name: 'monitor', desc: '增量监控 - RSS/API/Webhook数据采集与验证', actions: ['collect', 'validate'] },
-      { name: 'sos-service', desc: 'SOS服务 - 触发/取消/解救/升级链管理', actions: ['trigger', 'cancel', 'resolve'] },
+      { name: 'ai-alert', desc: '受信安全数据采集、AI分析建议与人工审核发布', actions: ['collect', 'analyze', 'process', 'cleanup', 'stats', 'publish'] },
+      { name: 'monitor', desc: '增量监控与公开安全信息去重入库', actions: ['collect', 'validate'] },
+      { name: 'sos-service', desc: 'SOS服务 - 触发/取消/获救确认/升级链管理', actions: ['trigger', 'cancel', 'resolve', 'escalate'] },
       { name: 'family-service', desc: '家庭组服务 - 创建/加入/离开/位置同步', actions: ['create', 'join', 'leave'] },
       { name: 'mutual-aid', desc: '互助系统 - 响应匹配/奖励发放/积分管理', actions: ['match', 'reward'] },
       { name: 'subscription', desc: '订阅服务 - 套餐管理/支付/试用/邀请折扣', actions: ['subscribe', 'cancel'] },
@@ -84,10 +84,10 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
             <div key={f.name} className="bg-slate-800 rounded-xl border border-slate-700 p-5">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
                   <h3 className="font-semibold text-white font-mono">{f.name}</h3>
                 </div>
-                <span className="text-xs text-green-400">运行中</span>
+                <span className="text-xs text-blue-400">已部署 · 调用时鉴权</span>
               </div>
               <p className="text-sm text-slate-400 mb-3">{f.desc}</p>
               <div className="flex flex-wrap gap-2">
@@ -251,7 +251,7 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
         </div>
       </div>
 
-      <h3 className="font-semibold text-white mb-4">Android App 服务</h3>
+      <h3 className="font-semibold text-white mb-4">原生 App 能力</h3>
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <table className="w-full"><thead><tr className="border-b border-slate-700">
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">服务名</th>
@@ -259,12 +259,12 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">描述</th>
         </tr></thead><tbody>
           {[
-            { name: 'FlashlightAlertService', type: 'Foreground (Camera)', desc: 'SOS闪光灯模式 - 90秒超时后升级' },
-            { name: 'AIVoiceCallService', type: 'Foreground (PhoneCall)', desc: 'AI语音电话核实 - 30秒超时后升级' },
-            { name: 'RescueNotificationService', type: 'Foreground (DataSync)', desc: '救援通知 - SMS/通知/互助广播/后台提交' },
-            { name: 'TwilioService', type: 'Network', desc: 'SMS和Voice API - 紧急通知双通道' },
-            { name: 'DeepSeekService', type: 'Network', desc: 'AI语言处理 - 语音指令/自然语言' },
-            { name: 'AliTranslateService', type: 'Network', desc: '实时翻译 - 9种语言支持' },
+            { name: 'PushRegistration', type: 'iOS / Android', desc: 'APNs/系统推送令牌注册、通知中心与点击跳转' },
+            { name: 'BackgroundSafetyLocation', type: '原生定位', desc: '由用户主动开启的后台安全位置更新' },
+            { name: 'NativeGoogleMap', type: '原生地图', desc: '预警范围、避难所、危险区与路线展示' },
+            { name: 'StoreKitSubscription', type: 'Apple IAP', desc: '订阅购买、服务端验签、恢复购买与续期通知' },
+            { name: 'BiometricAppLock', type: 'Face ID / 生物识别', desc: 'App回到前台后的本机隐私锁' },
+            { name: 'OfflineSafetyPack', type: '本地文件', desc: '仅缓存后台已验证预警与避难所数据' },
           ].map(s => (
             <tr key={s.name} className="border-b border-slate-700/50 hover:bg-slate-700/30">
               <td className="p-4 text-sm font-mono text-white">{s.name}</td>
@@ -279,7 +279,94 @@ export default function SystemMgmtPage({ sub }: { sub: string }) {
 }
 
 // ==================== AI Collection Management ====================
+// Only controls and reports state that exists on the server. Source definitions and
+// cron schedules are deployment configuration, so the browser must not pretend that
+// editing localStorage changes the production pipeline.
 function AICollectionManagement() {
+  const { supabase, showToast } = useAdmin();
+  const [stats, setStats] = useState<any>(null);
+  const [verified, setVerified] = useState(0);
+  const [recent, setRecent] = useState<any[]>([]);
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    setError('');
+    const [statsResult, verifiedResult, recentResult] = await Promise.all([
+      supabase.functions.invoke('ai-alert', { body: { action: 'stats' } }),
+      supabase.from('alerts').select('*', { count: 'exact', head: true }).eq('is_verified', true),
+      supabase.from('alerts').select('id,title,source,severity,is_verified,created_at').order('created_at', { ascending: false }).limit(12),
+    ]);
+    if (statsResult.error) setError(statsResult.error.message);
+    else setStats(statsResult.data);
+    setVerified(verifiedResult.count || 0);
+    setRecent(recentResult.data || []);
+    if (recentResult.error) setError(recentResult.error.message);
+  }, [supabase]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const run = async (action: 'collect' | 'analyze' | 'process' | 'cleanup', label: string) => {
+    setBusy(action);
+    const { data, error: invokeError } = await supabase.functions.invoke('ai-alert', { body: { action } });
+    setBusy('');
+    if (invokeError || data?.error) {
+      showToast(`${label}失败: ${data?.error || invokeError?.message}`);
+      return;
+    }
+    showToast(`${label}完成，结果已写入后台`);
+    await load();
+  };
+
+  const actions = [
+    { action: 'collect' as const, label: '采集官方数据', desc: '拉取并去重受信数据源' },
+    { action: 'analyze' as const, label: '生成分析建议', desc: 'AI只给建议，不自动发布' },
+    { action: 'process' as const, label: '处理待办预警', desc: '执行后台预警状态处理' },
+    { action: 'cleanup' as const, label: '清理过期记录', desc: '执行后端过期数据规则' },
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-white">预警采集与审核</h2>
+          <p className="text-sm text-slate-400 mt-1">生产配置由后端部署管理；后台只展示真实状态并触发真实任务。</p>
+        </div>
+        <Btn variant="secondary" onClick={load}>刷新</Btn>
+      </div>
+      {error && <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">读取失败：{error}</div>}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard label="当前有效" value={stats?.active?.total ?? 0} color="from-slate-700 to-slate-800" />
+        <StatCard label="近24小时新增" value={stats?.today ?? 0} color="from-blue-900/50 to-blue-800/30" />
+        <StatCard label="AI分析记录" value={stats?.aiGenerated ?? 0} color="from-purple-900/50 to-purple-800/30" />
+        <StatCard label="人工已验证" value={verified} color="from-green-900/50 to-green-800/30" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        {actions.map(item => (
+          <button key={item.action} disabled={!!busy} onClick={() => run(item.action, item.label)}
+            className="rounded-xl border border-slate-700 bg-slate-800 p-4 text-left hover:border-blue-500 disabled:opacity-50">
+            <div className="text-sm font-medium text-white">{busy === item.action ? '执行中...' : item.label}</div>
+            <div className="mt-1 text-xs text-slate-400">{item.desc}</div>
+          </button>
+        ))}
+      </div>
+      <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
+        <div className="p-4 border-b border-slate-700">
+          <h3 className="font-semibold text-white">最近入库预警</h3>
+          <p className="text-xs text-slate-400 mt-1">未验证记录仅供后台审核，App只读取已验证预警。</p>
+        </div>
+        <table className="w-full">
+          <thead><tr className="border-b border-slate-700 text-left text-xs text-slate-400"><th className="p-3">标题</th><th className="p-3">来源</th><th className="p-3">级别</th><th className="p-3">审核</th><th className="p-3">时间</th></tr></thead>
+          <tbody>{recent.map(row => <tr key={row.id} className="border-b border-slate-700/50 text-sm"><td className="p-3 text-white">{row.title}</td><td className="p-3 text-slate-300">{row.source || '-'}</td><td className="p-3 text-slate-300">{row.severity}</td><td className="p-3"><span className={row.is_verified ? 'text-green-400' : 'text-yellow-400'}>{row.is_verified ? '已验证' : '待审核'}</span></td><td className="p-3 text-slate-400">{fmt(row.created_at)}</td></tr>)}</tbody>
+        </table>
+        {!recent.length && <div className="p-8 text-center text-sm text-slate-500">暂无预警记录</div>}
+      </div>
+    </div>
+  );
+}
+
+// Kept temporarily for source-history comparison; it is no longer routed or rendered.
+function LegacyAICollectionManagement() {
   const { supabase, showToast } = useAdmin();
   const [sources, setSources] = useState<DataSource[]>([]);
   const [schedule, setSchedule] = useState(getSchedule());

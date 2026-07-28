@@ -294,7 +294,8 @@ export default function AuthPage() {
         body: {
           action: 'send-sms-code',
           phone,
-          countryCode: selectedCountry.code
+          countryCode: selectedCountry.code,
+          purpose: activeTab === 'login' ? 'login' : 'register'
         }
       });
 
@@ -348,6 +349,7 @@ export default function AuthPage() {
           phone: loginData.phone,
           countryCode: selectedCountry.code,
           code: loginData.verificationCode,
+          purpose: 'login',
           inviteCode: loginData.inviteCode,
           deviceId: navigator.userAgent
         }
@@ -356,15 +358,9 @@ export default function AuthPage() {
       if (funcError) throw funcError;
 
       if (data.success) {
-        // 用后端下发的一次性凭证建立 Supabase 会话——没有会话的话，
-        // 路由守卫会立刻把用户弹回登录页（之前「登录不了」的根因）。
-        if (data.auth?.email && data.auth?.otp) {
-          const { error: signErr } = await supabase.auth.signInWithPassword({
-            email: data.auth.email,
-            password: data.auth.otp,
-          });
-          if (signErr) throw signErr;
-        }
+        if (!data.auth?.tokenHash) throw new Error('Unable to create verified session');
+        const { error: signErr } = await supabase.auth.verifyOtp({ token_hash: data.auth.tokenHash, type: 'magiclink' });
+        if (signErr) throw signErr;
         navigate('/dashboard');
       } else {
         setError(data.error || t('error'));
@@ -406,8 +402,10 @@ export default function AuthPage() {
 
       if (authError) throw authError;
 
-      if (data.user) {
+      if (data.session) {
         navigate('/dashboard');
+      } else if (data.user) {
+        setError('Verification email sent. Please verify your email before signing in.');
       }
     } catch (err: any) {
       setError(err.message || t('error'));
@@ -434,6 +432,7 @@ export default function AuthPage() {
           phone: registerData.phone,
           countryCode: selectedCountry.code,
           code: registerData.verificationCode,
+          purpose: 'register',
           inviteCode: registerData.inviteCode,
           deviceId: navigator.userAgent
         }
@@ -442,14 +441,9 @@ export default function AuthPage() {
       if (funcError) throw funcError;
 
       if (data.success) {
-        // 同登录：先用一次性凭证建立会话，再进入主页（否则守卫弹回登录页）。
-        if (data.auth?.email && data.auth?.otp) {
-          const { error: signErr } = await supabase.auth.signInWithPassword({
-            email: data.auth.email,
-            password: data.auth.otp,
-          });
-          if (signErr) throw signErr;
-        }
+        if (!data.auth?.tokenHash) throw new Error('Unable to create verified session');
+        const { error: signErr } = await supabase.auth.verifyOtp({ token_hash: data.auth.tokenHash, type: 'magiclink' });
+        if (signErr) throw signErr;
         navigate('/dashboard');
       } else {
         setError(data.error || t('error'));
@@ -467,14 +461,6 @@ export default function AuthPage() {
       // Set demo mode in localStorage so App.tsx recognizes guest session
       localStorage.setItem('demo_mode', 'true');
       localStorage.setItem('demo_expires', String(Date.now() + 7 * 24 * 60 * 60 * 1000)); // 7 days
-
-      // Optional: notify backend for tracking (don't block on failure)
-      supabase.functions.invoke('subscription', {
-        body: {
-          action: 'create-guest',
-          deviceId: navigator.userAgent
-        }
-      }).catch(() => {});
 
       // Reload page - App.tsx will read demo_mode from localStorage on init
       // and route guard will redirect /auth to /dashboard

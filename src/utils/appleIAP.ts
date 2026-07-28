@@ -148,7 +148,7 @@ export interface PromoOffer {
   appAccountToken?: string;
 }
 
-export async function purchaseProduct(productId: string, offer?: PromoOffer): Promise<ApplePurchaseResult> {
+export async function purchaseProduct(productId: string, offer?: PromoOffer, appAccountToken?: string): Promise<ApplePurchaseResult> {
   if (!isNativeIOS()) {
     return { success: false, error: 'Not running on iOS' };
   }
@@ -160,6 +160,7 @@ export async function purchaseProduct(productId: string, offer?: PromoOffer): Pr
 
   try {
     const args: any = { productId };
+    if (appAccountToken) args.appAccountToken = appAccountToken;
     if (offer) {
       args.offerId = offer.offerId;
       args.keyId = offer.keyId;

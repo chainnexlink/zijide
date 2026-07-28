@@ -14,26 +14,45 @@ export function SOSScreen() {
     if (sending) return;
     setSending(true);
     try {
-      const permission = await Location.requestForegroundPermissionsAsync();
-      const location = permission.status === 'granted'
-        ? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
-        : null;
+      let location: Location.LocationObject | null = null;
+      try {
+        const permission = await Location.requestForegroundPermissionsAsync();
+        if (permission.status === 'granted') {
+          location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+        }
+      } catch {
+        // SOS must still be sent if GPS is unavailable or temporarily fails.
+      }
       const latitude = location?.coords.latitude;
       const longitude = location?.coords.longitude;
       let address = '';
+      let city = '';
+      let country = '';
       if (latitude != null && longitude != null) {
-        const places = await Location.reverseGeocodeAsync({ latitude, longitude });
-        const place = places[0];
-        address = [place?.street, place?.city, place?.region, place?.country].filter(Boolean).join(', ');
+        try {
+          const places = await Location.reverseGeocodeAsync({ latitude, longitude });
+          const place = places[0];
+          city = place?.city || place?.region || '';
+          country = place?.country || '';
+          address = [place?.street, place?.city, place?.region, place?.country].filter(Boolean).join(', ');
+        } catch {
+          address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        }
       }
 
       const { data, error } = await supabase.functions.invoke('sos-service', {
-        body: { action: 'trigger', triggerMethod: 'manual', latitude, longitude, address },
+        body: { action: 'trigger', triggerMethod: 'manual', latitude, longitude, address, city, country },
       });
       if (error) throw error;
       if (!data?.success && !data?.sosId) throw new Error(data?.error || 'SOS 发送失败');
       setLastSosId(data.sosId);
-      Alert.alert('SOS 已发送', '家人、附近救援人员和紧急联系人已收到通知。请保持电话畅通。');
+      const duplicate = data?.success === false;
+      Alert.alert(
+        duplicate ? 'SOS 已在处理中' : 'SOS 已发送',
+        latitude == null
+          ? '求救已发送，但本次无法取得定位。请保持电话畅通，并主动告知救援人员你的位置。'
+          : '家人、附近救援人员和紧急联系人已收到通知。请保持电话畅通。',
+      );
     } catch (error) {
       Alert.alert('无法发送 SOS', error instanceof Error ? error.message : '请检查网络后重试');
     } finally {

@@ -8,6 +8,8 @@ import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { AlertRow } from '../types';
 import type { RootStackParams } from '../navigation/RootNavigator';
+import { readOfflineCollection } from '../lib/offlinePacks';
+import type { ShelterRow } from '../types';
 
 type TabParams = { Home: undefined; Alerts: undefined; SOS: undefined; Shelters: undefined; Profile: undefined };
 type Props = BottomTabScreenProps<TabParams, 'Home'>;
@@ -17,14 +19,34 @@ export function HomeScreen({ navigation }: Props) {
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [shelterCount, setShelterCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [unread, setUnread] = useState(0);
+  const [offline, setOffline] = useState(false);
+  const [riskUnknown, setRiskUnknown] = useState(false);
 
   const load = useCallback(async () => {
-    const [alertsResult, sheltersResult] = await Promise.all([
-      supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,is_active').eq('is_active', true).order('created_at', { ascending: false }).limit(3),
+    const [alertsResult, sheltersResult, notificationsResult] = await Promise.all([
+      supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,start_time,end_time,is_verified').eq('is_verified', true).is('end_time', null).order('created_at', { ascending: false }).limit(3),
       supabase.from('shelters').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('is_read', false),
     ]);
-    setAlerts((alertsResult.data || []) as AlertRow[]);
-    setShelterCount(sheltersResult.count || 0);
+    if (alertsResult.error) {
+      const cached = (await readOfflineCollection<AlertRow>('alerts'))
+        .filter((item) => !item.end_time)
+        .slice(0, 3);
+      setAlerts(cached);
+      setOffline(true);
+      setRiskUnknown(cached.length === 0);
+    } else {
+      setAlerts((alertsResult.data || []) as AlertRow[]);
+      setOffline(false);
+      setRiskUnknown(false);
+    }
+    if (sheltersResult.error) {
+      setShelterCount((await readOfflineCollection<ShelterRow>('shelters')).length);
+    } else {
+      setShelterCount(sheltersResult.count || 0);
+    }
+    setUnread(notificationsResult.count || 0);
   }, []);
 
   useEffect(() => { void load(); }, [load]);
@@ -38,12 +60,12 @@ export function HomeScreen({ navigation }: Props) {
   const danger = alerts.some((alert) => alert.severity === 'red');
 
   return (
-    <Screen title="WarRescue" subtitle="预警、避难与救援中心" refreshing={refreshing} onRefresh={refresh}>
-      <View style={[styles.status, danger ? styles.statusDanger : styles.statusSafe]}>
-        <View style={[styles.pulse, { backgroundColor: danger ? colors.danger : colors.safe }]} />
+    <Screen title="WarRescue" subtitle={offline ? '离线安全包 · 数据可能已变化' : '预警、避难与救援中心'} refreshing={refreshing} onRefresh={refresh} action={<Pressable style={styles.notification} onPress={()=>rootNavigation?.navigate('Notifications')}><Text style={styles.notificationText}>通知{unread ? ` ${unread}` : ''}</Text></Pressable>}>
+      <View style={[styles.status, riskUnknown ? styles.statusUnknown : danger ? styles.statusDanger : styles.statusSafe]}>
+        <View style={[styles.pulse, { backgroundColor: riskUnknown ? colors.warning : danger ? colors.danger : colors.safe }]} />
         <View style={styles.statusText}>
-          <Text style={styles.statusTitle}>{danger ? '当前监控范围存在红色预警' : '当前监控范围暂无红色预警'}</Text>
-          <Text style={styles.statusSub}>{danger ? '请查看预警并准备前往安全区域' : '仍请关注当地官方警报并做好应急准备'}</Text>
+          <Text style={styles.statusTitle}>{riskUnknown ? '网络不可用，当前风险无法确认' : danger ? '当前监控范围存在红色预警' : offline ? '离线缓存中暂无红色预警' : '当前监控范围暂无红色预警'}</Text>
+          <Text style={styles.statusSub}>{riskUnknown ? '请同时关注当地广播、警报器和官方通知' : danger ? '请查看预警并准备前往安全区域' : offline ? '缓存不能代表实时安全，恢复网络后请刷新' : '仍请关注当地官方警报并做好应急准备'}</Text>
         </View>
       </View>
 
@@ -91,9 +113,11 @@ function AlertPreview({ alert, onPress }: { alert: AlertRow; onPress: () => void
 }
 
 const styles = StyleSheet.create({
+  notification: { borderWidth: 1, borderColor: colors.info, borderRadius: radius.round, paddingHorizontal: 12, paddingVertical: 7 }, notificationText: { color: colors.info, fontWeight: '800' },
   status: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, borderRadius: radius.lg, borderWidth: 1 },
   statusSafe: { backgroundColor: '#052E1A', borderColor: '#166534' },
   statusDanger: { backgroundColor: '#3F0B12', borderColor: '#991B1B' },
+  statusUnknown: { backgroundColor: '#422006', borderColor: '#B45309' },
   pulse: { width: 14, height: 14, borderRadius: 7 },
   statusText: { flex: 1, marginLeft: spacing.md },
   statusTitle: { color: colors.text, fontSize: 18, fontWeight: '800' },

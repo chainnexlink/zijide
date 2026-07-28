@@ -12,8 +12,8 @@ const APPLE_PRODUCTION_URL = 'https://buy.itunes.apple.com/verifyReceipt';
 const APPLE_SANDBOX_URL = 'https://sandbox.itunes.apple.com/verifyReceipt';
 
 // App Store Server API v2 endpoints
-const APPSTORE_API_PRODUCTION = 'https://api.storekit.itunes.apple.com';
-const APPSTORE_API_SANDBOX = 'https://api.storekit-sandbox.itunes.apple.com';
+const APPSTORE_API_PRODUCTION = 'https://api.storekit.apple.com';
+const APPSTORE_API_SANDBOX = 'https://api.storekit-sandbox.apple.com';
 
 // Product IDs - must match App Store Connect configuration
 const PRODUCT_IDS = {
@@ -35,6 +35,7 @@ const PLANS: Record<string, { price: number; duration: number }> = {
 // ===== App Store Server API（方案B：向苹果权威核验交易，防伪造 JWS）=====
 // 需要的 Secrets：APPSTORE_ISSUER_ID, APPSTORE_KEY_ID, APPSTORE_PRIVATE_KEY(.p8 全文), APPSTORE_BUNDLE_ID
 let ascTokenCache: { token: string; exp: number } | null = null;
+let ascConnectTokenCache: { token: string; exp: number } | null = null;
 
 function b64urlFromBytes(bytes: Uint8Array): string {
   let bin = '';
@@ -67,8 +68,11 @@ function decodeJwsPayload(jws: string): any | null {
 // 用 App Store Connect API 密钥(.p8) 签发 ES256 JWT
 async function getAppStoreApiToken(): Promise<string | null> {
   const issuerId = Deno.env.get('APPSTORE_ISSUER_ID');
-  const keyId = Deno.env.get('APPSTORE_KEY_ID');
-  const p8 = Deno.env.get('APPSTORE_PRIVATE_KEY');
+  // App Store Server API requires an In-App Purchase key. The generic
+  // App Store Connect API key can list products but is rejected for
+  // transaction verification.
+  const keyId = Deno.env.get('APPSTORE_OFFER_KEY_ID') || Deno.env.get('APPSTORE_KEY_ID');
+  const p8 = Deno.env.get('APPSTORE_OFFER_KEY') || Deno.env.get('APPSTORE_PRIVATE_KEY');
   const bundleId = Deno.env.get('APPSTORE_BUNDLE_ID') || 'com.warrescue.app';
   if (!issuerId || !keyId || !p8) return null;
 
@@ -112,6 +116,115 @@ async function fetchAppleTransaction(transactionId: string): Promise<any | null>
     }
   }
   return null;
+}
+
+// App Store Connect API tokens use the same key material but do not include
+// the App Store Server API's bundle-id ("bid") claim.
+async function getAppStoreConnectApiToken(): Promise<string | null> {
+  const issuerId = Deno.env.get('APPSTORE_ISSUER_ID');
+  const keyId = Deno.env.get('APPSTORE_KEY_ID');
+  const p8 = Deno.env.get('APPSTORE_PRIVATE_KEY');
+  if (!issuerId || !keyId || !p8) return null;
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (ascConnectTokenCache && ascConnectTokenCache.exp - nowSec > 60) return ascConnectTokenCache.token;
+
+  const exp = nowSec + 1200;
+  const header = b64url(JSON.stringify({ alg: 'ES256', kid: keyId, typ: 'JWT' }));
+  const claims = b64url(JSON.stringify({ iss: issuerId, iat: nowSec, exp, aud: 'appstoreconnect-v1' }));
+  const signingInput = `${header}.${claims}`;
+  const key = await crypto.subtle.importKey('pkcs8', pemToDer(p8), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(signingInput));
+  const token = `${signingInput}.${b64urlFromBytes(new Uint8Array(sig))}`;
+  ascConnectTokenCache = { token, exp };
+  return token;
+}
+
+// Service-role-only configuration audit used by release QA. It exposes product
+// identifiers and readiness states, never credentials or customer transactions.
+async function auditAppStoreConfiguration(req: Request) {
+  const bearer = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  const apiKey = (req.headers.get('apikey') || '').trim();
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!serviceKey || (bearer !== serviceKey && apiKey !== serviceKey)) {
+    return jsonResp({ error: 'Unauthorized' }, 401);
+  }
+  const token = await getAppStoreConnectApiToken();
+  if (!token) return jsonResp({ error: 'App Store Connect API credentials are not configured' }, 500);
+
+  const appId = Deno.env.get('APPSTORE_APP_ID') || '6774955063';
+  const params = new URLSearchParams({
+    include: 'subscriptions',
+    'fields[subscriptionGroups]': 'referenceName,subscriptions',
+    'fields[subscriptions]': 'name,productId,state,subscriptionPeriod',
+    limit: '200',
+    'limit[subscriptions]': '50',
+  });
+  const response = await fetch(`https://api.appstoreconnect.apple.com/v1/apps/${appId}/subscriptionGroups?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    return jsonResp({ error: 'App Store Connect product audit failed', status: response.status }, 502);
+  }
+  const payload = await response.json();
+  const subscriptions = (payload.included || [])
+    .filter((item: any) => item.type === 'subscriptions')
+    .map((item: any) => ({
+      id: item.id,
+      name: item.attributes?.name,
+      productId: item.attributes?.productId,
+      state: item.attributes?.state,
+      subscriptionPeriod: item.attributes?.subscriptionPeriod,
+    }));
+
+  const offers: Record<string, Array<{ name?: string; offerCode?: string; duration?: string; numberOfPeriods?: number }>> = {};
+  for (const subscription of subscriptions) {
+    const offerParams = new URLSearchParams({
+      'fields[subscriptionPromotionalOffers]': 'name,offerCode,duration,numberOfPeriods,offerMode',
+      limit: '200',
+    });
+    const offerResponse = await fetch(`https://api.appstoreconnect.apple.com/v1/subscriptions/${subscription.id}/promotionalOffers?${offerParams}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!offerResponse.ok) continue;
+    const offerPayload = await offerResponse.json();
+    offers[subscription.productId] = (offerPayload.data || []).map((item: any) => ({
+      name: item.attributes?.name,
+      offerCode: item.attributes?.offerCode,
+      duration: item.attributes?.duration,
+      numberOfPeriods: item.attributes?.numberOfPeriods,
+    }));
+  }
+
+  const configuredIds = new Set(subscriptions.map((item: any) => item.productId));
+  const serverToken = await getAppStoreApiToken();
+  const serverNotifications: Record<string, { configured: boolean; status: number; errorCode?: number; errorMessage?: string }> = {};
+  if (serverToken) {
+    for (const [environment, base] of [['production', APPSTORE_API_PRODUCTION], ['sandbox', APPSTORE_API_SANDBOX]] as const) {
+      const testResponse = await fetch(`${base}/inApps/v1/notifications/test`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${serverToken}` },
+      });
+      let errorCode: number | undefined;
+      let errorMessage: string | undefined;
+      if (!testResponse.ok) {
+        try {
+          const errorPayload = await testResponse.json();
+          errorCode = Number(errorPayload.errorCode) || undefined;
+          errorMessage = String(errorPayload.errorMessage || '').slice(0, 160) || undefined;
+        } catch {}
+      }
+      serverNotifications[environment] = { configured: testResponse.ok, status: testResponse.status, errorCode, errorMessage };
+    }
+  }
+  return jsonResp({
+    appId,
+    products: subscriptions,
+    offers,
+    missingProducts: Object.values(PRODUCT_IDS).filter((id) => !configuredIds.has(id)),
+    expectedOfferCodes: PROMO_OFFER_IDS,
+    serverNotifications,
+  });
 }
 
 // ===== 推荐返券：促销优惠签名 + 推荐逻辑 =====
@@ -267,6 +380,8 @@ Deno.serve(async (req) => {
         return await signOffer(supabaseAdmin, req);
       case 'consume-coupon':
         return await consumeCoupon(supabaseAdmin, req);
+      case 'audit-appstore-configuration':
+        return await auditAppStoreConfiguration(req);
       default:
         return new Response(JSON.stringify({ error: 'Unknown action' }), {
           status: 400,
@@ -375,6 +490,21 @@ async function verifyReceipt(supabaseAdmin: any, req: Request) {
   const expiresDateMs = Number(latestTransaction.expires_date_ms);
   const purchaseDateMs = Number(latestTransaction.purchase_date_ms);
   const isTrialPeriod = latestTransaction.is_trial_period === 'true';
+  const boundAccount = String(
+    latestTransaction.app_account_token ||
+    latestTransaction.application_username ||
+    appleResult.receipt?.application_username ||
+    '',
+  ).toLowerCase();
+  if (boundAccount !== String(user.id).toLowerCase()) {
+    return new Response(JSON.stringify({ error: 'Receipt is not bound to this account' }), {
+      status: 403,
+      headers: corsHeaders,
+    });
+  }
+  if (productId && productId !== appleProductId) {
+    return new Response(JSON.stringify({ error: 'Product mismatch' }), { status: 400, headers: corsHeaders });
+  }
 
   const planId = PRODUCT_TO_PLAN[appleProductId];
   if (!planId) {
@@ -391,12 +521,19 @@ async function verifyReceipt(supabaseAdmin: any, req: Request) {
   // Check for duplicate transaction
   const { data: existingOrder } = await supabaseAdmin
     .from('subscription_orders')
-    .select('id')
+    .select('id,user_id')
     .eq('apple_transaction_id', appleTransactionId)
     .maybeSingle();
 
   if (existingOrder) {
-    // Transaction already processed - just return success
+    if (existingOrder.user_id !== user.id) {
+      return new Response(JSON.stringify({ error: 'Transaction belongs to another account' }), { status: 403, headers: corsHeaders });
+    }
+    // Reconcile entitlement as well as the order. A previous request may have
+    // written the order and then failed before the subscription update.
+    if (!isExpired) {
+      await activateSubscription(supabaseAdmin, user.id, planId, expiresAt, originalTransactionId);
+    }
     return new Response(JSON.stringify({
       success: true,
       alreadyProcessed: true,
@@ -501,7 +638,8 @@ async function restorePurchases(supabaseAdmin: any, req: Request) {
 
   for (const tx of latestReceipt) {
     const expiresMs = Number(tx.expires_date_ms);
-    if (expiresMs > Date.now()) {
+    const boundAccount = String(tx.app_account_token || tx.application_username || appleResult.receipt?.application_username || '').toLowerCase();
+    if (expiresMs > Date.now() && boundAccount === String(user.id).toLowerCase()) {
       const planId = PRODUCT_TO_PLAN[tx.product_id];
       if (planId) {
         const expiresAt = new Date(expiresMs).toISOString();
@@ -539,19 +677,25 @@ async function getSubscriptionStatus(supabaseAdmin: any, req: Request) {
     });
   }
 
-  const { data: profile } = await supabaseAdmin
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
     .select('trial_ends_at')
     .eq('id', user.id)
     .maybeSingle();
 
-  const { data: subscription } = await supabaseAdmin
+  const { data: subscription, error: subscriptionError } = await supabaseAdmin
     .from('subscriptions')
     .select('*')
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('expires_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (profileError || subscriptionError) {
+    return new Response(JSON.stringify({ error: 'Subscription status unavailable' }), {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
 
   if (!subscription) {
     const trialEndsAt = profile?.trial_ends_at;
@@ -565,18 +709,23 @@ async function getSubscriptionStatus(supabaseAdmin: any, req: Request) {
     }), { headers: corsHeaders });
   }
 
-  const daysUntilExpiry = Math.ceil(
-    (new Date(subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
-  const isExpiringSoon = daysUntilExpiry <= 7;
+  const expiryMs = new Date(subscription.expires_at).getTime();
+  const daysUntilExpiry = Math.ceil((expiryMs - Date.now()) / (1000 * 60 * 60 * 24));
+  const isExpired = !Number.isFinite(expiryMs) || expiryMs <= Date.now() || ['expired', 'refunded', 'revoked'].includes(subscription.status);
+  const isExpiringSoon = !isExpired && daysUntilExpiry <= 7;
 
   let status = subscription.status;
-  if (status === 'active' && isExpiringSoon) {
+  if (isExpired) {
+    status = 'expired';
+    if (subscription.status !== 'expired') {
+      await supabaseAdmin.from('subscriptions').update({ status: 'expired', updated_at: new Date().toISOString() }).eq('id', subscription.id);
+    }
+  } else if (status === 'active' && isExpiringSoon) {
     status = 'expiring';
   }
 
   return new Response(JSON.stringify({
-    hasSubscription: true,
+    hasSubscription: !isExpired,
     planId: subscription.plan_id,
     status,
     daysUntilExpiry: Math.max(0, daysUntilExpiry),
@@ -610,11 +759,7 @@ async function handleAppleNotification(supabaseAdmin: any, req: Request) {
     }
 
     const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-    const notificationType = payload.notificationType;
-    const subtype = payload.subtype;
     const data = payload.data;
-
-    console.log(`Apple notification: ${notificationType} / ${subtype}`);
 
     // 解码通知里的交易信息（不信任），取出 transactionId 后向 Apple 权威核验，防伪造通知
     let transactionInfo: any = null;
@@ -622,15 +767,6 @@ async function handleAppleNotification(supabaseAdmin: any, req: Request) {
       const claimedTx = decodeJwsPayload(data.signedTransactionInfo);
       if (claimedTx?.transactionId) {
         transactionInfo = await fetchAppleTransaction(String(claimedTx.transactionId));
-      }
-    }
-
-    // Decode signed renewal info if present
-    let renewalInfo: any = null;
-    if (data?.signedRenewalInfo) {
-      const rnParts = data.signedRenewalInfo.split('.');
-      if (rnParts.length === 3) {
-        renewalInfo = JSON.parse(atob(rnParts[1].replace(/-/g, '+').replace(/_/g, '/')));
       }
     }
 
@@ -662,83 +798,21 @@ async function handleAppleNotification(supabaseAdmin: any, req: Request) {
 
     const userId = subscription.user_id;
 
-    switch (notificationType) {
-      case 'DID_RENEW': {
-        // Subscription renewed successfully
-        const expiresDateMs = transactionInfo.expiresDate;
-        const expiresAt = new Date(expiresDateMs).toISOString();
-        await activateSubscription(supabaseAdmin, userId, planId, expiresAt, originalTransactionId);
-        console.log(`Subscription renewed for user ${userId}, expires ${expiresAt}`);
-        break;
-      }
-
-      case 'EXPIRED': {
-        // Subscription expired
-        await supabaseAdmin
-          .from('subscriptions')
-          .update({ status: 'expired', updated_at: new Date().toISOString() })
-          .eq('user_id', userId)
-          .eq('plan_id', planId)
-          .eq('status', 'active');
-        console.log(`Subscription expired for user ${userId}`);
-        break;
-      }
-
-      case 'DID_CHANGE_RENEWAL_STATUS': {
-        // User turned auto-renew on/off
-        const autoRenew = subtype !== 'AUTO_RENEW_DISABLED';
-        await supabaseAdmin
-          .from('subscriptions')
-          .update({ auto_renew: autoRenew, updated_at: new Date().toISOString() })
-          .eq('user_id', userId)
-          .eq('plan_id', planId);
-        console.log(`Auto-renew ${autoRenew ? 'enabled' : 'disabled'} for user ${userId}`);
-        break;
-      }
-
-      case 'REFUND': {
-        // Apple issued a refund
-        await supabaseAdmin
-          .from('subscriptions')
-          .update({ status: 'refunded', updated_at: new Date().toISOString() })
-          .eq('user_id', userId)
-          .eq('plan_id', planId)
-          .eq('status', 'active');
-        console.log(`Subscription refunded for user ${userId}`);
-        break;
-      }
-
-      case 'DID_FAIL_TO_RENEW': {
-        // Billing issue - renewal failed
-        if (subtype === 'GRACE_PERIOD') {
-          // Still in grace period
-          console.log(`Billing retry in grace period for user ${userId}`);
-        } else {
-          await supabaseAdmin
-            .from('subscriptions')
-            .update({ status: 'billing_issue', updated_at: new Date().toISOString() })
-            .eq('user_id', userId)
-            .eq('plan_id', planId)
-            .eq('status', 'active');
-          console.log(`Billing failed for user ${userId}`);
-        }
-        break;
-      }
-
-      case 'REVOKE': {
-        // Family sharing revoked or refund via Apple
-        await supabaseAdmin
-          .from('subscriptions')
-          .update({ status: 'revoked', updated_at: new Date().toISOString() })
-          .eq('user_id', userId)
-          .eq('plan_id', planId)
-          .eq('status', 'active');
-        console.log(`Subscription revoked for user ${userId}`);
-        break;
-      }
-
-      default:
-        console.log(`Unhandled Apple notification type: ${notificationType}`);
+    // The outer notification JWS is deliberately not trusted here. A caller could
+    // otherwise reuse a real transaction id inside a forged "REFUND" payload.
+    // Derive entitlement only from the transaction fetched from Apple's authenticated API.
+    const expiresDateMs = Number(transactionInfo.expiresDate || 0);
+    const revoked = Boolean(transactionInfo.revocationDate);
+    if (revoked) {
+      await supabaseAdmin.from('subscriptions')
+        .update({ status: transactionInfo.revocationReason === 1 ? 'refunded' : 'revoked', updated_at: new Date().toISOString() })
+        .eq('user_id', userId).eq('plan_id', planId);
+    } else if (!expiresDateMs || expiresDateMs <= Date.now()) {
+      await supabaseAdmin.from('subscriptions')
+        .update({ status: 'expired', updated_at: new Date().toISOString() })
+        .eq('user_id', userId).eq('plan_id', planId);
+    } else {
+      await activateSubscription(supabaseAdmin, userId, planId, new Date(expiresDateMs).toISOString(), originalTransactionId);
     }
 
     return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
@@ -769,12 +843,15 @@ async function activateSubscription(
   expiresAt: string,
   appleOriginalTransactionId?: string,
 ) {
-  const { data: existingSub } = await supabaseAdmin
+  const { data: existingSub, error: lookupError } = await supabaseAdmin
     .from('subscriptions')
-    .select('*')
+    .select('id')
     .eq('user_id', userId)
     .eq('plan_id', planId)
+    .order('expires_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
+  if (lookupError) throw new Error(`Subscription lookup failed: ${lookupError.message}`);
 
   const updateData: Record<string, any> = {
     status: 'active',
@@ -787,18 +864,21 @@ async function activateSubscription(
   }
 
   if (existingSub) {
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from('subscriptions')
       .update(updateData)
-      .eq('id', existingSub.id);
+      .eq('user_id', userId)
+      .eq('plan_id', planId);
+    if (error) throw new Error(`Subscription update failed: ${error.message}`);
   } else {
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from('subscriptions')
       .insert({
         user_id: userId,
         plan_id: planId,
         ...updateData,
       });
+    if (error) throw new Error(`Subscription activation failed: ${error.message}`);
   }
 }
 
@@ -834,6 +914,16 @@ async function verifyJWSTransaction(
     const originalTransactionId = String(transactionInfo.originalTransactionId);
     const expiresDateMs = transactionInfo.expiresDate;
     const isTrialPeriod = transactionInfo.offerType === 1; // introductory offer
+    const expectedBundleId = Deno.env.get('APPSTORE_BUNDLE_ID') || 'com.warrescue.app';
+    if (transactionInfo.bundleId !== expectedBundleId) {
+      return new Response(JSON.stringify({ error: 'Bundle mismatch' }), { status: 400, headers: corsHeaders });
+    }
+    if (expectedProductId && expectedProductId !== appleProductId) {
+      return new Response(JSON.stringify({ error: 'Product mismatch' }), { status: 400, headers: corsHeaders });
+    }
+    if (String(transactionInfo.appAccountToken || '').toLowerCase() !== String(user.id).toLowerCase()) {
+      return new Response(JSON.stringify({ error: 'Transaction is not bound to this account' }), { status: 403, headers: corsHeaders });
+    }
 
     const planId = PRODUCT_TO_PLAN[appleProductId];
     if (!planId) {
@@ -850,11 +940,17 @@ async function verifyJWSTransaction(
     // Check for duplicate transaction
     const { data: existingOrder } = await supabaseAdmin
       .from('subscription_orders')
-      .select('id')
+      .select('id,user_id')
       .eq('apple_transaction_id', transactionId)
       .maybeSingle();
 
     if (existingOrder) {
+      if (existingOrder.user_id !== user.id) {
+        return new Response(JSON.stringify({ error: 'Transaction belongs to another account' }), { status: 403, headers: corsHeaders });
+      }
+      if (!isExpired) {
+        await activateSubscription(supabaseAdmin, user.id, planId, expiresAt, originalTransactionId);
+      }
       return new Response(JSON.stringify({
         success: true,
         alreadyProcessed: true,

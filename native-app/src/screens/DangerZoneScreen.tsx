@@ -7,24 +7,43 @@ import { supabase } from '../lib/supabase';
 import { colors, radius, spacing } from '../theme';
 import type { AlertRow, ShelterRow } from '../types';
 import type { RootStackParams } from '../navigation/RootNavigator';
+import { readOfflineCollection } from '../lib/offlinePacks';
 
 type Props = NativeStackScreenProps<RootStackParams, 'DangerZone'>;
 
 export function DangerZoneScreen({ route, navigation }: Props) {
   const [zone, setZone] = useState<AlertRow | null>(null);
   const [shelters, setShelters] = useState<ShelterRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [offline, setOffline] = useState(false);
+  const [loadError, setLoadError] = useState('');
   useEffect(() => { void (async () => {
-    const { data } = await supabase.from('alerts').select('*').eq('id', route.params.alertId).maybeSingle();
-    setZone(data as AlertRow | null);
-    if (data?.city) {
-      const result = await supabase.from('shelters').select('*').eq('city', data.city).neq('status', 'closed').limit(5);
-      setShelters((result.data || []) as ShelterRow[]);
+    const { data, error } = await supabase.from('alerts').select('*').eq('id', route.params.alertId).maybeSingle();
+    let current = data as AlertRow | null;
+    if (error) {
+      current = (await readOfflineCollection<AlertRow>('alerts')).find((item) => item.id === route.params.alertId) || null;
+      setOffline(Boolean(current));
+      if (!current) setLoadError(error.message);
+    } else if (!current) {
+      setLoadError('该危险区域已删除或不可用');
     }
+    setZone(current);
+    if (current?.city) {
+      const result = await supabase.from('shelters').select('*').eq('city', current.city).neq('status', 'closed').limit(5);
+      if (result.error) {
+        const cached = await readOfflineCollection<ShelterRow>('shelters');
+        setShelters(cached.filter((item) => item.city === current?.city && item.status !== 'closed').slice(0, 5));
+      } else {
+        setShelters((result.data || []) as ShelterRow[]);
+      }
+    }
+    setLoading(false);
   })(); }, [route.params.alertId]);
-  if (!zone) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
+  if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;
+  if (!zone) return <Screen title="危险区域" subtitle="无法加载" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}><View style={styles.card}><Text style={styles.section}>区域不可用</Text><Text style={styles.body}>{loadError || '请检查网络后重试'}</Text></View></Screen>;
   const tone = zone.severity === 'red' ? colors.danger : zone.severity === 'orange' ? colors.warning : '#EAB308';
   const active = !zone.end_time && zone.is_active !== false;
-  return <Screen title="危险区域" subtitle={active ? '当前仍处于危险状态' : '该区域警报已解除'} action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
+  return <Screen title="危险区域" subtitle={offline ? '离线缓存 · 状态可能已变化' : active ? '当前仍处于危险状态' : '该区域警报已解除'} action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
     <View style={[styles.status, { borderColor: tone }]}><Text style={[styles.level, { color: tone }]}>{zone.severity.toUpperCase()} · {active ? '危险中' : '已解除'}</Text><Text style={styles.title}>{zone.title}</Text><Text style={styles.meta}>{zone.alert_type} · {[zone.city, zone.country].filter(Boolean).join(' ')}</Text></View>
     {zone.latitude != null && zone.longitude != null ? <NativeGoogleMap center={{ latitude: Number(zone.latitude), longitude: Number(zone.longitude) }} markers={[{ id: zone.id, latitude: Number(zone.latitude), longitude: Number(zone.longitude), title: zone.title, color: tone }]} radiusMeters={(zone.affected_radius_km || 2) * 1000} radiusColor={tone} zoom={Math.max(0.04, (zone.affected_radius_km || 2) / 35)} /> : null}
     <View style={styles.card}><Text style={styles.section}>区域信息</Text><Row label="危险类型" value={zone.alert_type} /><Row label="危险等级" value={zone.severity.toUpperCase()} /><Row label="影响半径" value={`${zone.affected_radius_km || 2} km`} /><Row label="持续时间" value={duration(zone.start_time || zone.created_at, zone.end_time)} /><Row label="最后更新" value={zone.created_at ? new Date(zone.created_at).toLocaleString('zh-CN') : '待确认'} />{zone.description ? <Text style={styles.body}>{zone.description}</Text> : null}</View>

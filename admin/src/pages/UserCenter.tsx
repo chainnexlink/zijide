@@ -6,9 +6,11 @@ export default function UserCenterPage({ sub }: { sub: string }) {
   const [users, setUsers] = useState<any[]>([]);
   const [invites, setInvites] = useState<any[]>([]);
   const [alertSettings, setAlertSettings] = useState<any[]>([]);
+  const [pointRows, setPointRows] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [pointForm, setPointForm] = useState({ userId: '', amount: '', reason: '' });
 
   useEffect(() => { loadData(); }, [sub]);
 
@@ -20,8 +22,13 @@ export default function UserCenterPage({ sub }: { sub: string }) {
       const { data } = await q;
       setUsers(data || []);
     } else if (sub === 'invites') {
-      const { data } = await supabase.from('invites').select('*').order('created_at', { ascending: false }).limit(200);
-      setInvites(data || []);
+      const [{ data: refs }, { data: coupons }] = await Promise.all([
+        supabase.from('referrals').select('*').order('created_at', { ascending: false }).limit(300),
+        supabase.from('referral_coupons').select('*').order('created_at', { ascending: false }).limit(300),
+      ]);
+      setInvites((refs || []).map((r:any) => { const c=(coupons||[]).find((x:any)=>x.user_id===r.referrer_id&&Math.abs(new Date(x.created_at).getTime()-new Date(r.created_at).getTime())<60000); return { ...r, invite_code:r.code, inviter_id:r.referrer_id, invited_phone:`用户 ${String(r.referee_id).slice(0,12)}`, status:c?.status||'registered', reward_given:!!c, reward_amount:c?'50%券':'-', registered_at:r.created_at, coupon_id:c?.id, expires_at:c?.expires_at }; }));
+    } else if (sub === 'points') {
+      const { data } = await supabase.from('point_transactions').select('*').order('created_at', { ascending: false }).limit(500); setPointRows(data || []);
     } else if (sub === 'settings') {
       const { data } = await supabase.from('user_alert_settings').select('*').order('created_at', { ascending: false }).limit(200);
       setAlertSettings(data || []);
@@ -30,9 +37,10 @@ export default function UserCenterPage({ sub }: { sub: string }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('确定删除此用户?')) return;
-    await supabase.from('profiles').delete().eq('id', id);
-    showToast('用户已删除');
+    if (!confirm('确定删除此用户的认证账号及全部业务数据?')) return;
+    const { error } = await supabase.functions.invoke('delete-account', { body: { targetUserId: id } });
+    if (error) { showToast('删除失败: ' + error.message); return; }
+    showToast('用户认证账号及全部数据已删除');
     loadData();
   };
 
@@ -40,45 +48,9 @@ export default function UserCenterPage({ sub }: { sub: string }) {
     if (!confirm(`确定要删除该用户的所有数据吗？\n\n此操作将删除：\n• 订阅记录\n• 订单记录\n• 互助记录和消息\n• 家庭成员信息\n• SOS记录\n• 积分记录\n• 用户资料\n\n此操作不可撤销！`)) return;
     if (!confirm('再次确认：此操作不可恢复，确定继续？')) return;
 
-    // Table-to-column mapping: some tables use different column names for user reference
-    const tableColumns: [string, string][] = [
-      ['subscriptions', 'user_id'],
-      ['subscription_orders', 'user_id'],
-      ['mutual_aid_messages', 'sender_id'],
-      ['mutual_aid_event_responses', 'responder_id'],
-      ['mutual_aid_events', 'user_id'],
-      ['mutual_aid_skills', 'user_id'],
-      ['mutual_aid_settings', 'user_id'],
-      ['mutual_aid_reviews', 'reviewer_id'],
-      ['mutual_aid_subscriptions', 'user_id'],
-      ['family_members', 'user_id'],
-      ['sos_records', 'user_id'],
-      ['simulation_trials', 'user_id'],
-      ['user_points', 'user_id'],
-      ['point_transactions', 'user_id'],
-      ['user_alert_settings', 'user_id'],
-      ['invites', 'inviter_id'],
-      ['profiles', 'id'],
-    ];
-
-    let errors: string[] = [];
-    for (const [table, column] of tableColumns) {
-      const { error } = await supabase.from(table).delete().eq(column, userId);
-      if (error && !error.message.includes('0 rows')) {
-        errors.push(`${table}: ${error.message}`);
-      }
-    }
-    // Also delete mutual_aid_reviews where user is the reviewed party
-    const { error: reviewErr } = await supabase.from('mutual_aid_reviews').delete().eq('reviewed_id', userId);
-    if (reviewErr && !reviewErr.message.includes('0 rows')) {
-      errors.push(`mutual_aid_reviews(reviewed_id): ${reviewErr.message}`);
-    }
-
-    if (errors.length > 0) {
-      showToast(`部分数据删除失败: ${errors.join('; ')}`);
-    } else {
-      showToast('用户全部数据已删除');
-    }
+    const { error } = await supabase.functions.invoke('delete-account', { body: { targetUserId: userId } });
+    if (error) { showToast('删除失败: ' + error.message); return; }
+    showToast('认证账号及全部关联数据已删除');
     setDetail(null);
     loadData();
   };
@@ -147,9 +119,11 @@ export default function UserCenterPage({ sub }: { sub: string }) {
     );
   }
 
-  const filtered = (sub === 'invites' ? invites : sub === 'settings' ? alertSettings : users).filter(
+  const filtered = (sub === 'invites' ? invites : sub === 'points' ? pointRows : sub === 'settings' ? alertSettings : users).filter(
     i => !search || JSON.stringify(i).toLowerCase().includes(search.toLowerCase())
   );
+
+  if (sub === 'points') { const adjust=async()=>{const amount=Number(pointForm.amount);if(!pointForm.userId||!Number.isInteger(amount)||amount===0||pointForm.reason.trim().length<3)return showToast('请输入用户UUID、非零整数积分和原因');const {error}=await supabase.rpc('admin_adjust_points',{p_user_id:pointForm.userId,p_amount:amount,p_reason:pointForm.reason.trim()});if(error)return showToast('调整失败: '+error.message);showToast('积分已调整并记录审计日志');setPointForm({userId:'',amount:'',reason:''});await loadData();}; return <div><div className="flex items-center justify-between mb-4"><h2 className="text-xl font-bold text-white">积分流水 ({filtered.length})</h2><Btn variant="secondary" onClick={loadData}>刷新</Btn></div><div className="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3"><input className="bg-slate-900 border border-slate-600 rounded p-2 text-white" placeholder="用户 UUID" value={pointForm.userId} onChange={e=>setPointForm({...pointForm,userId:e.target.value})}/><input className="bg-slate-900 border border-slate-600 rounded p-2 text-white" placeholder="积分（负数为扣减）" value={pointForm.amount} onChange={e=>setPointForm({...pointForm,amount:e.target.value})}/><input className="bg-slate-900 border border-slate-600 rounded p-2 text-white" placeholder="调整原因（必填）" value={pointForm.reason} onChange={e=>setPointForm({...pointForm,reason:e.target.value})}/><Btn onClick={adjust}>确认调整</Btn></div><SearchBar value={search} onChange={setSearch} placeholder="搜索用户、类型或原因..."/><div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden mt-4"><table className="w-full"><thead><tr className="border-b border-slate-700">{['用户','金额','类型','原因','关联ID','时间'].map(x=><th key={x} className="text-left p-4 text-xs text-slate-400">{x}</th>)}</tr></thead><tbody>{filtered.map((x:any)=><tr key={x.id} className="border-b border-slate-700/50"><td className="p-4 text-xs font-mono text-white">{String(x.user_id).slice(0,12)}</td><td className={`p-4 font-bold ${Number(x.amount)>=0?'text-green-400':'text-red-400'}`}>{Number(x.amount)>=0?'+':''}{x.amount}</td><td className="p-4 text-slate-300">{x.type}</td><td className="p-4 text-slate-300">{x.reason}</td><td className="p-4 text-xs font-mono text-slate-400">{String(x.reference_id||'-').slice(0,12)}</td><td className="p-4 text-slate-400">{fmt(x.created_at)}</td></tr>)}</tbody></table></div></div>; }
 
   if (sub === 'invites') {
     return (
@@ -175,7 +149,7 @@ export default function UserCenterPage({ sub }: { sub: string }) {
                 <td className="p-4 text-sm text-slate-300 font-mono">{inv.inviter_id?.slice(0,12)}</td>
                 <td className="p-4 text-sm text-slate-300">{inv.invited_email || inv.invited_phone || '-'}</td>
                 <td className="p-4"><span className={`px-2 py-1 rounded text-xs ${stBadge(inv.status||'pending')}`}>{inv.status||'pending'}</span></td>
-                <td className="p-4 text-sm">{inv.reward_given ? <span className="text-green-400">¥{inv.reward_amount}</span> : <span className="text-slate-400">未发放</span>}</td>
+                <td className="p-4 text-sm">{inv.reward_given ? <span className="text-green-400">{inv.reward_amount} · {inv.status}</span> : <span className="text-slate-400">未发放</span>}</td>
                 <td className="p-4 text-sm text-slate-400">{fmt(inv.created_at)}</td>
                 <td className="p-4 text-sm text-slate-400">{fmt(inv.registered_at)}</td>
               </tr>

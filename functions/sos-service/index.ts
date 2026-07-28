@@ -45,6 +45,8 @@ async function authPrincipal(
   supabaseAdmin: any,
   req: Request,
 ): Promise<{ kind: 'service' } | { kind: 'user'; userId: string; admin: boolean } | null> {
+  const cronSecret = req.headers.get('x-cron-secret') || '';
+  if (cronSecret && cronSecret === (Deno.env.get('CRON_SECRET') || '___no_cron_secret___')) return { kind: 'service' };
   const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
   if (!token) return null;
   if (token === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '___no_service_key___')) return { kind: 'service' };
@@ -53,8 +55,8 @@ async function authPrincipal(
   let admin = false;
   try {
     const { data: row } = await supabaseAdmin
-      .from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle();
-    admin = !!row;
+      .from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
+    admin = !!row && row.role !== 'viewer';
   } catch { admin = false; }
   return { kind: 'user', userId: user.id, admin };
 }
@@ -113,8 +115,6 @@ Deno.serve(async (req) => {
         return await notifyFamilyEndpoint(supabaseAdmin, req, principal);
       case 'notify-rescuers':
         return await notifyRescuersEndpoint(supabaseAdmin, req, principal);
-      case 'get-nearby':
-        return await getNearbySOS(supabaseAdmin, req, principal);
       case 'analyze-situation':
         return await analyzeSituation(supabaseAdmin, req, principal);
       default:
@@ -134,10 +134,17 @@ Deno.serve(async (req) => {
 async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
-    const { triggerMethod, latitude, longitude, address } = body;
+    const { triggerMethod, latitude, longitude, address, city, country } = body;
     // 用真实身份触发自己的 SOS；service_role 内部调用可指定 body.userId
     const userId = principal.kind === 'service' ? body.userId : principal.userId;
     if (!userId) return unauthorized('no user');
+    const safeTriggerMethod = ['manual', 'auto', 'voice'].includes(triggerMethod) ? triggerMethod : 'manual';
+    const lat = latitude == null ? null : Number(latitude);
+    const lng = longitude == null ? null : Number(longitude);
+    if ((lat != null && (!Number.isFinite(lat) || lat < -90 || lat > 90)) ||
+        (lng != null && (!Number.isFinite(lng) || lng < -180 || lng > 180))) {
+      return new Response(JSON.stringify({ error: 'Invalid coordinates' }), { status: 400, headers: corsHeaders });
+    }
 
     const { data: existingSOS } = await supabaseAdmin
       .from('sos_records')
@@ -156,7 +163,7 @@ async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
 
     const { data: emergencyProfile } = await supabaseAdmin
       .from('profiles')
-      .select('nickname,birth_date,gender,language,blood_type,allergies,medical_history,current_medication,medical_notes,emergency_contact_name,emergency_contact_phone,emergency_contact_relation')
+      .select('nickname,email,phone,birth_date,gender,language,blood_type,allergies,medical_history,current_medication,medical_notes,emergency_contact_name,emergency_contact_phone,emergency_contact_relation')
       .eq('id', userId)
       .maybeSingle();
     const medicalSnapshot = emergencyProfile ? JSON.stringify({
@@ -181,12 +188,14 @@ async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
       .from('sos_records')
       .insert({
         user_id: userId,
-        trigger_method: triggerMethod || 'manual',
+        trigger_method: safeTriggerMethod,
         status: 'active',
         stage: 1,
-        latitude,
-        longitude,
+        latitude: lat,
+        longitude: lng,
         address,
+        city: city || null,
+        country: country || null,
         notes: medicalSnapshot,
       })
       .select()
@@ -194,9 +203,35 @@ async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
 
     if (error) throw error;
 
-    await notifyFamilyInternal(supabaseAdmin, userId, sos.id);
-    await notifyRescuersInternal(supabaseAdmin, sos.id, latitude, longitude);
-    await notifyEmergencyContact(supabaseAdmin, userId, sos, latitude, longitude, address);
+    const { data: organizations } = await supabaseAdmin.from('rescue_organizations')
+      .select('name,phone,email,city,country').eq('is_active', true).limit(100);
+    const matchedOrg = (organizations || []).find((org: any) => city && org.city?.toLowerCase() === String(city).toLowerCase())
+      || (organizations || []).find((org: any) => country && org.country?.toLowerCase() === String(country).toLowerCase())
+      || (organizations || []).find((org: any) => org.country === 'International');
+
+    const { error: queueError } = await supabaseAdmin.from('rescue_pending').insert({
+      sos_id: sos.id,
+      user_id: userId,
+      status: 'pending',
+      priority: 1,
+      user_phone: emergencyProfile?.phone || null,
+      user_email: emergencyProfile?.email || null,
+      latitude: lat,
+      longitude: lng,
+      address: address || null,
+      rescue_org_name: matchedOrg?.name || null,
+      rescue_org_phone: matchedOrg?.phone || null,
+      rescue_org_email: matchedOrg?.email || null,
+      alert_context: { stage: 1, trigger_method: safeTriggerMethod },
+      admin_notified_at: new Date().toISOString(),
+    });
+    if (queueError) {
+      await supabaseAdmin.from('sos_records').delete().eq('id', sos.id);
+      throw new Error(`Failed to create rescue queue item: ${queueError.message}`);
+    }
+
+    await notifyRescuersInternal(supabaseAdmin, sos.id, lat ?? undefined, lng ?? undefined);
+    await notifyEmergencyContact(supabaseAdmin, userId, sos, lat ?? undefined, lng ?? undefined, address);
 
     // 先查询用户所属的家庭组
     const { data: memberData } = await supabaseAdmin
@@ -216,6 +251,7 @@ async function triggerSOS(supabaseAdmin: any, req: Request, principal: any) {
     }
 
     if (familySettings?.sos_sync_enabled) {
+      await notifyFamilyInternal(supabaseAdmin, userId, sos.id);
       await broadcastToFamily(supabaseAdmin, userId, sos.id);
     }
 
@@ -263,8 +299,18 @@ async function cancelSOS(supabaseAdmin: any, req: Request, principal: any) {
 
     await supabaseAdmin
       .from('sos_records')
-      .update({ status: 'cancelled' })
+      .update({ status: 'cancelled', confirmed_at: new Date().toISOString() })
       .eq('id', sosId);
+
+    await supabaseAdmin
+      .from('mutual_aid_responses')
+      .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+      .eq('sos_id', sosId)
+      .in('status', ['responding', 'arrived']);
+
+    await supabaseAdmin.from('rescue_pending')
+      .update({ status: 'dismissed', admin_notes: 'SOS cancelled by requester' })
+      .eq('sos_id', sosId).in('status', ['pending', 'processing', 'urgent']);
 
     await supabaseAdmin
       .from('notifications')
@@ -308,19 +354,39 @@ async function resolveSOS(supabaseAdmin: any, req: Request, principal: any) {
 
     // 解救一般由后台管理员操作；也允许 SOS 本人标记自己安全
     if (!canActOnSos(principal, sos)) return forbidden();
+    if (sos.status !== 'active') {
+      return new Response(JSON.stringify({ error: 'SOS is already closed' }), { status: 409, headers: corsHeaders });
+    }
 
-    await supabaseAdmin
-      .from('sos_records')
-      .update({
-        status: 'rescued',
-        confirmed_at: new Date().toISOString(), // 修复：sos_records 表列名是 confirmed_at（原写 resolved_at 不存在）
-      })
-      .eq('id', sosId);
-
-    await supabaseAdmin
+    const { data: verifiedHelpers } = await supabaseAdmin
       .from('mutual_aid_responses')
-      .update({ status: 'completed' })
-      .eq('sos_id', sosId);
+      .select('id,responder_id,status,reward_granted_at')
+      .eq('sos_id', sosId)
+      .eq('status', 'arrived');
+
+    for (const helper of verifiedHelpers || []) {
+      if (!helper.reward_granted_at) {
+        const { error: rewardError } = await supabaseAdmin.rpc('settle_mutual_aid_reward', {
+          p_response_id: helper.id,
+          p_sos_id: sosId,
+          p_points: 80,
+        });
+        if (rewardError) throw new Error(`Failed to settle helper reward: ${rewardError.message}`);
+      }
+    }
+
+    await supabaseAdmin.from('mutual_aid_responses').update({ status: 'completed', completed_at: new Date().toISOString() })
+      .eq('sos_id', sosId).in('status', ['responding', 'arrived']);
+
+    await supabaseAdmin.from('sos_records').update({
+      status: 'rescued',
+      confirmed_at: new Date().toISOString(),
+      confirmed_by: principal.kind === 'user' ? principal.userId : null,
+    }).eq('id', sosId).eq('status', 'active');
+
+    await supabaseAdmin.from('rescue_pending')
+      .update({ status: 'completed', admin_processed_at: new Date().toISOString() })
+      .eq('sos_id', sosId).in('status', ['pending', 'processing', 'urgent', 'approved']);
 
     await supabaseAdmin
       .from('notifications')
@@ -373,11 +439,20 @@ async function escalateSOS(supabaseAdmin: any, req: Request, principal: any) {
     }
 
     const newStage = Math.min(sos.stage + 1, 3);
+    if (sos.stage >= 3) {
+      return new Response(JSON.stringify({ error: 'SOS is already at maximum escalation' }), { status: 409, headers: corsHeaders });
+    }
 
     await supabaseAdmin
       .from('sos_records')
-      .update({ stage: newStage })
+      .update({ stage: newStage, stage_started_at: new Date().toISOString() })
       .eq('id', sosId);
+
+    await supabaseAdmin.from('rescue_pending').update({
+      status: newStage >= 2 ? 'urgent' : 'processing',
+      priority: newStage,
+      alert_context: { stage: newStage, escalated_at: new Date().toISOString() },
+    }).eq('sos_id', sosId).in('status', ['pending', 'processing', 'urgent']);
 
     const stageMessages: Record<number, string> = {
       2: 'SOS escalated to Stage 2: emergency contact called & nearby responders alerted',
@@ -435,6 +510,8 @@ async function notifyFamilyEndpoint(supabaseAdmin: any, req: Request, principal:
     // 只能通知"自己的"家庭组；service_role 可指定 body.userId
     const userId = principal.kind === 'service' ? body.userId : principal.userId;
     if (!userId) return unauthorized('no user');
+    const { data: sosOwn } = await supabaseAdmin.from('sos_records').select('user_id,status').eq('id', sosId).maybeSingle();
+    if (!sosOwn || sosOwn.user_id !== userId || sosOwn.status !== 'active') return forbidden('SOS does not belong to this user');
     return await notifyFamilyInternal(supabaseAdmin, userId, sosId);
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -527,12 +604,14 @@ async function notifyFamilyInternal(supabaseAdmin: any, userId: string, sosId: s
 async function notifyRescuersInternal(supabaseAdmin: any, sosId: string, latitude?: number, longitude?: number) {
   try {
 
+    const { data: sosOwner } = await supabaseAdmin.from('sos_records').select('user_id').eq('id', sosId).maybeSingle();
+
     const { data: subscribers } = await supabaseAdmin
       .from('mutual_aid_subscriptions')
       .select('user_id, radius_km')
       .eq('is_active', true);
 
-    let targetIds: string[] = (subscribers || []).map((s: any) => s.user_id);
+    let targetIds: string[] = (subscribers || []).map((s: any) => s.user_id).filter((id: string) => id !== sosOwner?.user_id);
 
     // 地理过滤：按每个互助者“自己设置的半径”通知（与 getNearbySOS 的可见范围一致，
     // 避免“推送了却在列表里看不到”的死推送）；无 SOS 坐标时退回通知全部活跃订阅者。
@@ -623,45 +702,6 @@ async function notifyEmergencyContact(
   }
 }
 
-async function getNearbySOS(supabaseAdmin: any, req: Request, _principal: any) {
-  // 鉴权已在路由层完成（必须登录）——堵住"任何人拉取所有活跃 SOS 位置/昵称"的隐私泄露
-  try {
-    const url = new URL(req.url);
-    const latitude = parseFloat(url.searchParams.get('lat') || '0');
-    const longitude = parseFloat(url.searchParams.get('lng') || '0');
-    const radius = parseFloat(url.searchParams.get('radius') || '1');
-
-    const { data: activeSOS } = await supabaseAdmin
-      .from('sos_records')
-      .select('*, profiles(nickname)')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-
-    const nearbySOS = (activeSOS || [])
-      .filter((sos: any) => {
-        if (!sos.latitude || !sos.longitude) return false;
-        const distance = calculateDistance(latitude, longitude, sos.latitude, sos.longitude);
-        return distance <= radius;
-      })
-      .map((sos: any) => ({
-        ...sos,
-        distance: calculateDistance(latitude, longitude, sos.latitude, sos.longitude),
-      }))
-      .sort((a: any, b: any) => a.distance - b.distance);
-
-    return new Response(JSON.stringify({
-      success: true,
-      count: nearbySOS.length,
-      sos: nearbySOS,
-    }), { headers: corsHeaders });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: corsHeaders,
-    });
-  }
-}
-
 async function analyzeSituation(supabaseAdmin: any, req: Request, principal: any) {
   try {
     const body = await req.json();
@@ -685,6 +725,7 @@ async function analyzeSituation(supabaseAdmin: any, req: Request, principal: any
     const { data: nearbyAlerts } = await supabaseAdmin
       .from('alerts')
       .select('*')
+      .eq('is_verified', true)
       .is('end_time', null) // 活跃预警 = end_time IS NULL（修复：is_active 列不存在，与预警管线一致）
       .order('created_at', { ascending: false })
       .limit(5);

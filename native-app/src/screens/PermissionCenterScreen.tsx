@@ -61,8 +61,17 @@ export function PermissionCenterScreen({ navigation }: Props) {
   useEffect(() => { void refresh(); }, [refresh]);
 
   const requestNotification = async () => {
-    const result = await Notifications.requestPermissionsAsync();
-    setNotification(result.status as PermissionState);
+    try {
+      const result = await Notifications.requestPermissionsAsync();
+      setNotification(result.status as PermissionState);
+      if (result.status === 'granted' && Device.isDevice) {
+        const token = await Notifications.getDevicePushTokenAsync();
+        const registered = await supabase.rpc('register_device_token', { p_token: String(token.data), p_platform: Platform.OS });
+        setPushRegistered(!registered.error);
+      }
+    } catch {
+      setPushRegistered(false);
+    }
   };
 
   const requestLocation = async () => {

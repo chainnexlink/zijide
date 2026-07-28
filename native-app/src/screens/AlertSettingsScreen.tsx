@@ -10,20 +10,24 @@ import { colors, radius, spacing } from '../theme';
 import type { RootStackParams } from '../navigation/RootNavigator';
 type Props = NativeStackScreenProps<RootStackParams, 'AlertSettings'>;
 type Settings = { monitor_radius_km: number; city: string; country: string; min_severity: 'yellow' | 'orange' | 'red'; alert_air_strike: boolean; alert_artillery: boolean; alert_conflict: boolean; alert_curfew: boolean; push_enabled: boolean; sound_enabled: boolean; vibration_enabled: boolean; flash_enabled: boolean; dnd_enabled: boolean; precise_location_enabled: boolean; background_monitor_enabled: boolean };
-const defaults: Settings = { monitor_radius_km: 30, city: '', country: '', min_severity: 'yellow', alert_air_strike: true, alert_artillery: true, alert_conflict: true, alert_curfew: true, push_enabled: true, sound_enabled: true, vibration_enabled: true, flash_enabled: true, dnd_enabled: false, precise_location_enabled: true, background_monitor_enabled: true };
+const defaults: Settings = { monitor_radius_km: 30, city: '', country: '', min_severity: 'yellow', alert_air_strike: true, alert_artillery: true, alert_conflict: true, alert_curfew: true, push_enabled: true, sound_enabled: true, vibration_enabled: true, flash_enabled: true, dnd_enabled: false, precise_location_enabled: true, background_monitor_enabled: false };
 export function AlertSettingsScreen({ navigation }: Props) {
   const [form, setForm] = useState(defaults); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
-  const load = useCallback(async () => { const { data: auth } = await supabase.auth.getUser(); if (auth.user) { const { data } = await supabase.from('user_alert_settings').select('*').eq('user_id', auth.user.id).maybeSingle(); if (data) setForm({ ...defaults, ...data }); } setLoading(false); }, []);
+  const load = useCallback(async () => { const { data: auth } = await supabase.auth.getUser(); if (auth.user) { const { data, error } = await supabase.from('user_alert_settings').select('*').eq('user_id', auth.user.id).maybeSingle(); if (error) Alert.alert('设置加载失败', '当前显示的是默认设置，请检查网络后重新进入。'); else if (data) setForm({ ...defaults, ...data }); } setLoading(false); }, []);
   useFocusEffect(useCallback(() => { void load(); }, [load]));
   const toggle = (key: keyof Settings) => setForm((current) => ({ ...current, [key]: !current[key] }));
   const toggleBackground = async (value: boolean) => {
-    if (!value) { setForm((current) => ({ ...current, background_monitor_enabled: false })); await configureBackgroundLocation(false); return; }
-    const foreground = await Location.requestForegroundPermissionsAsync();
-    if (foreground.status !== 'granted') return Alert.alert('需要定位权限', '请先允许使用 App 期间定位。');
-    const background = await Location.requestBackgroundPermissionsAsync();
-    if (background.status !== 'granted') return Alert.alert('后台定位未允许', '后台安全监控保持关闭。你可以稍后在权限中心或系统设置中授权。');
-    setForm((current) => ({ ...current, background_monitor_enabled: true }));
-    await configureBackgroundLocation(true);
+    try {
+      if (!value) { setForm((current) => ({ ...current, background_monitor_enabled: false })); await configureBackgroundLocation(false); return; }
+      const foreground = await Location.requestForegroundPermissionsAsync();
+      if (foreground.status !== 'granted') return Alert.alert('需要定位权限', '请先允许使用 App 期间定位。');
+      const background = await Location.requestBackgroundPermissionsAsync();
+      if (background.status !== 'granted') return Alert.alert('后台定位未允许', '后台安全监控保持关闭。你可以稍后在权限中心或系统设置中授权。');
+      if (!(await configureBackgroundLocation(true))) return Alert.alert('后台监控未启动', '请检查系统后台定位设置后重试。');
+      setForm((current) => ({ ...current, background_monitor_enabled: true }));
+    } catch {
+      Alert.alert('后台监控设置失败', '系统未能更新后台定位，请在权限中心重试。');
+    }
   };
   const save = async () => { setSaving(true); const { data: auth } = await supabase.auth.getUser(); const result = auth.user ? await supabase.from('user_alert_settings').upsert({ user_id: auth.user.id, ...form }, { onConflict: 'user_id' }) : { error: new Error('登录已失效') }; setSaving(false); Alert.alert(result.error ? '保存失败' : '设置已同步', result.error?.message || '新的预警规则已保存到后台'); };
   if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.danger} size="large" /></View>;

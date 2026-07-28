@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Screen } from '../components/Screen';
@@ -11,9 +11,29 @@ type Props = NativeStackScreenProps<RootStackParams, 'InviteFriends'>;
 type Referral = { id: string; created_at: string };
 export function InviteFriendsScreen({ navigation }: Props) {
   const [code, setCode] = useState(''); const [count, setCount] = useState(0); const [coupons, setCoupons] = useState(0); const [history, setHistory] = useState<Referral[]>([]); const [loading, setLoading] = useState(true);
-  const load = useCallback(async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; const [result, rows] = await Promise.all([supabase.functions.invoke('apple-iap', { body: { action: 'get-referral' } }), supabase.from('referrals').select('id,created_at').eq('referrer_id', auth.user.id).order('created_at', { ascending: false })]); if (result.data) { setCode(result.data.code || ''); setCount(result.data.referredCount || 0); setCoupons(result.data.availableCoupons || 0); } setHistory((rows.data || []) as Referral[]); setLoading(false); }, []);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data: auth, error: authError } = await supabase.auth.getUser();
+      if (authError || !auth.user) throw new Error('登录已失效，请重新登录。');
+      const [result, rows] = await Promise.all([
+        supabase.functions.invoke('apple-iap', { body: { action: 'get-referral' } }),
+        supabase.from('referrals').select('id,created_at').eq('referrer_id', auth.user.id).order('created_at', { ascending: false }),
+      ]);
+      if (result.error || result.data?.error) throw new Error(result.data?.error || result.error?.message || '推荐信息加载失败');
+      if (rows.error) throw rows.error;
+      setCode(result.data.code || '');
+      setCount(result.data.referredCount || 0);
+      setCoupons(result.data.availableCoupons || 0);
+      setHistory((rows.data || []) as Referral[]);
+    } catch (error) {
+      Alert.alert('邀请信息加载失败', error instanceof Error ? error.message : '请检查网络后重试。');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
   useEffect(() => { void load(); }, [load]);
-  const link = `https://warrescue.app/invite?code=${code}`; const message = `加入 WarRescue，让紧急预警和救援更及时。我的邀请码：${code}\n${link}`;
+  const link = `https://waralarms.com/invite?code=${code}`; const message = `加入 WarRescue，让紧急预警和救援更及时。我的邀请码：${code}\n${link}`;
   if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.info} size="large" /></View>;
   return <Screen title="邀请好友" subtitle="分享安全，也获得订阅奖励" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>} refreshing={loading} onRefresh={() => void load()}>
     <View style={styles.info}><Text style={styles.infoTitle}>邀请奖励规则</Text><Text style={styles.infoText}>每成功邀请 1 位好友注册，你会获得 1 张当月订阅 5 折券；被邀请人不获得价格优惠。优惠券不可叠加。</Text></View>

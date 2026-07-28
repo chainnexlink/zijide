@@ -23,22 +23,21 @@ export function usePushRegistration(enabled: boolean) {
     let cancelled = false;
     const register = async () => {
       const current = await Notifications.getPermissionsAsync();
-      const permission = current.status === 'granted'
-        ? current
-        : await Notifications.requestPermissionsAsync();
-      if (permission.status !== 'granted' || cancelled) return;
+      // Permission prompts must only follow an explicit user action. In particular,
+      // do not re-prompt after the user chose "暂不授权" during onboarding.
+      if (current.status !== 'granted' || cancelled) return;
 
       const nativeToken = await Notifications.getDevicePushTokenAsync();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || cancelled) return;
 
-      await supabase.from('device_tokens').upsert({
-        user_id: user.id,
-        token: String(nativeToken.data),
-        platform: Platform.OS,
-        enabled: true,
-        last_seen_at: new Date().toISOString(),
-      }, { onConflict: 'token' });
+      // The security-definer RPC atomically transfers a device token when the
+      // same physical device signs in to a different account.
+      const { error } = await supabase.rpc('register_device_token', {
+        p_token: String(nativeToken.data),
+        p_platform: Platform.OS,
+      });
+      if (error) throw error;
     };
 
     void register().catch((error) => console.warn('Push registration failed', error));
@@ -56,8 +55,9 @@ export function useAlertLocationSync(enabled: boolean) {
       const { data: settings } = await supabase.from('user_alert_settings').select('precise_location_enabled').eq('user_id', user.id).maybeSingle();
       if (settings?.precise_location_enabled === false) return;
       const permission = await Location.getForegroundPermissionsAsync();
-      const granted = permission.status === 'granted' ? permission : await Location.requestForegroundPermissionsAsync();
-      if (granted.status !== 'granted' || cancelled) return;
+      // Background synchronization observes existing permission only. Permission
+      // prompts belong to onboarding/permission center or a location feature.
+      if (permission.status !== 'granted' || cancelled) return;
       const point = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       await supabase.from('user_alert_settings').upsert({ user_id: user.id, last_latitude: point.coords.latitude, last_longitude: point.coords.longitude, location_updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
     };

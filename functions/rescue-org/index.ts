@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -103,12 +104,22 @@ serve(async (req: Request) => {
 
   try {
     const { action, country } = await req.json();
+    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+    const { data: { user } } = await admin.auth.getUser(token);
+    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { data: staff } = await admin.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
+    const readAction = action === 'list' || action === 'stats';
+    if (action === 'stats' && !staff) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!readAction && (!staff || staff.role === 'viewer')) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     switch (action) {
       case 'list': {
-        const filtered = country
-          ? RESCUE_ORG_DATABASE.filter(o => o.country === country)
-          : RESCUE_ORG_DATABASE;
+        let query = admin.from('rescue_organizations').select('*').eq('is_active', true).order('country');
+        if (country) query = query.eq('country', country);
+        const { data: stored, error } = await query;
+        if (error) throw error;
+        const filtered = stored || [];
         return new Response(JSON.stringify({
           success: true,
           total: filtered.length,
@@ -122,18 +133,25 @@ serve(async (req: Request) => {
         const targetCountry = country || 'all';
         const config = country ? { [country]: COUNTRY_CONFIG[country] } : COUNTRY_CONFIG;
 
-        // Simulate AI collection process
+        // Synchronize the reviewed built-in organization directory.
         const results: any[] = [];
         for (const [c, cfg] of Object.entries(config)) {
           if (!cfg) continue;
           const orgs = RESCUE_ORG_DATABASE.filter(o => o.country === c);
+          let added = 0; let updated = 0;
+          for (const org of orgs) {
+            const payload = { name: org.name, name_en: org.name_en, type: org.type, country: org.country, city: org.city, phone: org.phone, email: org.email, website: org.website, description: org.description, services: org.services, operating_hours: org.operating_hours, is_active: org.is_active, last_verified: new Date().toISOString() };
+            const { data: existing } = await admin.from('rescue_organizations').select('id').eq('name_en', org.name_en).eq('country', org.country).maybeSingle();
+            if (existing) { await admin.from('rescue_organizations').update(payload).eq('id', existing.id); updated++; }
+            else { await admin.from('rescue_organizations').insert(payload); added++; }
+          }
           results.push({
             country: c,
             cities_scanned: cfg.cities.length,
             sources_checked: cfg.sources.length,
             organizations_found: orgs.length,
-            new_added: 0,
-            updated: orgs.length,
+            new_added: added,
+            updated,
             status: 'success',
           });
         }
@@ -149,18 +167,22 @@ serve(async (req: Request) => {
       }
 
       case 'stats': {
+        const { data: organizations, error } = await admin.from('rescue_organizations').select('country,type,last_verified').eq('is_active', true);
+        if (error) throw error;
         const byCountry: Record<string, number> = {};
         const byType: Record<string, number> = {};
-        for (const org of RESCUE_ORG_DATABASE) {
+        let lastVerified: string | null = null;
+        for (const org of organizations || []) {
           byCountry[org.country] = (byCountry[org.country] || 0) + 1;
           byType[org.type] = (byType[org.type] || 0) + 1;
+          if (org.last_verified && (!lastVerified || org.last_verified > lastVerified)) lastVerified = org.last_verified;
         }
         return new Response(JSON.stringify({
           success: true,
-          total: RESCUE_ORG_DATABASE.length,
+          total: organizations?.length || 0,
           by_country: byCountry,
           by_type: byType,
-          last_full_scan: new Date().toISOString(),
+          last_full_scan: lastVerified,
           supported_countries: Object.keys(COUNTRY_CONFIG),
         }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }

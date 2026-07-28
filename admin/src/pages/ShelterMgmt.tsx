@@ -12,7 +12,11 @@ export default function ShelterMgmtPage({ sub }: { sub: string }) {
 
   useEffect(() => { load(); }, []);
 
-  const load = async () => { const { data } = await supabase.from('shelters').select('*').order('created_at', { ascending: false }); setShelters((data && data.length > 0) ? data : STATIC_SHELTERS as any[]); };
+  const load = async () => {
+    const { data, error } = await supabase.from('shelters').select('*').order('created_at', { ascending: false });
+    if (error) showToast('读取避难所失败: ' + error.message);
+    setShelters(data || []);
+  };
 
   const del = async (id: string) => { if (!confirm('确定删除?')) return; await supabase.from('shelters').delete().eq('id', id); showToast('已删除'); load(); };
 
@@ -159,7 +163,14 @@ function ShelterForm({ data, onClose, onSave }: { data: any; onClose: () => void
   const [f, setF] = useState({ name: data?.name||'', address: data?.address||'', city: data?.city||'', country: data?.country||'', capacity: data?.capacity?.toString()||'', status: data?.status||'open', latitude: data?.latitude?.toString()||'', longitude: data?.longitude?.toString()||'', has_water: data?.has_water||false, has_electricity: data?.has_electricity||false, has_medical: data?.has_medical||false, has_toilet: data?.has_toilet||false, has_rest_area: data?.has_rest_area||false, phone: data?.phone||'', opening_hours: data?.opening_hours||'' });
 
   const submit = async () => {
-    const payload = { name: f.name, address: f.address||null, city: f.city||null, country: f.country||null, capacity: f.capacity?parseInt(f.capacity):null, status: f.status, latitude: parseFloat(f.latitude)||0, longitude: parseFloat(f.longitude)||0, has_water: f.has_water, has_electricity: f.has_electricity, has_medical: f.has_medical, has_toilet: f.has_toilet, has_rest_area: f.has_rest_area, phone: f.phone||null, opening_hours: f.opening_hours||null };
+    const latitude = Number(f.latitude);
+    const longitude = Number(f.longitude);
+    const capacity = f.capacity === '' ? null : Number(f.capacity);
+    if (!f.name.trim()) return showToast('名称不能为空');
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) return showToast('纬度必须在 -90 到 90 之间');
+    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return showToast('经度必须在 -180 到 180 之间');
+    if (capacity !== null && (!Number.isInteger(capacity) || capacity < 0)) return showToast('容量必须是非负整数');
+    const payload = { name: f.name.trim(), address: f.address||null, city: f.city||null, country: f.country||null, capacity, status: f.status, latitude, longitude, has_water: f.has_water, has_electricity: f.has_electricity, has_medical: f.has_medical, has_toilet: f.has_toilet, has_rest_area: f.has_rest_area, phone: f.phone||null, opening_hours: f.opening_hours||null };
     if (data?.id) { const { error } = await supabase.from('shelters').update(payload).eq('id', data.id); if (!error) { showToast('已更新'); onSave(); } else showToast('失败: '+error.message); }
     else { const { error } = await supabase.from('shelters').insert(payload); if (!error) { showToast('已创建'); onSave(); } else showToast('失败: '+error.message); }
   };

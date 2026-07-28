@@ -18,20 +18,32 @@ export function SheltersScreen() {
   const [shelters, setShelters] = useState<ShelterRow[]>([]);
   const [position, setPosition] = useState<Position | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('shelters').select('id,name,address,city,country,latitude,longitude,status,capacity,current_occupancy,has_water,has_medical').limit(100);
     const online = (data || []) as ShelterRow[];
-    setShelters(error || online.length === 0 ? await readOfflineCollection<ShelterRow>('shelters') : online);
+    if (error) {
+      setShelters(await readOfflineCollection<ShelterRow>('shelters'));
+      setOffline(true);
+    } else {
+      setShelters(online);
+      setOffline(false);
+    }
   }, []);
 
   useEffect(() => {
     void load();
-    void Location.requestForegroundPermissionsAsync().then(async ({ status }) => {
-      if (status !== 'granted') return;
-      const result = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setPosition({ latitude: result.coords.latitude, longitude: result.coords.longitude });
-    });
+    void (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const result = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        setPosition({ latitude: result.coords.latitude, longitude: result.coords.longitude });
+      } catch {
+        setPosition(null);
+      }
+    })();
   }, [load]);
 
   const sorted = useMemo(() => shelters.map((shelter) => ({
@@ -42,7 +54,7 @@ export function SheltersScreen() {
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
   return (
-    <Screen title="安全地点" subtitle={position ? '已按距离排序' : '允许定位后显示距离'} refreshing={refreshing} onRefresh={refresh}>
+    <Screen title="安全地点" subtitle={offline ? '离线安全包，状态可能已变化' : position ? '已按距离排序' : '允许定位后显示距离'} refreshing={refreshing} onRefresh={refresh}>
       {sorted.map((shelter) => (
         <View key={shelter.id} style={styles.card}>
           <View style={styles.row}>

@@ -11,9 +11,29 @@ type Form = { map_type: 'standard' | 'satellite' | 'hybrid' | 'terrain'; route_p
 const defaults: Form = { map_type: 'standard', route_preference: 'safest', avoid_highways: false, avoid_tolls: false, avoid_ferries: false, distance_unit: 'km', show_danger_zones: true, show_shelters: true, show_routes: true };
 export function MapSettingsScreen({ navigation }: Props) {
   const [form, setForm] = useState(defaults); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
-  useEffect(() => { void (async () => { const cached = await AsyncStorage.getItem('map-preferences'); if (cached) setForm({ ...defaults, ...JSON.parse(cached) }); const { data: auth } = await supabase.auth.getUser(); if (auth.user) { const { data } = await supabase.from('user_preferences').select('*').eq('user_id', auth.user.id).maybeSingle(); if (data) { const next = { ...defaults, ...data }; setForm(next); await AsyncStorage.setItem('map-preferences', JSON.stringify(next)); } } setLoading(false); })(); }, []);
+  useEffect(() => { void (async () => {
+    try {
+      const cached = await AsyncStorage.getItem('map-preferences');
+      if (cached) {
+        try { setForm({ ...defaults, ...JSON.parse(cached) }); }
+        catch { await AsyncStorage.removeItem('map-preferences'); }
+      }
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user) {
+        const { data, error } = await supabase.from('user_preferences').select('*').eq('user_id', auth.user.id).maybeSingle();
+        if (error) Alert.alert('云端设置加载失败', '当前使用本机地图设置，联网后可重新进入同步。');
+        else if (data) {
+          const next = { ...defaults, ...data };
+          setForm(next);
+          await AsyncStorage.setItem('map-preferences', JSON.stringify(next));
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  })(); }, []);
   const toggle = (key: keyof Form) => setForm((c) => ({ ...c, [key]: !c[key] }));
-  const save = async () => { setSaving(true); await AsyncStorage.setItem('map-preferences', JSON.stringify(form)); const { data: auth } = await supabase.auth.getUser(); const { error } = auth.user ? await supabase.from('user_preferences').upsert({ user_id: auth.user.id, ...form, updated_at: new Date().toISOString() }, { onConflict: 'user_id' }) : { error: new Error('登录已失效') }; setSaving(false); Alert.alert(error ? '本机已保存，云端同步失败' : '地图设置已同步', error?.message); };
+  const save = async () => { setSaving(true); try { await AsyncStorage.setItem('map-preferences', JSON.stringify(form)); const { data: auth } = await supabase.auth.getUser(); const { error } = auth.user ? await supabase.from('user_preferences').upsert({ user_id: auth.user.id, ...form, updated_at: new Date().toISOString() }, { onConflict: 'user_id' }) : { error: new Error('登录已失效') }; Alert.alert(error ? '本机已保存，云端同步失败' : '地图设置已同步', error?.message); } catch { Alert.alert('保存失败', '本机存储暂时不可用，请稍后重试。'); } finally { setSaving(false); } };
   if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.info} size="large" /></View>;
   return <Screen title="地图设置" subtitle="Google Maps显示与路线偏好" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
     <View style={styles.card}><Text style={styles.title}>地图类型</Text><View style={styles.options}>{([['standard', '标准'], ['satellite', '卫星'], ['hybrid', '混合'], ['terrain', '地形']] as const).map(([value, label]) => <Choice key={value} label={label} active={form.map_type === value} onPress={() => setForm((c) => ({ ...c, map_type: value }))} />)}</View></View>

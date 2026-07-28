@@ -15,7 +15,7 @@ type Feedback = { id: string; category: string; content: string; status: string;
 export function DataPrivacyScreen({ navigation }: Props) {
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [busy, setBusy] = useState(false);
-  const load = useCallback(async () => { const { data } = await supabase.from('user_feedback').select('id,category,content,status,created_at').order('created_at', { ascending: false }).limit(20); setFeedback((data || []) as Feedback[]); }, []);
+  const load = useCallback(async () => { const { data, error } = await supabase.from('user_feedback').select('id,category,content,status,created_at').order('created_at', { ascending: false }).limit(20); if (error) Alert.alert('反馈记录加载失败', '请检查网络后下拉重试。'); else setFeedback((data || []) as Feedback[]); }, []);
   useEffect(() => { void load(); }, [load]);
 
   const exportData = async () => {
@@ -24,7 +24,7 @@ export function DataPrivacyScreen({ navigation }: Props) {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) throw new Error('登录已失效');
       const id = auth.user.id;
-      const [profile, alerts, preferences, locations, sos, points, transactions, referrals, feedbackRows] = await Promise.all([
+      const [profile, alerts, preferences, locations, sos, points, transactions, referrals, coupons, notifications, subscriptions, feedbackRows] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', id).maybeSingle(),
         supabase.from('user_alert_settings').select('*').eq('user_id', id).maybeSingle(),
         supabase.from('user_preferences').select('*').eq('user_id', id).maybeSingle(),
@@ -32,10 +32,13 @@ export function DataPrivacyScreen({ navigation }: Props) {
         supabase.from('sos_records').select('*').eq('user_id', id).order('created_at', { ascending: false }),
         supabase.from('user_points').select('*').eq('user_id', id).maybeSingle(),
         supabase.from('point_transactions').select('*').eq('user_id', id).order('created_at', { ascending: false }),
-        supabase.from('referrals').select('*').or(`referrer_id.eq.${id},referred_user_id.eq.${id}`),
+        supabase.from('referrals').select('*').or(`referrer_id.eq.${id},referee_id.eq.${id}`),
+        supabase.from('referral_coupons').select('*').eq('user_id', id),
+        supabase.from('notifications').select('*').eq('user_id', id).order('created_at', { ascending: false }),
+        supabase.from('subscriptions').select('*').eq('user_id', id),
         supabase.from('user_feedback').select('*').eq('user_id', id).order('created_at', { ascending: false }),
       ]);
-      const failed = [profile, alerts, preferences, locations, sos, points, transactions, referrals, feedbackRows].find((result) => result.error);
+      const failed = [profile, alerts, preferences, locations, sos, points, transactions, referrals, coupons, notifications, subscriptions, feedbackRows].find((result) => result.error);
       if (failed?.error) throw failed.error;
       const payload = {
         exported_at: new Date().toISOString(),
@@ -48,6 +51,9 @@ export function DataPrivacyScreen({ navigation }: Props) {
         points: points.data,
         point_transactions: transactions.data,
         referrals: referrals.data,
+        referral_coupons: coupons.data,
+        notifications: notifications.data,
+        subscriptions: subscriptions.data,
         feedback: feedbackRows.data,
       };
       const path = `${FileSystem.cacheDirectory}WarRescue-data-${new Date().toISOString().slice(0, 10)}.json`;

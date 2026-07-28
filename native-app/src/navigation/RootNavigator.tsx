@@ -24,6 +24,7 @@ import { RoutePlanScreen } from '../screens/RoutePlanScreen';
 import { ProfileEditScreen } from '../screens/ProfileEditScreen';
 import { CitySelectScreen } from '../screens/CitySelectScreen';
 import { NotificationSettingsScreen } from '../screens/NotificationSettingsScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { MapSettingsScreen } from '../screens/MapSettingsScreen';
 import { OfflineMapsScreen } from '../screens/OfflineMapsScreen';
 import { StorageSettingsScreen } from '../screens/StorageSettingsScreen';
@@ -71,6 +72,7 @@ export type RootStackParams = {
   ProfileEdit: undefined;
   CitySelect: undefined;
   NotificationSettings: undefined;
+  Notifications: undefined;
   MapSettings: undefined;
   OfflineMaps: undefined;
   StorageSettings: undefined;
@@ -134,6 +136,7 @@ export function RootNavigator() {
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
       <Stack.Screen name="CitySelect" component={CitySelectScreen} />
       <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="MapSettings" component={MapSettingsScreen} />
       <Stack.Screen name="OfflineMaps" component={OfflineMapsScreen} />
       <Stack.Screen name="StorageSettings" component={StorageSettingsScreen} />

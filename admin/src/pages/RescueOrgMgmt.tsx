@@ -41,37 +41,25 @@ export default function RescueOrgMgmtPage({ sub }: { sub: string }) {
   const [editData, setEditData] = useState<any>(null);
   const [filterCountry, setFilterCountry] = useState('all');
   const [filterType, setFilterType] = useState('all');
-  const [aiSchedule, setAiSchedule] = useState({ enabled: true, frequency: 'weekly', lastRun: '2026-04-25T03:00:00Z', nextRun: '2026-05-02T03:00:00Z' });
+  const [syncStats, setSyncStats] = useState<any>(null);
   const [collecting, setCollecting] = useState<Record<string, boolean>>({});
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    const { data } = await supabase.from('rescue_organizations').select('*').order('created_at', { ascending: false });
-    setOrgs((data && data.length > 0) ? data : STATIC_RESCUE_ORGS as any[]);
+    const [{ data, error }, statsResult] = await Promise.all([
+      supabase.from('rescue_organizations').select('*').order('created_at', { ascending: false }),
+      supabase.functions.invoke('rescue-org', { body: { action: 'stats' } }),
+    ]);
+    if (error) showToast(`读取救援组织失败: ${error.message}`);
+    setOrgs(data || []);
+    if (!statsResult.error) setSyncStats(statsResult.data);
   };
 
   const del = async (id: string) => {
     if (!confirm('确定删除该救援组织?')) return;
     await supabase.from('rescue_organizations').delete().eq('id', id);
     showToast('已删除');
-    load();
-  };
-
-  // 把内置的救援组织导入数据库（按 name_en 去重；让 DB 生成 uuid 与时间戳），之后即可在后台正常增删改
-  const seedBuiltinOrgs = async () => {
-    const { data: existing } = await supabase.from('rescue_organizations').select('name_en');
-    const have = new Set((existing || []).map((r: any) => r.name_en));
-    const toInsert = STATIC_RESCUE_ORGS.filter(o => !have.has(o.name_en)).map(o => ({
-      name: o.name, name_en: o.name_en, type: o.type, country: o.country, city: o.city,
-      phone: o.phone, email: o.email, website: o.website, services: o.services,
-      operating_hours: o.operating_hours, is_active: o.is_active, last_verified: o.last_verified,
-      description: o.description,
-    }));
-    if (toInsert.length === 0) { showToast('内置组织已全部入库'); return; }
-    const { error } = await supabase.from('rescue_organizations').insert(toInsert);
-    if (error) { showToast('导入失败: ' + error.message); return; }
-    showToast(`已导入 ${toInsert.length} 个内置救援组织`);
     load();
   };
 
@@ -147,37 +135,34 @@ export default function RescueOrgMgmtPage({ sub }: { sub: string }) {
   if (sub === 'aiSchedule') {
     return (
       <div>
-        <h2 className="text-xl font-bold text-white mb-6">AI 自动采集计划</h2>
+        <h2 className="text-xl font-bold text-white mb-6">救援组织数据同步</h2>
 
         {/* Schedule Status */}
         <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-white">每周自动采集</h3>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={aiSchedule.enabled} onChange={e => setAiSchedule({ ...aiSchedule, enabled: e.target.checked })} className="w-4 h-4 rounded" />
-              <span className="text-sm text-slate-300">{aiSchedule.enabled ? '已启用' : '已停用'}</span>
-            </label>
+            <h3 className="font-semibold text-white">数据库同步状态</h3>
+            <span className="text-sm text-slate-300">人工触发、结果实时入库</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-slate-700/30 rounded-lg">
-              <div className="text-xs text-slate-400 mb-1">采集频率</div>
-              <div className="text-lg font-bold text-white">每周一次</div>
-              <div className="text-xs text-slate-500 mt-1">周一 03:00 UTC</div>
+              <div className="text-xs text-slate-400 mb-1">同步方式</div>
+              <div className="text-lg font-bold text-white">人工触发</div>
+              <div className="text-xs text-slate-500 mt-1">避免未经审核自动发布</div>
             </div>
             <div className="p-4 bg-slate-700/30 rounded-lg">
               <div className="text-xs text-slate-400 mb-1">上次执行</div>
-              <div className="text-lg font-bold text-white">{fmt(aiSchedule.lastRun)}</div>
-              <div className="text-xs text-green-400 mt-1">成功</div>
+              <div className="text-lg font-bold text-white">{syncStats?.last_full_scan ? fmt(syncStats.last_full_scan) : '尚无记录'}</div>
+              <div className="text-xs text-green-400 mt-1">来自数据库验证时间</div>
             </div>
             <div className="p-4 bg-slate-700/30 rounded-lg">
-              <div className="text-xs text-slate-400 mb-1">下次执行</div>
-              <div className="text-lg font-bold text-white">{fmt(aiSchedule.nextRun)}</div>
-              <div className="text-xs text-blue-400 mt-1">计划中</div>
+              <div className="text-xs text-slate-400 mb-1">活跃组织</div>
+              <div className="text-lg font-bold text-white">{syncStats?.total ?? orgs.filter(o => o.is_active).length}</div>
+              <div className="text-xs text-blue-400 mt-1">实时数据库记录</div>
             </div>
             <div className="p-4 bg-slate-700/30 rounded-lg">
               <div className="text-xs text-slate-400 mb-1">覆盖国家</div>
-              <div className="text-lg font-bold text-white">8 + 国际</div>
-              <div className="text-xs text-slate-500 mt-1">全部冲突地区</div>
+              <div className="text-lg font-bold text-white">{syncStats?.supported_countries?.length ?? 0}</div>
+              <div className="text-xs text-slate-500 mt-1">受审目录支持范围</div>
             </div>
           </div>
         </div>
@@ -186,13 +171,13 @@ export default function RescueOrgMgmtPage({ sub }: { sub: string }) {
         <div className="bg-slate-800 rounded-xl border border-slate-700 p-5 mb-6">
           <h3 className="font-semibold text-white mb-4">手动触发采集</h3>
           <div className="flex gap-3 mb-4">
-            <Btn onClick={() => triggerCollect()} disabled={collecting['all']}>{collecting['all'] ? '采集中...' : 'AI 全量采集'}</Btn>
+            <Btn onClick={() => triggerCollect()} disabled={collecting['all']}>{collecting['all'] ? '同步中...' : '同步全部受审目录'}</Btn>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {['Palestine', 'Ukraine', 'Israel', 'Syria', 'Lebanon', 'Iraq', 'Yemen', 'Sudan'].map(c => (
               <button key={c} onClick={() => triggerCollect(c)} disabled={collecting[c]}
                 className={`p-3 border rounded-lg text-sm text-white transition-colors disabled:opacity-50 ${c === 'Palestine' ? 'bg-rose-600/20 hover:bg-rose-600/30 border-rose-500/30' : 'bg-slate-700/50 hover:bg-slate-700 border-slate-600'}`}>
-                {collecting[c] ? '采集中...' : c}
+                {collecting[c] ? '同步中...' : c}
               </button>
             ))}
           </div>
@@ -200,14 +185,14 @@ export default function RescueOrgMgmtPage({ sub }: { sub: string }) {
 
         {/* AI Collect Process Description */}
         <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
-          <h3 className="font-semibold text-white mb-4">采集流程说明</h3>
+          <h3 className="font-semibold text-white mb-4">同步流程说明</h3>
           <div className="space-y-3 text-sm">
             {[
-              { step: '1', title: '数据源扫描', desc: 'AI 扫描各国官方救援机构网站、红十字/红新月官网、联合国人道主义数据库等' },
-              { step: '2', title: '信息提取', desc: '提取组织名称、联系方式、服务类型、工作时间等关键信息' },
-              { step: '3', title: '数据验证', desc: 'AI 交叉验证联系方式有效性，确认组织运营状态' },
-              { step: '4', title: '更新入库', desc: '新增/更新/标记失效组织，保持数据时效性' },
-              { step: '5', title: '通知同步', desc: '更新 Android 客户端本地数据，确保离线可用' },
+              { step: '1', title: '选择范围', desc: '管理员选择全部或指定国家的受审救援组织目录' },
+              { step: '2', title: '权限校验', desc: '后端确认当前账号具备管理权限，访客与只读人员不能触发写入' },
+              { step: '3', title: '去重匹配', desc: '按国家与英文名称匹配已有组织，避免生成重复记录' },
+              { step: '4', title: '更新入库', desc: '新增或更新联系方式、服务类型、开放状态与验证时间' },
+              { step: '5', title: '客户端同步', desc: 'App 通过后台数据库读取最新救援组织，不使用管理页面的静态占位数据' },
             ].map(item => (
               <div key={item.step} className="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg">
                 <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0 text-xs font-bold">{item.step}</span>
@@ -293,7 +278,7 @@ export default function RescueOrgMgmtPage({ sub }: { sub: string }) {
         <h2 className="text-xl font-bold text-white">救援组织列表 ({orgs.length})</h2>
         <div className="flex gap-3">
           <Btn onClick={() => { setEditData(null); setShowForm(true); }}>+ 新增组织</Btn>
-          <Btn variant="secondary" onClick={seedBuiltinOrgs}>导入内置数据</Btn>
+          <Btn variant="secondary" onClick={() => triggerCollect()} disabled={collecting['all']}>{collecting['all'] ? '同步中...' : '同步受审目录'}</Btn>
           <Btn variant="secondary" onClick={load}>刷新</Btn>
         </div>
       </div>

@@ -13,9 +13,38 @@ type Form = { push_enabled: boolean; email_enabled: boolean; sms_enabled: boolea
 const defaults: Form = { push_enabled: true, email_enabled: false, sms_enabled: false, sound_enabled: true, vibration_enabled: true, flash_enabled: true, critical_alerts_enabled: true, dnd_enabled: false, dnd_start_time: '22:00', dnd_end_time: '07:00', dnd_repeat: 'daily', dnd_days: [1, 2, 3, 4, 5], timezone_offset_minutes: new Date().getTimezoneOffset() };
 export function NotificationSettingsScreen({ navigation }: Props) {
   const [form, setForm] = useState(defaults); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
-  useEffect(() => { void (async () => { const { data: auth } = await supabase.auth.getUser(); if (auth.user) { const { data } = await supabase.from('user_alert_settings').select('*').eq('user_id', auth.user.id).maybeSingle(); if (data) setForm({ ...defaults, ...data, dnd_start_time: String(data.dnd_start_time || '22:00').slice(0, 5), dnd_end_time: String(data.dnd_end_time || '07:00').slice(0, 5) }); } setLoading(false); })(); }, []);
+  useEffect(() => { void (async () => { const { data: auth } = await supabase.auth.getUser(); if (auth.user) { const { data, error } = await supabase.from('user_alert_settings').select('*').eq('user_id', auth.user.id).maybeSingle(); if (error) Alert.alert('设置加载失败', '当前显示的是默认设置，请检查网络后重新进入。'); else if (data) setForm({ ...defaults, ...data, dnd_start_time: String(data.dnd_start_time || '22:00').slice(0, 5), dnd_end_time: String(data.dnd_end_time || '07:00').slice(0, 5) }); } setLoading(false); })(); }, []);
   const toggle = (key: keyof Form) => setForm((current) => ({ ...current, [key]: !current[key] }));
-  const save = async () => { if (form.dnd_enabled && (!isValidTime(form.dnd_start_time) || !isValidTime(form.dnd_end_time))) return Alert.alert('免打扰时间无效', '请使用24小时制 HH:MM，例如 22:00。'); if (form.dnd_enabled && form.dnd_repeat === 'custom' && !form.dnd_days.length) return Alert.alert('请选择免打扰生效日期'); setSaving(true); const { data: auth } = await supabase.auth.getUser(); if (form.sms_enabled && !auth.user?.phone) { setSaving(false); return Alert.alert('尚未绑定手机号', '请先在账号安全中绑定并验证手机号。'); } if (form.email_enabled && !auth.user?.email) { setSaving(false); return Alert.alert('尚未绑定邮箱', '请先在账号安全中绑定并验证邮箱。'); } const { error } = auth.user ? await supabase.from('user_alert_settings').upsert({ user_id: auth.user.id, ...form, timezone_offset_minutes: new Date().getTimezoneOffset() }, { onConflict: 'user_id' }) : { error: new Error('登录已失效') }; if (!error && auth.user && Device.isDevice) { if (!form.push_enabled) await supabase.from('device_tokens').update({ enabled: false }).eq('user_id', auth.user.id); else { const permission = await Notifications.requestPermissionsAsync(); if (permission.status === 'granted') { const token = await Notifications.getDevicePushTokenAsync(); await supabase.from('device_tokens').upsert({ user_id: auth.user.id, token: String(token.data), platform: Platform.OS, enabled: true, last_seen_at: new Date().toISOString() }, { onConflict: 'token' }); } } } setSaving(false); Alert.alert(error ? '保存失败' : '通知设置已同步', error?.message || '后台会按新的渠道和免打扰规则发送通知'); };
+  const save = async () => {
+    if (form.dnd_enabled && (!isValidTime(form.dnd_start_time) || !isValidTime(form.dnd_end_time))) return Alert.alert('免打扰时间无效', '请使用24小时制 HH:MM，例如 22:00。');
+    if (form.dnd_enabled && form.dnd_repeat === 'custom' && !form.dnd_days.length) return Alert.alert('请选择免打扰生效日期');
+    setSaving(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      if (form.sms_enabled && !auth.user?.phone) return Alert.alert('尚未绑定手机号', '请先在账号安全中绑定并验证手机号。');
+      if (form.email_enabled && !auth.user?.email) return Alert.alert('尚未绑定邮箱', '请先在账号安全中绑定并验证邮箱。');
+      if (!auth.user) return Alert.alert('登录已失效', '请重新登录后再试。');
+      const { error } = await supabase.from('user_alert_settings').upsert({ user_id: auth.user.id, ...form, timezone_offset_minutes: new Date().getTimezoneOffset() }, { onConflict: 'user_id' });
+      if (error) return Alert.alert('保存失败', error.message);
+      if (Device.isDevice) {
+        if (!form.push_enabled) {
+          const disabled = await supabase.from('device_tokens').update({ enabled: false }).eq('user_id', auth.user.id);
+          if (disabled.error) return Alert.alert('部分保存成功', '通知规则已保存，但推送设备状态同步失败，请稍后重试。');
+        } else {
+          const permission = await Notifications.requestPermissionsAsync();
+          if (permission.status !== 'granted') return Alert.alert('设置已保存', '系统通知权限未开启，App 暂时无法接收推送。请在权限中心授权。');
+          const token = await Notifications.getDevicePushTokenAsync();
+          const registered = await supabase.rpc('register_device_token', { p_token: String(token.data), p_platform: Platform.OS });
+          if (registered.error) return Alert.alert('部分保存成功', '通知规则已保存，但推送设备注册失败，请到权限与诊断页面重新检查。');
+        }
+      }
+      Alert.alert('通知设置已同步', '后台会按新的渠道和免打扰规则发送通知');
+    } catch {
+      Alert.alert('保存失败', '系统通知服务暂时不可用，请稍后重试。');
+    } finally {
+      setSaving(false);
+    }
+  };
   if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.info} size="large" /></View>;
   return <Screen title="通知设置" subtitle="推送、短信、邮件与免打扰" action={<Pressable onPress={() => navigation.goBack()}><Text style={styles.back}>返回</Text></Pressable>}>
     <View style={styles.card}><Text style={styles.title}>通知渠道</Text><Toggle label="App推送" value={form.push_enabled} onChange={() => toggle('push_enabled')} /><Toggle label="短信通知（红色预警）" value={form.sms_enabled} onChange={() => toggle('sms_enabled')} /><Toggle label="邮件通知（红色预警）" value={form.email_enabled} onChange={() => toggle('email_enabled')} /></View>

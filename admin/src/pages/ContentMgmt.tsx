@@ -4,6 +4,7 @@ import { useAdmin, fmt, SearchBar, Btn, Modal, DetailRow } from '../App';
 export default function ContentMgmtPage({ sub }: { sub: string }) {
   const { supabase, showToast } = useAdmin();
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [news, setNews] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState<any>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -11,9 +12,12 @@ export default function ContentMgmtPage({ sub }: { sub: string }) {
   useEffect(() => { load(); }, [sub]);
 
   const load = async () => {
+    if (sub === 'news') { const { data } = await supabase.from('safety_news').select('*').order('published_at', { ascending: false }); setNews(data || []); return; }
     const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false });
     setAnnouncements(data || []);
   };
+
+  if (sub === 'news') return <NewsManager rows={news} reload={load} />;
 
   const toggle = async (id: string, active: boolean) => {
     await supabase.from('announcements').update({ is_active: active }).eq('id', id);
@@ -134,6 +138,15 @@ export default function ContentMgmtPage({ sub }: { sub: string }) {
       {showCreate && <CreateAnnouncementModal onClose={() => setShowCreate(false)} onSave={() => { setShowCreate(false); load(); }} />}
     </div>
   );
+}
+
+function NewsManager({ rows, reload }: { rows: any[]; reload: () => Promise<void> }) {
+  const { supabase, showToast } = useAdmin();
+  const [form, setForm] = useState({ title: '', summary: '', content: '', category: 'general' });
+  const publish = async () => { const id = `news-${Date.now()}`; const { error } = await supabase.from('safety_news').insert({ id, ...form, author: 'WarRescue Team', tags: [], is_published: true, published_at: new Date().toISOString() }); if (error) return showToast('发布失败: '+error.message); setForm({ title:'',summary:'',content:'',category:'general' }); showToast('资讯已发布'); await reload(); };
+  const toggle = async (row:any) => { await supabase.from('safety_news').update({ is_published: !row.is_published }).eq('id', row.id); await reload(); };
+  const remove = async (id:string) => { if (!confirm('确定删除该资讯？')) return; await supabase.from('safety_news').delete().eq('id', id); await reload(); };
+  return <div><h2 className="text-xl font-bold text-white mb-4">安全资讯管理</h2><div className="bg-slate-800 border border-slate-700 rounded-xl p-5 mb-5 grid gap-3"><input className="bg-slate-900 border border-slate-600 rounded p-3 text-white" placeholder="标题" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/><input className="bg-slate-900 border border-slate-600 rounded p-3 text-white" placeholder="摘要" value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})}/><textarea className="bg-slate-900 border border-slate-600 rounded p-3 text-white h-32" placeholder="正文（支持HTML）" value={form.content} onChange={e=>setForm({...form,content:e.target.value})}/><div className="flex gap-3"><select className="bg-slate-900 border border-slate-600 rounded p-2 text-white" value={form.category} onChange={e=>setForm({...form,category:e.target.value})}><option value="general">综合</option><option value="guide">指南</option><option value="alert">预警知识</option></select><Btn disabled={!form.title||!form.content} onClick={publish}>发布资讯</Btn></div></div><div className="space-y-3">{rows.map(row=><div key={row.id} className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex justify-between gap-4"><div><div className="text-white font-bold">{row.title}</div><div className="text-slate-400 text-sm mt-1">{row.summary}</div><div className="text-slate-500 text-xs mt-2">{row.category} · {fmt(row.published_at)} · {row.view_count||0} 次阅读</div></div><div className="flex gap-2 shrink-0"><button className="text-blue-400" onClick={()=>toggle(row)}>{row.is_published?'下架':'发布'}</button><button className="text-red-400" onClick={()=>remove(row.id)}>删除</button></div></div>)}</div></div>;
 }
 
 function CreateAnnouncementModal({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {

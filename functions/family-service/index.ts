@@ -126,36 +126,20 @@ async function createFamily(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
     const { userId, name } = body;
+    const familyName = typeof name === 'string' ? name.trim().slice(0, 50) : '';
 
     const { data: currentMembership } = await supabaseAdmin.from('family_members').select('id').eq('user_id', userId).maybeSingle();
     if (currentMembership) return new Response(JSON.stringify({ error: 'Already belongs to a family' }), { status: 400, headers: corsHeaders });
 
     const inviteCode = generateInviteCode();
 
-    const { data: family, error } = await supabaseAdmin
-      .from('family_groups')
-      .insert({
-        name: name || 'My Family',
-        invite_code: inviteCode,
-        max_members: 6,
-        location_sharing_enabled: true,
-        sos_sync_enabled: true,
-        alert_sync_enabled: true,
-      })
-      .select()
-      .single();
-
+    const { data: familyId, error } = await supabaseAdmin.rpc('create_family_secure', {
+      p_user: userId,
+      p_name: familyName || 'My Family',
+      p_invite: inviteCode,
+    });
     if (error) throw error;
-
-    await supabaseAdmin
-      .from('family_members')
-      .insert({
-        user_id: userId,
-        family_id: family.id,
-        role: 'admin',
-        is_online: true,
-        last_seen_at: new Date().toISOString(),
-      });
+    const { data: family } = await supabaseAdmin.from('family_groups').select('*').eq('id', familyId).single();
 
     return new Response(JSON.stringify({
       success: true,
@@ -197,41 +181,16 @@ async function joinFamily(supabaseAdmin: any, req: Request) {
       });
     }
 
-    const { data: existingMember } = await supabaseAdmin
-      .from('family_members')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('family_id', family.id)
-      .maybeSingle();
-
-    if (existingMember) {
-      return new Response(JSON.stringify({ error: 'Already a member' }), {
-        status: 400,
+    const { error: joinError } = await supabaseAdmin.rpc('join_family_secure', {
+      p_user: userId,
+      p_invite: inviteCode,
+    });
+    if (joinError) {
+      return new Response(JSON.stringify({ error: joinError.code === '23505' ? 'Already belongs to a family' : joinError.message }), {
+        status: 409,
         headers: corsHeaders,
       });
     }
-
-    const { count } = await supabaseAdmin
-      .from('family_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('family_id', family.id);
-
-    if (count && count >= family.max_members) {
-      return new Response(JSON.stringify({ error: 'Family is full' }), {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
-
-    await supabaseAdmin
-      .from('family_members')
-      .insert({
-        user_id: userId,
-        family_id: family.id,
-        role: 'member',
-        is_online: true,
-        last_seen_at: new Date().toISOString(),
-      });
 
     const { data: members } = await supabaseAdmin
       .from('family_members')
@@ -283,10 +242,18 @@ async function leaveFamily(supabaseAdmin: any, req: Request) {
         .limit(1);
 
       if (otherMembers && otherMembers.length > 0) {
-        await supabaseAdmin
+        const replacement = otherMembers[0];
+        const { error: promoteError } = await supabaseAdmin
           .from('family_members')
           .update({ role: 'admin' })
-          .eq('id', otherMembers[0].id);
+          .eq('id', replacement.id);
+        if (promoteError) throw promoteError;
+        const { error: groupError } = await supabaseAdmin
+          .from('family_groups')
+          .update({ admin_id: replacement.user_id })
+          .eq('id', familyId)
+          .eq('admin_id', userId);
+        if (groupError) throw groupError;
       } else {
         await supabaseAdmin
           .from('family_groups')
@@ -415,6 +382,15 @@ async function updateLocation(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
     const { userId, latitude, longitude, accuracy, batteryLevel, safetyStatus } = body;
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    const acc = accuracy == null ? null : Number(accuracy);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) {
+      return new Response(JSON.stringify({ error: 'Invalid coordinates' }), { status: 400, headers: corsHeaders });
+    }
+    if (acc !== null && (!Number.isFinite(acc) || acc < 0 || acc > 100000)) {
+      return new Response(JSON.stringify({ error: 'Invalid accuracy' }), { status: 400, headers: corsHeaders });
+    }
 
     const { data: member } = await supabaseAdmin
       .from('family_members')
@@ -445,8 +421,8 @@ async function updateLocation(supabaseAdmin: any, req: Request) {
     await supabaseAdmin
       .from('family_members')
       .update({
-        latitude,
-        longitude,
+        latitude: lat,
+        longitude: lng,
         battery_level: Number.isFinite(Number(batteryLevel)) ? Math.max(0, Math.min(100, Math.round(Number(batteryLevel)))) : null,
         safety_status: ['safe', 'attention', 'danger', 'unknown'].includes(safetyStatus) ? safetyStatus : 'unknown',
         last_seen_at: new Date().toISOString(),
@@ -459,9 +435,9 @@ async function updateLocation(supabaseAdmin: any, req: Request) {
       .insert({
         user_id: userId,
         family_id: member.family_id,
-        latitude,
-        longitude,
-        accuracy,
+        latitude: lat,
+        longitude: lng,
+        accuracy: acc,
       });
 
     return new Response(JSON.stringify({
@@ -519,7 +495,7 @@ async function getFamilyLocations(supabaseAdmin: any, req: Request) {
       .neq('user_id', userId);
 
     const locations = (members || [])
-      .filter((m: any) => m.latitude && m.longitude)
+      .filter((m: any) => m.latitude != null && m.longitude != null)
       .map((m: any) => ({
         userId: m.user_id,
         nickname: m.profiles?.nickname || 'Unknown',
@@ -561,6 +537,9 @@ async function removeMember(supabaseAdmin: any, req: Request) {
         headers: corsHeaders,
       });
     }
+    const { data: target } = await supabaseAdmin.from('family_members').select('user_id').eq('id', memberId).eq('family_id', familyId).maybeSingle();
+    if (!target) return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers: corsHeaders });
+    if (target.user_id === adminId) return new Response(JSON.stringify({ error: 'Transfer ownership or leave the family instead' }), { status: 400, headers: corsHeaders });
 
     await supabaseAdmin
       .from('family_members')
@@ -599,17 +578,39 @@ async function transferAdmin(supabaseAdmin: any, req: Request) {
       });
     }
 
-    await supabaseAdmin
+    const { data: target } = await supabaseAdmin
       .from('family_members')
-      .update({ role: 'member' })
-      .eq('user_id', currentAdminId)
-      .eq('family_id', familyId);
+      .select('id')
+      .eq('user_id', newAdminId)
+      .eq('family_id', familyId)
+      .maybeSingle();
+    if (!target || newAdminId === currentAdminId) {
+      return new Response(JSON.stringify({ error: 'New admin must be another member of this family' }), { status: 400, headers: corsHeaders });
+    }
 
-    await supabaseAdmin
+    const { error: promoteError } = await supabaseAdmin
       .from('family_members')
       .update({ role: 'admin' })
       .eq('user_id', newAdminId)
       .eq('family_id', familyId);
+    if (promoteError) throw promoteError;
+
+    const { error: groupError } = await supabaseAdmin
+      .from('family_groups')
+      .update({ admin_id: newAdminId })
+      .eq('id', familyId)
+      .eq('admin_id', currentAdminId);
+    if (groupError) {
+      await supabaseAdmin.from('family_members').update({ role: 'member' }).eq('user_id', newAdminId).eq('family_id', familyId);
+      throw groupError;
+    }
+
+    const { error: demoteError } = await supabaseAdmin
+      .from('family_members')
+      .update({ role: 'member' })
+      .eq('user_id', currentAdminId)
+      .eq('family_id', familyId);
+    if (demoteError) throw demoteError;
 
     return new Response(JSON.stringify({
       success: true,
@@ -626,7 +627,13 @@ async function transferAdmin(supabaseAdmin: any, req: Request) {
 async function syncAlertToFamily(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
-    const { userId, alertId, alertTitle, alertSeverity } = body;
+    const { userId, alertId } = body;
+    const { data: alert } = await supabaseAdmin.from('alerts')
+      .select('id,title,severity')
+      .eq('id', alertId)
+      .eq('is_verified', true)
+      .maybeSingle();
+    if (!alert) return new Response(JSON.stringify({ error: 'Verified alert not found' }), { status: 404, headers: corsHeaders });
 
     const { data: member } = await supabaseAdmin
       .from('family_members')
@@ -655,10 +662,10 @@ async function syncAlertToFamily(supabaseAdmin: any, req: Request) {
     if (familyMembers && familyMembers.length > 0) {
       const notifications = familyMembers.map((m: any) => ({
         user_id: m.user_id,
-        title: `🚨 Family Alert: ${alertTitle}`,
+        title: `🚨 Family Alert: ${alert.title}`,
         body: `Alert in your family member's area`,
         type: 'family_alert',
-        data: { alert_id: alertId, severity: alertSeverity },
+        data: { alert_id: alert.id, severity: alert.severity },
       }));
 
       await supabaseAdmin.from('notifications').insert(notifications);
@@ -677,6 +684,14 @@ async function syncSOSToFamily(supabaseAdmin: any, req: Request) {
   try {
     const body = await req.json();
     const { userId, sosId } = body;
+    const { data: sos } = await supabaseAdmin.from('sos_records')
+      .select('id,status')
+      .eq('id', sosId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (!sos || !['active', 'escalated'].includes(sos.status)) {
+      return new Response(JSON.stringify({ error: 'Active SOS not found for this user' }), { status: 404, headers: corsHeaders });
+    }
 
     const { data: member } = await supabaseAdmin
       .from('family_members')
@@ -755,9 +770,11 @@ async function notifyFamilyMembers(supabaseAdmin: any, familyId: string, exclude
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
   let code = '';
   for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(bytes[i] % chars.length);
   }
   return code;
 }

@@ -22,8 +22,8 @@ export default function SOSRescuePage({ sub }: { sub: string }) {
     // 走 sos-service 的 resolve：标记解救 + 关闭关联互助响应 + 通知求救者（直接改表会漏掉后两者）
     const { error } = await supabase.functions.invoke('sos-service', { body: { action: 'resolve', sosId: id } });
     if (error) {
-      // 边缘函数不可用时兜底：至少把状态置为已解救
-      await supabase.from('sos_records').update({ status: 'rescued', confirmed_at: new Date().toISOString() }).eq('id', id);
+      showToast('处理失败，未改变SOS状态: ' + error.message);
+      return;
     }
     showToast('已标记解救'); loadData();
   };
@@ -65,7 +65,7 @@ export default function SOSRescuePage({ sub }: { sub: string }) {
                 <DetailRow label="SOS ID" value={d.sos_id} />
                 <DetailRow label="响应者ID" value={d.responder_id} />
                 <DetailRow label="状态" value={d.status} />
-                <DetailRow label="奖励" value={d.reward_amount ? `¥${d.reward_amount}` : '-'} />
+                <DetailRow label="积分结算" value={d.reward_granted_at ? '80积分（已发放）' : '待求助者确认'} />
                 <DetailRow label="备注" value={d.notes} />
               </> : <>
                 <DetailRow label="用户ID" value={d.user_id} />
@@ -103,7 +103,7 @@ export default function SOSRescuePage({ sub }: { sub: string }) {
           </div>
           <div className="flex gap-3 mt-6 pt-4 border-t border-slate-700">
             {!isRescue && d.status === 'active' && <Btn variant="success" onClick={() => { resolveSOS(d.id); setDetail(null); }}>标记解救</Btn>}
-            {isRescue && d.status === 'pending' && <>
+            {isRescue && ['pending','processing','urgent'].includes(d.status) && <>
               <Btn variant="success" onClick={() => { approveRescue(d.id); setDetail(null); }}>批准救援</Btn>
               <Btn variant="danger" onClick={() => { dismissRescue(d.id); setDetail(null); }}>驳回</Btn>
             </>}
@@ -120,8 +120,8 @@ export default function SOSRescuePage({ sub }: { sub: string }) {
     return true;
   });
 
-  const filterOpts = sub === 'rescue' ? ['all','pending','approved','dismissed'] : sub === 'responses' ? ['all','accepted','arrived','completed'] : ['all','active','rescued','cancelled'];
-  const filterLabels: Record<string, string> = { all:'全部', pending:'待审批', approved:'已批准', dismissed:'已驳回', active:'活跃', rescued:'已解救', cancelled:'已取消', accepted:'已接受', arrived:'已到达', completed:'已完成' };
+  const filterOpts = sub === 'rescue' ? ['all','pending','processing','urgent','approved','completed','dismissed'] : sub === 'responses' ? ['all','responding','arrived','completed','cancelled'] : ['all','active','rescued','cancelled'];
+  const filterLabels: Record<string, string> = { all:'全部', pending:'待审批', processing:'处理中', urgent:'紧急', approved:'已批准', dismissed:'已驳回', active:'活跃', rescued:'已解救', cancelled:'已取消', responding:'响应中', arrived:'已到达', completed:'已完成' };
 
   return (
     <div>
@@ -138,7 +138,7 @@ export default function SOSRescuePage({ sub }: { sub: string }) {
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">ID</th>
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">{sub === 'responses' ? '响应者' : '用户'}</th>
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">{sub === 'rescue' ? '地址' : sub === 'responses' ? 'SOS ID' : '触发方式'}</th>
-          <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">{sub === 'rescue' ? '优先级' : sub === 'responses' ? '奖励' : '阶段'}</th>
+          <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">{sub === 'rescue' ? '优先级' : sub === 'responses' ? '积分结算' : '阶段'}</th>
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">状态</th>
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">时间</th>
           <th className="text-left p-4 text-xs font-medium text-slate-400 uppercase">操作</th>
@@ -148,13 +148,13 @@ export default function SOSRescuePage({ sub }: { sub: string }) {
               <td className="p-4 text-sm text-white font-mono">{item.id.slice(0,8)}</td>
               <td className="p-4 text-sm text-slate-300 font-mono">{(sub === 'responses' ? item.responder_id : item.user_id || item.user_phone)?.slice(0,12)}</td>
               <td className="p-4 text-sm text-slate-300 max-w-[150px] truncate">{sub === 'rescue' ? (item.address || '-') : sub === 'responses' ? item.sos_id?.slice(0,8) : item.trigger_method}</td>
-              <td className="p-4 text-sm">{sub === 'rescue' ? <span className={`px-2 py-1 rounded text-xs ${(item.priority||0)>=8?'bg-red-500/20 text-red-400':(item.priority||0)>=5?'bg-orange-500/20 text-orange-400':'bg-blue-500/20 text-blue-400'}`}>P{item.priority||0}</span> : sub === 'responses' ? (item.reward_amount ? `¥${item.reward_amount}` : '-') : (item.stage||1)}</td>
+              <td className="p-4 text-sm">{sub === 'rescue' ? <span className={`px-2 py-1 rounded text-xs ${(item.priority||0)>=3?'bg-red-500/20 text-red-400':(item.priority||0)>=2?'bg-orange-500/20 text-orange-400':'bg-blue-500/20 text-blue-400'}`}>P{item.priority||0}</span> : sub === 'responses' ? (item.reward_granted_at ? '80积分' : '待确认') : (item.stage||1)}</td>
               <td className="p-4"><span className={`px-2 py-1 rounded text-xs ${stBadge(item.status)}`}>{item.status}</span></td>
               <td className="p-4 text-sm text-slate-400">{fmt(item.created_at)}</td>
               <td className="p-4"><div className="flex gap-2">
                 <button onClick={() => setDetail(item)} className="p-1.5 bg-slate-700 hover:bg-slate-600 rounded text-slate-300"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
                 {sub === 'records' && item.status === 'active' && <button onClick={() => resolveSOS(item.id)} className="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs text-white">解救</button>}
-                {sub === 'rescue' && item.status === 'pending' && <>
+                {sub === 'rescue' && ['pending','processing','urgent'].includes(item.status) && <>
                   <button onClick={() => approveRescue(item.id)} className="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs text-white">批准</button>
                   <button onClick={() => dismissRescue(item.id)} className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs text-white">驳回</button>
                 </>}

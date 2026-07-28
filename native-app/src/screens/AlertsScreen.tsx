@@ -14,11 +14,19 @@ export function AlertsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,is_active').order('created_at', { ascending: false }).limit(50);
+    const { data, error } = await supabase.from('alerts').select('id,title,description,alert_type,severity,city,country,created_at,start_time,end_time,is_verified').eq('is_verified', true).is('end_time', null).order('created_at', { ascending: false }).limit(50);
     const online = (data || []) as AlertRow[];
-    setAlerts(error || online.length === 0 ? await readOfflineCollection<AlertRow>('alerts') : online);
+    if (error) {
+      const cached = await readOfflineCollection<AlertRow>('alerts');
+      setAlerts(cached.filter((item) => !item.end_time));
+      setOffline(true);
+    } else {
+      setAlerts(online);
+      setOffline(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -30,7 +38,7 @@ export function AlertsScreen() {
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
   return (
-    <Screen title="预警中心" subtitle="按时间与危险级别实时更新" refreshing={refreshing} onRefresh={refresh} action={<View style={styles.headerActions}><Pressable onPress={() => navigation.navigate('AlertHistory')}><Text style={styles.headerLink}>历史</Text></Pressable><Pressable onPress={() => navigation.navigate('AlertSettings')}><Text style={styles.headerLink}>设置</Text></Pressable></View>}>
+    <Screen title="预警中心" subtitle={offline ? '离线数据，恢复网络后请立即刷新' : '按时间与危险级别实时更新'} refreshing={refreshing} onRefresh={refresh} action={<View style={styles.headerActions}><Pressable onPress={() => navigation.navigate('AlertHistory')}><Text style={styles.headerLink}>历史</Text></Pressable><Pressable onPress={() => navigation.navigate('AlertSettings')}><Text style={styles.headerLink}>设置</Text></Pressable></View>}>
       {alerts.length === 0 ? <Text style={styles.empty}>暂时没有预警记录</Text> : alerts.map((alert) => {
         const tone = alert.severity === 'red' ? colors.danger : alert.severity === 'orange' ? colors.warning : colors.info;
         return (
